@@ -1,0 +1,40 @@
+name: Automated Daily Market Sync
+
+on:
+  schedule:
+    # Runs Monday to Friday at 16:30 IST (11:00 UTC) right after market settlement
+    - cron: '0 11 * * 1-5'
+  workflow_dispatch: # Allows manual trigger from GitHub UI at any time
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          pip install requests
+
+      - name: Run Auto-Sync
+        run: |
+          python auto_sync.py
+
+      - name: Commit and Push Updates
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add api/index.py authentic_dataset.json
+          if git diff --staged --quiet; then
+            echo "No market price changes detected."
+          else
+            git commit -m "chore(auto-sync): daily automated sync with live market & official NSE BhavCopy"
+            git push origin main
+          fi
