@@ -3,7 +3,6 @@ import math
 import os
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
-import numpy as np
 import requests
 
 app = FastAPI(title="AlphaBreakout Pro Scanner")
