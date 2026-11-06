@@ -747,7 +747,16 @@ async def home():
 
 @app.get("/api/scan")
 async def scan_endpoint():
-    return {"status": "success", "data": VERIFIED_BREAKOUT_DATA, "count": len(VERIFIED_BREAKOUT_DATA), "timestamp": datetime.datetime.now().isoformat()}
+    try:
+        payload = {
+            "status": "success",
+            "data": VERIFIED_BREAKOUT_DATA,
+            "count": len(VERIFIED_BREAKOUT_DATA),
+            "timestamp": datetime.datetime.now().isoformat()
+        }
+        return JSONResponse(content=payload)
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
 
 @app.get("/api/chart")
 async def chart_endpoint(symbol: str):
