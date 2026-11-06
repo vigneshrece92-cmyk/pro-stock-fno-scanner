@@ -87,6 +87,56 @@ def calculate_rsi(series, period=14):
     rs = avg_gain / avg_loss
     return round(100.0 - (100.0 / (1.0 + rs)), 1)
 
+COMPANY_NAMES = {
+    'DLF': 'DLF Ltd',
+    'MARUTI': 'Maruti Suzuki India Ltd',
+    'ICICIBANK': 'ICICI Bank Ltd',
+    'M&M': 'Mahindra & Mahindra Ltd',
+    'TITAN': 'Titan Company Ltd',
+    'TATASTEEL': 'Tata Steel Ltd',
+    'HDFCBANK': 'HDFC Bank Ltd',
+    'AXISBANK': 'Axis Bank Ltd',
+    'DIVISLAB': "Divi's Laboratories Ltd",
+    'KOTAKBANK': 'Kotak Mahindra Bank Ltd',
+    'BAJFINANCE': 'Bajaj Finance Ltd',
+    'LT': 'Larsen & Toubro Ltd',
+    'HINDALCO': 'Hindalco Industries Ltd',
+    'BHARTIARTL': 'Bharti Airtel Ltd',
+    'BAJAJ-AUTO': 'Bajaj Auto Ltd',
+    'SBIN': 'State Bank of India',
+    'BAJAJFINSV': 'Bajaj Finserv Ltd',
+    'MUTHOOTFIN': 'Muthoot Finance Ltd',
+    'SUNPHARMA': 'Sun Pharmaceutical Industries Ltd',
+    'CHOLAFIN': 'Cholamandalam Investment',
+    'CIPLA': 'Cipla Ltd',
+    'TVSMOTOR': 'TVS Motor Company Ltd',
+    'PNB': 'Punjab National Bank',
+    'HEROMOTOCO': 'Hero MotoCorp Ltd',
+    'ITC': 'ITC Ltd',
+    'GODREJPROP': 'Godrej Properties Ltd',
+    'RELIANCE': 'Reliance Industries Ltd',
+    'BANKBARODA': 'Bank of Baroda',
+    'JINDALSTEL': 'Jindal Steel & Power Ltd',
+    'EICHERMOT': 'Eicher Motors Ltd',
+    'BPCL': 'Bharat Petroleum Corp Ltd',
+    'IOC': 'Indian Oil Corp Ltd',
+    'DRREDDY': "Dr. Reddy's Laboratories Ltd",
+    'JSWSTEEL': 'JSW Steel Ltd',
+    'WIPRO': 'Wipro Ltd',
+    'TECHM': 'Tech Mahindra Ltd',
+    'GAIL': 'GAIL (India) Ltd',
+    'COFORGE': 'Coforge Ltd',
+    'BEL': 'Bharat Electronics Ltd',
+    'VEDL': 'Vedanta Ltd',
+    'NATIONALUM': 'National Aluminium Co Ltd',
+    'PERSISTENT': 'Persistent Systems Ltd',
+    'HAL': 'Hindustan Aeronautics Ltd',
+    'TATAPOWER': 'Tata Power Co Ltd',
+    'COALINDIA': 'Coal India Ltd',
+    'MOTHERSON': 'Samvardhana Motherson Ltd',
+    'BHEL': 'Bharat Heavy Electricals Ltd',
+}
+
 def get_sector(sym):
     sectors = {
         'EICHERMOT': 'Auto & Ancillary', 'MARUTI': 'Auto & Ancillary', 'HEROMOTOCO': 'Auto & Ancillary',
@@ -160,7 +210,24 @@ def scan_symbol(s, nse_options):
             stage = "PRE-BREAKOUT"
             score = 78
 
-        if cmp >= h60 * 0.992:
+        # Pattern identification including Cup & Handle Breakout
+        is_cup = False
+        if len(c) >= 40:
+            l_rim = max(h[-45:-15])
+            btm = min(l[-35:-8])
+            r_rim = max(h[-15:-3])
+            h_low = min(l[-6:-1])
+            depth = (l_rim - btm) / l_rim
+            rim_diff = abs(l_rim - r_rim) / l_rim
+            handle_ratio = (r_rim - h_low) / max((r_rim - btm), 1)
+            if 0.08 <= depth <= 0.35 and rim_diff <= 0.06 and handle_ratio <= 0.50 and cmp >= r_rim * 0.985:
+                is_cup = True
+
+        if is_cup:
+            horizon = "Weekly Holding"
+            setup_name = "Cup & Handle Breakout"
+            pattern = "Cup & Handle Accumulation"
+        elif cmp >= h60 * 0.992:
             horizon = "Monthly Holding"
             setup_name = "Multi-Month Base Breakout (Arvind Mangal)"
             pattern = "Multi-Month Base / Stage-2 Transition"
@@ -235,6 +302,7 @@ def scan_symbol(s, nse_options):
 
         return {
             "symbol": s,
+            "company_name": COMPANY_NAMES.get(s, f"{s} Ltd"),
             "cmp": round(cmp, 2),
             "resistance": round(h20, 2),
             "base_floor": round(l20, 2),
