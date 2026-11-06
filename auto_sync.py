@@ -34,12 +34,13 @@ def fetch_nse_bhavcopy():
                 content = z.read(csv_name).decode('utf-8')
                 reader = csv.DictReader(io.StringIO(content))
                 
-                options_by_symbol = {}
+                # Group options by symbol and expiry
+                raw_by_symbol = {}
                 for row in reader:
                     sym = row['TckrSymb']
                     opt_type = row['OptnTp']
-                    # Look for Call options of the active near-month expiry
                     if opt_type == 'CE':
+                        exp = row['XpryDt']
                         strike = float(row['StrkPric'])
                         cls_price = float(row['ClsPric'])
                         last_price = float(row['LastPric'])
@@ -49,10 +50,12 @@ def fetch_nse_bhavcopy():
                         lot = int(row['NewBrdLotQty'])
                         actual_price = last_price if last_price > 0 else cls_price
                         
-                        if sym not in options_by_symbol:
-                            options_by_symbol[sym] = []
-                        options_by_symbol[sym].append({
-                            'expiry': row['XpryDt'],
+                        if sym not in raw_by_symbol:
+                            raw_by_symbol[sym] = {}
+                        if exp not in raw_by_symbol[sym]:
+                            raw_by_symbol[sym][exp] = []
+                        raw_by_symbol[sym][exp].append({
+                            'expiry': exp,
                             'strike': strike,
                             'price': actual_price,
                             'spot': und_price,
@@ -61,6 +64,13 @@ def fetch_nse_bhavcopy():
                             'lot': lot,
                             'contract': row['FinInstrmNm']
                         })
+                
+                # Pick nearest expiry for each stock
+                options_by_symbol = {}
+                for sym, exp_map in raw_by_symbol.items():
+                    sorted_exp = sorted(exp_map.keys())
+                    nearest_exp = sorted_exp[0]
+                    options_by_symbol[sym] = exp_map[nearest_exp]
                 return options_by_symbol
         except Exception as e:
             continue
