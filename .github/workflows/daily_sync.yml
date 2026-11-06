@@ -2,8 +2,9 @@ name: Automated Daily Market Sync
 
 on:
   schedule:
-    # Runs Monday to Friday at 16:30 IST (11:00 UTC) right after market settlement
-    - cron: '0 11 * * 1-5'
+    # Runs every 2 hours on trading days (Monday to Friday) from 9:00 AM to 5:00 PM IST (3:30 to 11:30 UTC)
+    # Plus post-market settlement sync at 16:30 IST (11:00 UTC)
+    - cron: '30 3,5,7,9,11 * * 1-5'
   workflow_dispatch: # Allows manual trigger from GitHub UI at any time
 
 jobs:

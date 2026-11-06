@@ -204,14 +204,17 @@ HTML_PAGE = """<!DOCTYPE html>
             document.getElementById('syncTime').innerText = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) + ' IST';
         }
 
-        function setHorizon(horizon) {
+        function setHorizon(horizon, btnElement) {
             activeHorizon = horizon;
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.classList.remove('bg-emerald-500', 'text-black');
                 btn.classList.add('text-slate-300', 'hover:bg-slate-800');
             });
-            event.target.classList.remove('text-slate-300', 'hover:bg-slate-800');
-            event.target.classList.add('bg-emerald-500', 'text-black');
+            const targetBtn = btnElement || (typeof event !== 'undefined' && event ? event.currentTarget || event.target : null);
+            if (targetBtn && targetBtn.classList) {
+                targetBtn.classList.remove('text-slate-300', 'hover:bg-slate-800');
+                targetBtn.classList.add('bg-emerald-500', 'text-black');
+            }
             applyFilters();
         }
 
@@ -356,9 +359,11 @@ HTML_PAGE = """<!DOCTYPE html>
 
         async function scanNow() {
             const icon = document.getElementById('scanIcon');
-            icon.classList.add('animate-spin');
+            const btn = document.getElementById('scanBtn');
+            if (icon) icon.classList.add('animate-spin');
+            if (btn) btn.disabled = true;
             try {
-                const res = await fetch('/api/scan');
+                const res = await fetch('/api/scan?t=' + Date.now());
                 const json = await res.json();
                 if (json.data && json.data.length > 0) {
                     fullData = json.data;
@@ -368,7 +373,8 @@ HTML_PAGE = """<!DOCTYPE html>
             } catch (e) {
                 console.log('Error fetching scan:', e);
             } finally {
-                icon.classList.remove('animate-spin');
+                if (icon) icon.classList.remove('animate-spin');
+                if (btn) btn.disabled = false;
                 updateTime();
             }
         }
