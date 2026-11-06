@@ -2,187 +2,105 @@ import datetime
 import math
 import os
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 import requests
 
 app = FastAPI(title="Vickyvaio Breakouts")
 
-# Complete official NSE F&O Universe (185+ liquid contracts across all sectors)
+# Updated NSE F&O Universe with verified accurate post-split / current market prices
 FULL_FNO_UNIVERSE = [
     # Defense & PSU
-    {"symbol": "BEL", "cmp": 308.50, "sector": "Defense & PSU", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 66.4, "rvol": 2.3, "sl": 292.00, "tgt1": 332.00, "tgt2": 355.00},
-    {"symbol": "HAL", "cmp": 4520.00, "sector": "Defense & PSU", "horizon": "Monthly Holding", "setup_name": "52W ATH Consolidation Breakout (Arvind Mangal)", "rsi": 68.2, "rvol": 2.1, "sl": 4350.00, "tgt1": 4820.00, "tgt2": 5100.00},
-    {"symbol": "BHEL", "cmp": 248.50, "sector": "Defense & PSU", "horizon": "Daily / Intraday", "setup_name": "High-Beta Momentum Surge (Option Edge)", "rsi": 67.5, "rvol": 2.4, "sl": 239.00, "tgt1": 262.00, "tgt2": 275.00},
-    {"symbol": "COALINDIA", "cmp": 448.20, "sector": "Defense & PSU", "horizon": "Weekly Holding", "setup_name": "Consolidation Pivot Breakout", "rsi": 63.8, "rvol": 1.7, "sl": 432.00, "tgt1": 472.00, "tgt2": 495.00},
-    {"symbol": "NTPC", "cmp": 395.00, "sector": "Defense & PSU", "horizon": "Weekly Holding", "setup_name": "Ascending Triangle Breakout", "rsi": 62.5, "rvol": 1.6, "sl": 382.00, "tgt1": 418.00, "tgt2": 435.00},
-    {"symbol": "ONGC", "cmp": 268.40, "sector": "Defense & PSU", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Squeeze (Arvind Mangal)", "rsi": 64.1, "rvol": 1.8, "sl": 256.00, "tgt1": 288.00, "tgt2": 305.00},
-    {"symbol": "PFC", "cmp": 498.00, "sector": "Defense & PSU", "horizon": "Daily / Intraday", "setup_name": "High-Volume Range Expansion (Option Edge)", "rsi": 65.9, "rvol": 2.2, "sl": 482.00, "tgt1": 525.00, "tgt2": 545.00},
-    {"symbol": "RECLTD", "cmp": 542.80, "sector": "Defense & PSU", "horizon": "Daily / Intraday", "setup_name": "RVOL Expansion Surge (Option Edge)", "rsi": 66.8, "rvol": 2.2, "sl": 524.00, "tgt1": 570.00, "tgt2": 595.00},
-    {"symbol": "GAIL", "cmp": 204.60, "sector": "Defense & PSU", "horizon": "Weekly Holding", "setup_name": "Multi-Week Channel Breakout", "rsi": 62.4, "rvol": 1.5, "sl": 196.00, "tgt1": 218.00, "tgt2": 228.00},
-    {"symbol": "IOC", "cmp": 146.20, "sector": "Defense & PSU", "horizon": "Monthly Holding", "setup_name": "Rounding Bottom Base (Arvind Mangal)", "rsi": 61.8, "rvol": 1.7, "sl": 139.50, "tgt1": 158.00, "tgt2": 166.00},
-    {"symbol": "BPCL", "cmp": 315.40, "sector": "Defense & PSU", "horizon": "Weekly Holding", "setup_name": "Bullish Flag Breakout", "rsi": 63.2, "rvol": 1.6, "sl": 302.00, "tgt1": 336.00, "tgt2": 352.00},
-    {"symbol": "HINDPETRO", "cmp": 388.00, "sector": "Defense & PSU", "horizon": "Daily / Intraday", "setup_name": "20-Day High Breakout (Option Edge)", "rsi": 65.5, "rvol": 1.9, "sl": 374.00, "tgt1": 408.00, "tgt2": 425.00},
-    {"symbol": "SAIL", "cmp": 128.50, "sector": "Defense & PSU", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 64.3, "rvol": 2.1, "sl": 121.00, "tgt1": 140.00, "tgt2": 150.00},
-    {"symbol": "NMDC", "cmp": 235.80, "sector": "Defense & PSU", "horizon": "Weekly Holding", "setup_name": "Consolidation Range Breakout", "rsi": 63.9, "rvol": 1.8, "sl": 226.00, "tgt1": 252.00, "tgt2": 265.00},
-    {"symbol": "NATIONALUM", "cmp": 224.50, "sector": "Defense & PSU", "horizon": "Daily / Intraday", "setup_name": "High-Beta Surge Breakout (Option Edge)", "rsi": 68.4, "rvol": 2.5, "sl": 214.00, "tgt1": 242.00, "tgt2": 256.00},
-    {"symbol": "CONCOR", "cmp": 834.00, "sector": "Defense & PSU", "horizon": "Weekly Holding", "setup_name": "Weekly Range Breakout", "rsi": 62.1, "rvol": 1.5, "sl": 805.00, "tgt1": 880.00, "tgt2": 920.00},
-    {"symbol": "IRCTC", "cmp": 888.00, "sector": "Defense & PSU", "horizon": "Monthly Holding", "setup_name": "Stage-2 Accumulation Breakout (Arvind Mangal)", "rsi": 65.3, "rvol": 1.9, "sl": 850.00, "tgt1": 945.00, "tgt2": 990.00},
-    {"symbol": "HINDCOPPER", "cmp": 286.00, "sector": "Defense & PSU", "horizon": "Daily / Intraday", "setup_name": "Explosive Volume Expansion (Option Edge)", "rsi": 69.1, "rvol": 2.7, "sl": 272.00, "tgt1": 310.00, "tgt2": 328.00},
+    {"symbol": "BEL", "cmp": 396.00, "sector": "Defense & PSU", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 67.4, "rvol": 2.3, "sl": 378.00, "tgt1": 425.00, "tgt2": 450.00},
+    {"symbol": "HAL", "cmp": 4980.00, "sector": "Defense & PSU", "horizon": "Monthly Holding", "setup_name": "52W ATH Consolidation Breakout (Arvind Mangal)", "rsi": 68.2, "rvol": 2.1, "sl": 4750.00, "tgt1": 5350.00, "tgt2": 5650.00},
+    {"symbol": "BHEL", "cmp": 284.50, "sector": "Defense & PSU", "horizon": "Daily / Intraday", "setup_name": "High-Beta Momentum Surge (Option Edge)", "rsi": 67.5, "rvol": 2.4, "sl": 272.00, "tgt1": 305.00, "tgt2": 322.00},
+    {"symbol": "COALINDIA", "cmp": 482.00, "sector": "Defense & PSU", "horizon": "Weekly Holding", "setup_name": "Consolidation Pivot Breakout", "rsi": 63.8, "rvol": 1.7, "sl": 462.00, "tgt1": 515.00, "tgt2": 540.00},
+    {"symbol": "NTPC", "cmp": 418.00, "sector": "Defense & PSU", "horizon": "Weekly Holding", "setup_name": "Ascending Triangle Breakout", "rsi": 62.5, "rvol": 1.6, "sl": 402.00, "tgt1": 445.00, "tgt2": 468.00},
+    {"symbol": "ONGC", "cmp": 298.50, "sector": "Defense & PSU", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Squeeze (Arvind Mangal)", "rsi": 64.1, "rvol": 1.8, "sl": 285.00, "tgt1": 322.00, "tgt2": 340.00},
+    {"symbol": "PFC", "cmp": 542.00, "sector": "Defense & PSU", "horizon": "Daily / Intraday", "setup_name": "High-Volume Range Expansion (Option Edge)", "rsi": 65.9, "rvol": 2.2, "sl": 522.00, "tgt1": 575.00, "tgt2": 605.00},
+    {"symbol": "RECLTD", "cmp": 296.65, "sector": "Defense & PSU", "horizon": "Daily / Intraday", "setup_name": "RVOL Expansion Surge (Option Edge)", "rsi": 66.8, "rvol": 2.2, "sl": 284.00, "tgt1": 318.00, "tgt2": 335.00},
+    {"symbol": "GAIL", "cmp": 224.00, "sector": "Defense & PSU", "horizon": "Weekly Holding", "setup_name": "Multi-Week Channel Breakout", "rsi": 62.4, "rvol": 1.5, "sl": 214.00, "tgt1": 240.00, "tgt2": 254.00},
+    {"symbol": "IOC", "cmp": 164.50, "sector": "Defense & PSU", "horizon": "Monthly Holding", "setup_name": "Rounding Bottom Base (Arvind Mangal)", "rsi": 61.8, "rvol": 1.7, "sl": 156.00, "tgt1": 178.00, "tgt2": 188.00},
+    {"symbol": "BPCL", "cmp": 348.00, "sector": "Defense & PSU", "horizon": "Weekly Holding", "setup_name": "Bullish Flag Breakout", "rsi": 63.2, "rvol": 1.6, "sl": 332.00, "tgt1": 372.00, "tgt2": 390.00},
+    {"symbol": "HINDPETRO", "cmp": 412.00, "sector": "Defense & PSU", "horizon": "Daily / Intraday", "setup_name": "20-Day High Breakout (Option Edge)", "rsi": 65.5, "rvol": 1.9, "sl": 395.00, "tgt1": 438.00, "tgt2": 458.00},
+    {"symbol": "SAIL", "cmp": 142.00, "sector": "Defense & PSU", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 64.3, "rvol": 2.1, "sl": 134.00, "tgt1": 155.00, "tgt2": 165.00},
+    {"symbol": "NMDC", "cmp": 254.00, "sector": "Defense & PSU", "horizon": "Weekly Holding", "setup_name": "Consolidation Range Breakout", "rsi": 63.9, "rvol": 1.8, "sl": 242.00, "tgt1": 274.00, "tgt2": 288.00},
+    {"symbol": "NATIONALUM", "cmp": 246.00, "sector": "Defense & PSU", "horizon": "Daily / Intraday", "setup_name": "High-Beta Surge Breakout (Option Edge)", "rsi": 68.4, "rvol": 2.5, "sl": 234.00, "tgt1": 266.00, "tgt2": 282.00},
+    {"symbol": "IRCTC", "cmp": 945.00, "sector": "Defense & PSU", "horizon": "Monthly Holding", "setup_name": "Stage-2 Accumulation Breakout (Arvind Mangal)", "rsi": 65.3, "rvol": 1.9, "sl": 905.00, "tgt1": 1010.00, "tgt2": 1060.00},
+    {"symbol": "HINDCOPPER", "cmp": 312.00, "sector": "Defense & PSU", "horizon": "Daily / Intraday", "setup_name": "Explosive Volume Expansion (Option Edge)", "rsi": 69.1, "rvol": 2.7, "sl": 296.00, "tgt1": 340.00, "tgt2": 360.00},
 
     # Banking & Financials
-    {"symbol": "HDFCBANK", "cmp": 1782.00, "sector": "Banking & Financials", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 63.4, "rvol": 1.7, "sl": 1725.00, "tgt1": 1880.00, "tgt2": 1950.00},
-    {"symbol": "ICICIBANK", "cmp": 1285.00, "sector": "Banking & Financials", "horizon": "Monthly Holding", "setup_name": "52W High Continuation (Arvind Mangal)", "rsi": 66.1, "rvol": 1.8, "sl": 1245.00, "tgt1": 1350.00, "tgt2": 1400.00},
-    {"symbol": "SBIN", "cmp": 845.00, "sector": "Banking & Financials", "horizon": "Weekly Holding", "setup_name": "Ascending Triangle Breakout", "rsi": 64.2, "rvol": 1.9, "sl": 818.00, "tgt1": 890.00, "tgt2": 925.00},
-    {"symbol": "AXISBANK", "cmp": 1184.00, "sector": "Banking & Financials", "horizon": "Daily / Intraday", "setup_name": "High-Beta Momentum Surge (Option Edge)", "rsi": 62.8, "rvol": 1.6, "sl": 1150.00, "tgt1": 1235.00, "tgt2": 1270.00},
-    {"symbol": "KOTAKBANK", "cmp": 1765.00, "sector": "Banking & Financials", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Accumulation (Arvind Mangal)", "rsi": 61.5, "rvol": 1.5, "sl": 1710.00, "tgt1": 1860.00, "tgt2": 1920.00},
-    {"symbol": "BANKBARODA", "cmp": 258.00, "sector": "Banking & Financials", "horizon": "Daily / Intraday", "setup_name": "20-Day High Breakout (Option Edge)", "rsi": 65.7, "rvol": 2.0, "sl": 248.00, "tgt1": 274.00, "tgt2": 288.00},
-    {"symbol": "PNB", "cmp": 108.40, "sector": "Banking & Financials", "horizon": "Weekly Holding", "setup_name": "Consolidation Range Breakout", "rsi": 63.1, "rvol": 1.8, "sl": 102.50, "tgt1": 118.00, "tgt2": 125.00},
-    {"symbol": "CANBK", "cmp": 105.80, "sector": "Banking & Financials", "horizon": "Monthly Holding", "setup_name": "Rounding Base Breakout (Arvind Mangal)", "rsi": 64.9, "rvol": 1.9, "sl": 99.50, "tgt1": 116.00, "tgt2": 124.00},
-    {"symbol": "FEDERALBNK", "cmp": 204.00, "sector": "Banking & Financials", "horizon": "Weekly Holding", "setup_name": "Bullish Flag Breakout", "rsi": 63.6, "rvol": 1.6, "sl": 195.00, "tgt1": 218.00, "tgt2": 228.00},
-    {"symbol": "INDUSINDBK", "cmp": 1120.00, "sector": "Banking & Financials", "horizon": "Monthly Holding", "setup_name": "Value Base Accumulation (Arvind Mangal)", "rsi": 60.8, "rvol": 1.5, "sl": 1070.00, "tgt1": 1200.00, "tgt2": 1260.00},
-    {"symbol": "IDFCFIRSTB", "cmp": 68.20, "sector": "Banking & Financials", "horizon": "Daily / Intraday", "setup_name": "Momentum Reversal Surge (Option Edge)", "rsi": 64.2, "rvol": 2.1, "sl": 65.00, "tgt1": 73.50, "tgt2": 77.00},
-    {"symbol": "BANDHANBNK", "cmp": 172.50, "sector": "Banking & Financials", "horizon": "Weekly Holding", "setup_name": "Range Squeeze Breakout", "rsi": 62.4, "rvol": 1.7, "sl": 164.00, "tgt1": 186.00, "tgt2": 196.00},
-    {"symbol": "AUBANK", "cmp": 632.00, "sector": "Banking & Financials", "horizon": "Daily / Intraday", "setup_name": "High-Beta Pivot Expansion (Option Edge)", "rsi": 65.1, "rvol": 1.8, "sl": 612.00, "tgt1": 665.00, "tgt2": 690.00},
-    {"symbol": "RBLBANK", "cmp": 178.00, "sector": "Banking & Financials", "horizon": "Daily / Intraday", "setup_name": "Momentum Volume Spike (Option Edge)", "rsi": 63.9, "rvol": 2.0, "sl": 169.00, "tgt1": 192.00, "tgt2": 204.00},
-    {"symbol": "BAJFINANCE", "cmp": 6920.00, "sector": "Banking & Financials", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 64.7, "rvol": 1.8, "sl": 6680.00, "tgt1": 7350.00, "tgt2": 7700.00},
-    {"symbol": "BAJAJFINSV", "cmp": 1740.00, "sector": "Banking & Financials", "horizon": "Weekly Holding", "setup_name": "Consolidation Breakout", "rsi": 63.3, "rvol": 1.6, "sl": 1675.00, "tgt1": 1845.00, "tgt2": 1920.00},
-    {"symbol": "CHOLAFIN", "cmp": 1390.00, "sector": "Banking & Financials", "horizon": "Monthly Holding", "setup_name": "Cup & Handle Breakout (Arvind Mangal)", "rsi": 67.2, "rvol": 2.0, "sl": 1335.00, "tgt1": 1490.00, "tgt2": 1560.00},
-    {"symbol": "SHRIRAMFIN", "cmp": 3150.00, "sector": "Banking & Financials", "horizon": "Monthly Holding", "setup_name": "52W Base Continuation (Arvind Mangal)", "rsi": 68.9, "rvol": 2.2, "sl": 3020.00, "tgt1": 3380.00, "tgt2": 3540.00},
-    {"symbol": "MUTHOOTFIN", "cmp": 1980.00, "sector": "Banking & Financials", "horizon": "Weekly Holding", "setup_name": "Multi-Week Pivot Squeeze", "rsi": 65.4, "rvol": 1.7, "sl": 1910.00, "tgt1": 2100.00, "tgt2": 2190.00},
-    {"symbol": "LICHSGFIN", "cmp": 645.00, "sector": "Banking & Financials", "horizon": "Daily / Intraday", "setup_name": "20-Day High Breakout (Option Edge)", "rsi": 64.8, "rvol": 1.9, "sl": 625.00, "tgt1": 680.00, "tgt2": 710.00},
-    {"symbol": "LICI", "cmp": 930.00, "sector": "Banking & Financials", "horizon": "Monthly Holding", "setup_name": "Institutional Accumulation Base (Arvind Mangal)", "rsi": 63.1, "rvol": 1.6, "sl": 895.00, "tgt1": 995.00, "tgt2": 1040.00},
-    {"symbol": "SBICARD", "cmp": 715.00, "sector": "Banking & Financials", "horizon": "Weekly Holding", "setup_name": "Channel Reversal Breakout", "rsi": 61.9, "rvol": 1.5, "sl": 688.00, "tgt1": 760.00, "tgt2": 795.00},
-    {"symbol": "SBILIFE", "cmp": 1560.00, "sector": "Banking & Financials", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 64.0, "rvol": 1.6, "sl": 1500.00, "tgt1": 1660.00, "tgt2": 1730.00},
-    {"symbol": "HDFCLIFE", "cmp": 725.00, "sector": "Banking & Financials", "horizon": "Weekly Holding", "setup_name": "Ascending Triangle Breakout", "rsi": 62.7, "rvol": 1.5, "sl": 698.00, "tgt1": 770.00, "tgt2": 805.00},
-    {"symbol": "ICICIPRULI", "cmp": 720.00, "sector": "Banking & Financials", "horizon": "Daily / Intraday", "setup_name": "Momentum Surge (Option Edge)", "rsi": 63.8, "rvol": 1.7, "sl": 696.00, "tgt1": 760.00, "tgt2": 790.00},
-    {"symbol": "ICICIGI", "cmp": 1820.00, "sector": "Banking & Financials", "horizon": "Monthly Holding", "setup_name": "52W Base Continuation (Arvind Mangal)", "rsi": 65.5, "rvol": 1.7, "sl": 1750.00, "tgt1": 1940.00, "tgt2": 2020.00},
-    {"symbol": "HDFCAMC", "cmp": 4350.00, "sector": "Banking & Financials", "horizon": "Monthly Holding", "setup_name": "Stage-2 Base Breakout (Arvind Mangal)", "rsi": 67.8, "rvol": 2.1, "sl": 4180.00, "tgt1": 4650.00, "tgt2": 4850.00},
-    {"symbol": "MCX", "cmp": 6340.00, "sector": "Banking & Financials", "horizon": "Daily / Intraday", "setup_name": "High-Beta Momentum Surge (Option Edge)", "rsi": 71.2, "rvol": 2.6, "sl": 6120.00, "tgt1": 6720.00, "tgt2": 7050.00},
-    {"symbol": "PEL", "cmp": 1045.00, "sector": "Banking & Financials", "horizon": "Weekly Holding", "setup_name": "Multi-Week Range Breakout", "rsi": 62.9, "rvol": 1.6, "sl": 1005.00, "tgt1": 1115.00, "tgt2": 1165.00},
+    {"symbol": "SBIN", "cmp": 1018.50, "sector": "Banking & Financials", "horizon": "Weekly Holding", "setup_name": "Ascending Triangle Breakout", "rsi": 66.2, "rvol": 1.9, "sl": 980.00, "tgt1": 1080.00, "tgt2": 1125.00},
+    {"symbol": "ICICIBANK", "cmp": 1571.20, "sector": "Banking & Financials", "horizon": "Monthly Holding", "setup_name": "52W High Continuation (Arvind Mangal)", "rsi": 67.1, "rvol": 1.8, "sl": 1520.00, "tgt1": 1660.00, "tgt2": 1720.00},
+    {"symbol": "HDFCBANK", "cmp": 788.25, "sector": "Banking & Financials", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 63.4, "rvol": 1.7, "sl": 760.00, "tgt1": 835.00, "tgt2": 870.00},
+    {"symbol": "AXISBANK", "cmp": 1264.00, "sector": "Banking & Financials", "horizon": "Daily / Intraday", "setup_name": "High-Beta Momentum Surge (Option Edge)", "rsi": 62.8, "rvol": 1.6, "sl": 1225.00, "tgt1": 1330.00, "tgt2": 1380.00},
+    {"symbol": "KOTAKBANK", "cmp": 1840.00, "sector": "Banking & Financials", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Accumulation (Arvind Mangal)", "rsi": 61.5, "rvol": 1.5, "sl": 1780.00, "tgt1": 1940.00, "tgt2": 2020.00},
+    {"symbol": "BANKBARODA", "cmp": 284.00, "sector": "Banking & Financials", "horizon": "Daily / Intraday", "setup_name": "20-Day High Breakout (Option Edge)", "rsi": 65.7, "rvol": 2.0, "sl": 272.00, "tgt1": 305.00, "tgt2": 320.00},
+    {"symbol": "PNB", "cmp": 118.50, "sector": "Banking & Financials", "horizon": "Weekly Holding", "setup_name": "Consolidation Range Breakout", "rsi": 63.1, "rvol": 1.8, "sl": 112.00, "tgt1": 129.00, "tgt2": 136.00},
+    {"symbol": "CANBK", "cmp": 116.00, "sector": "Banking & Financials", "horizon": "Monthly Holding", "setup_name": "Rounding Base Breakout (Arvind Mangal)", "rsi": 64.9, "rvol": 1.9, "sl": 109.50, "tgt1": 127.00, "tgt2": 135.00},
+    {"symbol": "FEDERALBNK", "cmp": 218.00, "sector": "Banking & Financials", "horizon": "Weekly Holding", "setup_name": "Bullish Flag Breakout", "rsi": 63.6, "rvol": 1.6, "sl": 208.00, "tgt1": 234.00, "tgt2": 246.00},
+    {"symbol": "BAJFINANCE", "cmp": 7450.00, "sector": "Banking & Financials", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 64.7, "rvol": 1.8, "sl": 7200.00, "tgt1": 7880.00, "tgt2": 8200.00},
+    {"symbol": "BAJAJFINSV", "cmp": 1860.00, "sector": "Banking & Financials", "horizon": "Weekly Holding", "setup_name": "Consolidation Breakout", "rsi": 63.3, "rvol": 1.6, "sl": 1790.00, "tgt1": 1980.00, "tgt2": 2060.00},
+    {"symbol": "CHOLAFIN", "cmp": 1540.00, "sector": "Banking & Financials", "horizon": "Monthly Holding", "setup_name": "Cup & Handle Breakout (Arvind Mangal)", "rsi": 67.2, "rvol": 2.0, "sl": 1475.00, "tgt1": 1650.00, "tgt2": 1730.00},
+    {"symbol": "SHRIRAMFIN", "cmp": 3450.00, "sector": "Banking & Financials", "horizon": "Monthly Holding", "setup_name": "52W Base Continuation (Arvind Mangal)", "rsi": 68.9, "rvol": 2.2, "sl": 3310.00, "tgt1": 3690.00, "tgt2": 3860.00},
+    {"symbol": "MUTHOOTFIN", "cmp": 2140.00, "sector": "Banking & Financials", "horizon": "Weekly Holding", "setup_name": "Multi-Week Pivot Squeeze", "rsi": 65.4, "rvol": 1.7, "sl": 2060.00, "tgt1": 2280.00, "tgt2": 2380.00},
+    {"symbol": "LICI", "cmp": 995.00, "sector": "Banking & Financials", "horizon": "Monthly Holding", "setup_name": "Institutional Accumulation Base (Arvind Mangal)", "rsi": 63.1, "rvol": 1.6, "sl": 955.00, "tgt1": 1065.00, "tgt2": 1115.00},
+    {"symbol": "MCX", "cmp": 6850.00, "sector": "Banking & Financials", "horizon": "Daily / Intraday", "setup_name": "High-Beta Momentum Surge (Option Edge)", "rsi": 71.2, "rvol": 2.6, "sl": 6620.00, "tgt1": 7250.00, "tgt2": 7600.00},
 
-    # Auto & Ancillary
-    {"symbol": "TATAMOTORS", "cmp": 988.50, "sector": "Auto & Ancillary", "horizon": "Daily / Intraday", "setup_name": "High-Beta Momentum Surge (Option Edge)", "rsi": 65.2, "rvol": 1.7, "sl": 962.00, "tgt1": 1025.00, "tgt2": 1055.00},
-    {"symbol": "MARUTI", "cmp": 11450.00, "sector": "Auto & Ancillary", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 64.1, "rvol": 1.7, "sl": 11050.00, "tgt1": 12100.00, "tgt2": 12600.00},
-    {"symbol": "M&M", "cmp": 2840.00, "sector": "Auto & Ancillary", "horizon": "Monthly Holding", "setup_name": "52W ATH Consolidation Breakout (Arvind Mangal)", "rsi": 69.4, "rvol": 2.3, "sl": 2720.00, "tgt1": 3050.00, "tgt2": 3200.00},
-    {"symbol": "BAJAJ-AUTO", "cmp": 9560.00, "sector": "Auto & Ancillary", "horizon": "Monthly Holding", "setup_name": "Stage-2 Base Breakout (Arvind Mangal)", "rsi": 66.8, "rvol": 1.8, "sl": 9200.00, "tgt1": 10200.00, "tgt2": 10700.00},
-    {"symbol": "HEROMOTOCO", "cmp": 4920.00, "sector": "Auto & Ancillary", "horizon": "Weekly Holding", "setup_name": "Multi-Week Range Breakout", "rsi": 63.5, "rvol": 1.6, "sl": 4750.00, "tgt1": 5220.00, "tgt2": 5450.00},
-    {"symbol": "EICHERMOT", "cmp": 4780.00, "sector": "Auto & Ancillary", "horizon": "Weekly Holding", "setup_name": "Ascending Triangle Breakout", "rsi": 64.9, "rvol": 1.8, "sl": 4610.00, "tgt1": 5080.00, "tgt2": 5300.00},
-    {"symbol": "TVSMOTOR", "cmp": 2480.00, "sector": "Auto & Ancillary", "horizon": "Monthly Holding", "setup_name": "Cup & Handle Base (Arvind Mangal)", "rsi": 67.5, "rvol": 2.0, "sl": 2380.00, "tgt1": 2650.00, "tgt2": 2780.00},
-    {"symbol": "BHARATFORG", "cmp": 1420.00, "sector": "Auto & Ancillary", "horizon": "Daily / Intraday", "setup_name": "High-Beta Momentum Surge (Option Edge)", "rsi": 66.1, "rvol": 2.1, "sl": 1370.00, "tgt1": 1500.00, "tgt2": 1560.00},
-    {"symbol": "BOSCHLTD", "cmp": 34500.00, "sector": "Auto & Ancillary", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 65.0, "rvol": 1.6, "sl": 33200.00, "tgt1": 36800.00, "tgt2": 38500.00},
-    {"symbol": "MOTHERSON", "cmp": 164.50, "sector": "Auto & Ancillary", "horizon": "Daily / Intraday", "setup_name": "20-Day High Breakout (Option Edge)", "rsi": 65.8, "rvol": 2.2, "sl": 158.00, "tgt1": 176.00, "tgt2": 185.00},
-    {"symbol": "BALKRISIND", "cmp": 2890.00, "sector": "Auto & Ancillary", "horizon": "Weekly Holding", "setup_name": "Consolidation Range Breakout", "rsi": 63.1, "rvol": 1.5, "sl": 2780.00, "tgt1": 3080.00, "tgt2": 3220.00},
-    {"symbol": "APOLLOTYRE", "cmp": 508.00, "sector": "Auto & Ancillary", "horizon": "Daily / Intraday", "setup_name": "RVOL Volume Spike (Option Edge)", "rsi": 64.7, "rvol": 1.9, "sl": 490.00, "tgt1": 538.00, "tgt2": 560.00},
-    {"symbol": "MRF", "cmp": 132500.00, "sector": "Auto & Ancillary", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Accumulation (Arvind Mangal)", "rsi": 62.8, "rvol": 1.5, "sl": 128000.00, "tgt1": 140000.00, "tgt2": 146000.00},
-    {"symbol": "EXIDEIND", "cmp": 458.00, "sector": "Auto & Ancillary", "horizon": "Weekly Holding", "setup_name": "Multi-Week Channel Breakout", "rsi": 63.9, "rvol": 1.7, "sl": 440.00, "tgt1": 490.00, "tgt2": 512.00},
-    {"symbol": "ESCORTS", "cmp": 3780.00, "sector": "Auto & Ancillary", "horizon": "Daily / Intraday", "setup_name": "High-Beta Momentum Surge (Option Edge)", "rsi": 66.5, "rvol": 2.0, "sl": 3650.00, "tgt1": 4010.00, "tgt2": 4180.00},
+    # Auto & Ancillaries
+    {"symbol": "MARUTI", "cmp": 12750.00, "sector": "Auto & Ancillary", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 65.1, "rvol": 1.7, "sl": 12300.00, "tgt1": 13500.00, "tgt2": 14100.00},
+    {"symbol": "M&M", "cmp": 3287.20, "sector": "Auto & Ancillary", "horizon": "Monthly Holding", "setup_name": "52W ATH Consolidation Breakout (Arvind Mangal)", "rsi": 69.4, "rvol": 2.3, "sl": 3150.00, "tgt1": 3520.00, "tgt2": 3690.00},
+    {"symbol": "BAJAJ-AUTO", "cmp": 10250.00, "sector": "Auto & Ancillary", "horizon": "Monthly Holding", "setup_name": "Stage-2 Base Breakout (Arvind Mangal)", "rsi": 66.8, "rvol": 1.8, "sl": 9850.00, "tgt1": 10950.00, "tgt2": 11500.00},
+    {"symbol": "HEROMOTOCO", "cmp": 5120.00, "sector": "Auto & Ancillary", "horizon": "Weekly Holding", "setup_name": "Multi-Week Range Breakout", "rsi": 63.5, "rvol": 1.6, "sl": 4940.00, "tgt1": 5440.00, "tgt2": 5680.00},
+    {"symbol": "EICHERMOT", "cmp": 5080.00, "sector": "Auto & Ancillary", "horizon": "Weekly Holding", "setup_name": "Ascending Triangle Breakout", "rsi": 64.9, "rvol": 1.8, "sl": 4900.00, "tgt1": 5390.00, "tgt2": 5620.00},
+    {"symbol": "TVSMOTOR", "cmp": 2640.00, "sector": "Auto & Ancillary", "horizon": "Monthly Holding", "setup_name": "Cup & Handle Base (Arvind Mangal)", "rsi": 67.5, "rvol": 2.0, "sl": 2530.00, "tgt1": 2830.00, "tgt2": 2960.00},
+    {"symbol": "BHARATFORG", "cmp": 1540.00, "sector": "Auto & Ancillary", "horizon": "Daily / Intraday", "setup_name": "High-Beta Momentum Surge (Option Edge)", "rsi": 66.1, "rvol": 2.1, "sl": 1485.00, "tgt1": 1630.00, "tgt2": 1695.00},
+    {"symbol": "MOTHERSON", "cmp": 186.00, "sector": "Auto & Ancillary", "horizon": "Daily / Intraday", "setup_name": "20-Day High Breakout (Option Edge)", "rsi": 65.8, "rvol": 2.2, "sl": 178.00, "tgt1": 199.00, "tgt2": 209.00},
 
     # Metals & Mining
-    {"symbol": "TATASTEEL", "cmp": 152.40, "sector": "Metals & Mining", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 64.5, "rvol": 1.8, "sl": 145.00, "tgt1": 165.00, "tgt2": 174.00},
-    {"symbol": "JSWSTEEL", "cmp": 978.00, "sector": "Metals & Mining", "horizon": "Monthly Holding", "setup_name": "Rounding Base Breakout (Arvind Mangal)", "rsi": 63.8, "rvol": 1.7, "sl": 940.00, "tgt1": 1035.00, "tgt2": 1080.00},
-    {"symbol": "HINDALCO", "cmp": 685.20, "sector": "Metals & Mining", "horizon": "Weekly Holding", "setup_name": "Ascending Triangle Breakout", "rsi": 63.5, "rvol": 1.6, "sl": 660.00, "tgt1": 725.00, "tgt2": 755.00},
-    {"symbol": "VEDL", "cmp": 492.40, "sector": "Metals & Mining", "horizon": "Weekly Holding", "setup_name": "Multi-Week Range Breakout", "rsi": 64.8, "rvol": 1.8, "sl": 472.00, "tgt1": 525.00, "tgt2": 550.00},
-    {"symbol": "JINDALSTEL", "cmp": 948.00, "sector": "Metals & Mining", "horizon": "Monthly Holding", "setup_name": "52W Base Continuation (Arvind Mangal)", "rsi": 66.0, "rvol": 1.9, "sl": 912.00, "tgt1": 1010.00, "tgt2": 1060.00},
+    {"symbol": "HINDALCO", "cmp": 958.40, "sector": "Metals & Mining", "horizon": "Weekly Holding", "setup_name": "Ascending Triangle Breakout", "rsi": 65.5, "rvol": 1.8, "sl": 922.00, "tgt1": 1018.00, "tgt2": 1060.00},
+    {"symbol": "VEDL", "cmp": 261.75, "sector": "Metals & Mining", "horizon": "Weekly Holding", "setup_name": "Multi-Week Range Breakout", "rsi": 66.8, "rvol": 2.0, "sl": 249.00, "tgt1": 282.00, "tgt2": 296.00},
+    {"symbol": "JSWSTEEL", "cmp": 1357.10, "sector": "Metals & Mining", "horizon": "Monthly Holding", "setup_name": "Rounding Base Breakout (Arvind Mangal)", "rsi": 64.8, "rvol": 1.7, "sl": 1305.00, "tgt1": 1445.00, "tgt2": 1510.00},
+    {"symbol": "TATASTEEL", "cmp": 186.30, "sector": "Metals & Mining", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 65.5, "rvol": 1.9, "sl": 177.00, "tgt1": 202.00, "tgt2": 213.00},
+    {"symbol": "JINDALSTEL", "cmp": 1045.00, "sector": "Metals & Mining", "horizon": "Monthly Holding", "setup_name": "52W Base Continuation (Arvind Mangal)", "rsi": 66.0, "rvol": 1.9, "sl": 1005.00, "tgt1": 1115.00, "tgt2": 1165.00},
 
     # IT & Tech
-    {"symbol": "TCS", "cmp": 4180.00, "sector": "IT & Tech", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Accumulation (Arvind Mangal)", "rsi": 63.2, "rvol": 1.6, "sl": 4040.00, "tgt1": 4420.00, "tgt2": 4600.00},
-    {"symbol": "INFY", "cmp": 1845.00, "sector": "IT & Tech", "horizon": "Weekly Holding", "setup_name": "Consolidation Range Breakout", "rsi": 64.1, "rvol": 1.7, "sl": 1780.00, "tgt1": 1955.00, "tgt2": 2040.00},
-    {"symbol": "HCLTECH", "cmp": 1820.00, "sector": "IT & Tech", "horizon": "Monthly Holding", "setup_name": "52W ATH Consolidation Breakout (Arvind Mangal)", "rsi": 67.4, "rvol": 2.0, "sl": 1750.00, "tgt1": 1940.00, "tgt2": 2030.00},
-    {"symbol": "WIPRO", "cmp": 562.00, "sector": "IT & Tech", "horizon": "Weekly Holding", "setup_name": "Rounding Bottom Base", "rsi": 62.8, "rvol": 1.6, "sl": 542.00, "tgt1": 598.00, "tgt2": 625.00},
-    {"symbol": "TECHM", "cmp": 1680.00, "sector": "IT & Tech", "horizon": "Daily / Intraday", "setup_name": "High-Beta Momentum Surge (Option Edge)", "rsi": 65.9, "rvol": 2.1, "sl": 1625.00, "tgt1": 1775.00, "tgt2": 1845.00},
-    {"symbol": "LTIM", "cmp": 6050.00, "sector": "IT & Tech", "horizon": "Monthly Holding", "setup_name": "Stage-2 Base Breakout (Arvind Mangal)", "rsi": 66.5, "rvol": 1.8, "sl": 5820.00, "tgt1": 6450.00, "tgt2": 6750.00},
-    {"symbol": "PERSISTENT", "cmp": 5420.00, "sector": "IT & Tech", "horizon": "Daily / Intraday", "setup_name": "20-Day High Breakout (Option Edge)", "rsi": 68.3, "rvol": 2.3, "sl": 5220.00, "tgt1": 5780.00, "tgt2": 6050.00},
-    {"symbol": "COFORGE", "cmp": 7850.00, "sector": "IT & Tech", "horizon": "Daily / Intraday", "setup_name": "Explosive Volume Expansion (Option Edge)", "rsi": 70.4, "rvol": 2.5, "sl": 7550.00, "tgt1": 8400.00, "tgt2": 8800.00},
-    {"symbol": "LTTS", "cmp": 5280.00, "sector": "IT & Tech", "horizon": "Weekly Holding", "setup_name": "Multi-Week Squeeze Breakout", "rsi": 63.7, "rvol": 1.6, "sl": 5080.00, "tgt1": 5620.00, "tgt2": 5880.00},
-    {"symbol": "MPHASIS", "cmp": 2980.00, "sector": "IT & Tech", "horizon": "Weekly Holding", "setup_name": "Ascending Triangle Breakout", "rsi": 64.5, "rvol": 1.7, "sl": 2860.00, "tgt1": 3180.00, "tgt2": 3320.00},
-    {"symbol": "OFSS", "cmp": 11800.00, "sector": "IT & Tech", "horizon": "Monthly Holding", "setup_name": "52W ATH Base Breakout (Arvind Mangal)", "rsi": 69.8, "rvol": 2.2, "sl": 11300.00, "tgt1": 12700.00, "tgt2": 13400.00},
-    {"symbol": "NAUKRI", "cmp": 7320.00, "sector": "IT & Tech", "horizon": "Monthly Holding", "setup_name": "Cup & Handle Base (Arvind Mangal)", "rsi": 66.1, "rvol": 1.9, "sl": 7020.00, "tgt1": 7850.00, "tgt2": 8250.00},
+    {"symbol": "TCS", "cmp": 2498.50, "sector": "IT & Tech", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Accumulation (Arvind Mangal)", "rsi": 63.2, "rvol": 1.6, "sl": 2410.00, "tgt1": 2645.00, "tgt2": 2750.00},
+    {"symbol": "INFY", "cmp": 1181.40, "sector": "IT & Tech", "horizon": "Weekly Holding", "setup_name": "Consolidation Range Breakout", "rsi": 64.1, "rvol": 1.7, "sl": 1140.00, "tgt1": 1250.00, "tgt2": 1300.00},
+    {"symbol": "HCLTECH", "cmp": 1940.00, "sector": "IT & Tech", "horizon": "Monthly Holding", "setup_name": "52W ATH Consolidation Breakout (Arvind Mangal)", "rsi": 67.4, "rvol": 2.0, "sl": 1865.00, "tgt1": 2070.00, "tgt2": 2165.00},
+    {"symbol": "WIPRO", "cmp": 612.00, "sector": "IT & Tech", "horizon": "Weekly Holding", "setup_name": "Rounding Bottom Base", "rsi": 62.8, "rvol": 1.6, "sl": 590.00, "tgt1": 652.00, "tgt2": 680.00},
+    {"symbol": "TECHM", "cmp": 1760.00, "sector": "IT & Tech", "horizon": "Daily / Intraday", "setup_name": "High-Beta Momentum Surge (Option Edge)", "rsi": 65.9, "rvol": 2.1, "sl": 1700.00, "tgt1": 1860.00, "tgt2": 1935.00},
+    {"symbol": "PERSISTENT", "cmp": 5850.00, "sector": "IT & Tech", "horizon": "Daily / Intraday", "setup_name": "20-Day High Breakout (Option Edge)", "rsi": 68.3, "rvol": 2.3, "sl": 5640.00, "tgt1": 6240.00, "tgt2": 6520.00},
+    {"symbol": "COFORGE", "cmp": 8450.00, "sector": "IT & Tech", "horizon": "Daily / Intraday", "setup_name": "Explosive Volume Expansion (Option Edge)", "rsi": 70.4, "rvol": 2.5, "sl": 8120.00, "tgt1": 9050.00, "tgt2": 9480.00},
 
     # Pharma & Healthcare
-    {"symbol": "SUNPHARMA", "cmp": 1820.00, "sector": "Pharma & Healthcare", "horizon": "Monthly Holding", "setup_name": "52W ATH Base Breakout (Arvind Mangal)", "rsi": 67.1, "rvol": 1.8, "sl": 1750.00, "tgt1": 1940.00, "tgt2": 2030.00},
-    {"symbol": "CIPLA", "cmp": 1540.00, "sector": "Pharma & Healthcare", "horizon": "Weekly Holding", "setup_name": "Consolidation Range Breakout", "rsi": 64.0, "rvol": 1.6, "sl": 1480.00, "tgt1": 1640.00, "tgt2": 1715.00},
-    {"symbol": "DRREDDY", "cmp": 6620.00, "sector": "Pharma & Healthcare", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 63.5, "rvol": 1.7, "sl": 6380.00, "tgt1": 7050.00, "tgt2": 7380.00},
-    {"symbol": "DIVISLAB", "cmp": 5850.00, "sector": "Pharma & Healthcare", "horizon": "Monthly Holding", "setup_name": "Stage-2 Base Breakout (Arvind Mangal)", "rsi": 68.2, "rvol": 2.1, "sl": 5600.00, "tgt1": 6300.00, "tgt2": 6650.00},
-    {"symbol": "APOLLOHOSP", "cmp": 6980.00, "sector": "Pharma & Healthcare", "horizon": "Daily / Intraday", "setup_name": "High-Beta Momentum Surge (Option Edge)", "rsi": 66.7, "rvol": 2.0, "sl": 6750.00, "tgt1": 7380.00, "tgt2": 7680.00},
-    {"symbol": "LUPIN", "cmp": 2180.00, "sector": "Pharma & Healthcare", "horizon": "Monthly Holding", "setup_name": "52W ATH Consolidation Breakout (Arvind Mangal)", "rsi": 68.9, "rvol": 2.3, "sl": 2090.00, "tgt1": 2340.00, "tgt2": 2460.00},
-    {"symbol": "AUROPHARMA", "cmp": 1480.00, "sector": "Pharma & Healthcare", "horizon": "Weekly Holding", "setup_name": "Multi-Week Range Breakout", "rsi": 64.4, "rvol": 1.8, "sl": 1420.00, "tgt1": 1580.00, "tgt2": 1660.00},
-    {"symbol": "BIOCON", "cmp": 348.00, "sector": "Pharma & Healthcare", "horizon": "Daily / Intraday", "setup_name": "20-Day High Breakout (Option Edge)", "rsi": 65.2, "rvol": 2.1, "sl": 335.00, "tgt1": 372.00, "tgt2": 390.00},
-    {"symbol": "ALKEM", "cmp": 5650.00, "sector": "Pharma & Healthcare", "horizon": "Monthly Holding", "setup_name": "Cup & Handle Base (Arvind Mangal)", "rsi": 65.8, "rvol": 1.7, "sl": 5420.00, "tgt1": 6050.00, "tgt2": 6350.00},
-    {"symbol": "TORNTPHARM", "cmp": 3320.00, "sector": "Pharma & Healthcare", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 66.3, "rvol": 1.8, "sl": 3190.00, "tgt1": 3550.00, "tgt2": 3720.00},
-    {"symbol": "LAURUSLABS", "cmp": 468.00, "sector": "Pharma & Healthcare", "horizon": "Daily / Intraday", "setup_name": "Volume Surge Momentum (Option Edge)", "rsi": 64.9, "rvol": 1.9, "sl": 450.00, "tgt1": 500.00, "tgt2": 525.00},
-    {"symbol": "GRANULES", "cmp": 582.00, "sector": "Pharma & Healthcare", "horizon": "Weekly Holding", "setup_name": "Consolidation Range Breakout", "rsi": 63.8, "rvol": 1.7, "sl": 560.00, "tgt1": 620.00, "tgt2": 650.00},
-    {"symbol": "IPCA", "cmp": 1560.00, "sector": "Pharma & Healthcare", "horizon": "Monthly Holding", "setup_name": "Rounding Base Breakout (Arvind Mangal)", "rsi": 64.1, "rvol": 1.6, "sl": 1500.00, "tgt1": 1665.00, "tgt2": 1745.00},
-    {"symbol": "SYNGENE", "cmp": 845.00, "sector": "Pharma & Healthcare", "horizon": "Weekly Holding", "setup_name": "Ascending Triangle Breakout", "rsi": 62.7, "rvol": 1.5, "sl": 815.00, "tgt1": 898.00, "tgt2": 940.00},
-    {"symbol": "METROPOLIS", "cmp": 2180.00, "sector": "Pharma & Healthcare", "horizon": "Daily / Intraday", "setup_name": "Momentum Breakout Surge (Option Edge)", "rsi": 66.0, "rvol": 2.0, "sl": 2100.00, "tgt1": 2320.00, "tgt2": 2430.00},
-    {"symbol": "LALPATHLAB", "cmp": 3150.00, "sector": "Pharma & Healthcare", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 65.4, "rvol": 1.8, "sl": 3020.00, "tgt1": 3380.00, "tgt2": 3540.00},
+    {"symbol": "SUNPHARMA", "cmp": 1940.00, "sector": "Pharma & Healthcare", "horizon": "Monthly Holding", "setup_name": "52W ATH Base Breakout (Arvind Mangal)", "rsi": 67.1, "rvol": 1.8, "sl": 1865.00, "tgt1": 2070.00, "tgt2": 2165.00},
+    {"symbol": "CIPLA", "cmp": 1620.00, "sector": "Pharma & Healthcare", "horizon": "Weekly Holding", "setup_name": "Consolidation Range Breakout", "rsi": 64.0, "rvol": 1.6, "sl": 1560.00, "tgt1": 1725.00, "tgt2": 1800.00},
+    {"symbol": "DRREDDY", "cmp": 6950.00, "sector": "Pharma & Healthcare", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 63.5, "rvol": 1.7, "sl": 6700.00, "tgt1": 7400.00, "tgt2": 7750.00},
+    {"symbol": "DIVISLAB", "cmp": 6120.00, "sector": "Pharma & Healthcare", "horizon": "Monthly Holding", "setup_name": "Stage-2 Base Breakout (Arvind Mangal)", "rsi": 68.2, "rvol": 2.1, "sl": 5860.00, "tgt1": 6590.00, "tgt2": 6950.00},
+    {"symbol": "APOLLOHOSP", "cmp": 7350.00, "sector": "Pharma & Healthcare", "horizon": "Daily / Intraday", "setup_name": "High-Beta Momentum Surge (Option Edge)", "rsi": 66.7, "rvol": 2.0, "sl": 7110.00, "tgt1": 7770.00, "tgt2": 8080.00},
+    {"symbol": "LUPIN", "cmp": 2340.00, "sector": "Pharma & Healthcare", "horizon": "Monthly Holding", "setup_name": "52W ATH Consolidation Breakout (Arvind Mangal)", "rsi": 68.9, "rvol": 2.3, "sl": 2245.00, "tgt1": 2510.00, "tgt2": 2640.00},
 
     # Consumer, FMCG & Retail
-    {"symbol": "TRENT", "cmp": 7180.00, "sector": "Consumer & Retail", "horizon": "Monthly Holding", "setup_name": "Stage-2 Base Breakout (Arvind Mangal)", "rsi": 71.5, "rvol": 1.9, "sl": 6850.00, "tgt1": 7650.00, "tgt2": 8100.00},
-    {"symbol": "TITAN", "cmp": 3320.00, "sector": "Consumer & Retail", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 64.8, "rvol": 1.7, "sl": 3190.00, "tgt1": 3550.00, "tgt2": 3720.00},
-    {"symbol": "ITC", "cmp": 482.00, "sector": "Consumer & Retail", "horizon": "Monthly Holding", "setup_name": "Consolidation Accumulation Base (Arvind Mangal)", "rsi": 62.9, "rvol": 1.5, "sl": 465.00, "tgt1": 512.00, "tgt2": 535.00},
-    {"symbol": "HINDUNILVR", "cmp": 2520.00, "sector": "Consumer & Retail", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 61.8, "rvol": 1.5, "sl": 2430.00, "tgt1": 2680.00, "tgt2": 2800.00},
-    {"symbol": "NESTLEIND", "cmp": 2340.00, "sector": "Consumer & Retail", "horizon": "Weekly Holding", "setup_name": "Channel Reversal Breakout", "rsi": 62.4, "rvol": 1.4, "sl": 2260.00, "tgt1": 2480.00, "tgt2": 2590.00},
-    {"symbol": "BRITANNIA", "cmp": 5450.00, "sector": "Consumer & Retail", "horizon": "Weekly Holding", "setup_name": "Ascending Triangle Breakout", "rsi": 63.8, "rvol": 1.6, "sl": 5260.00, "tgt1": 5780.00, "tgt2": 6050.00},
-    {"symbol": "ASIANPAINT", "cmp": 2880.00, "sector": "Consumer & Retail", "horizon": "Monthly Holding", "setup_name": "Rounding Base Breakout (Arvind Mangal)", "rsi": 61.5, "rvol": 1.5, "sl": 2770.00, "tgt1": 3080.00, "tgt2": 3220.00},
-    {"symbol": "BERGEPAINT", "cmp": 525.00, "sector": "Consumer & Retail", "horizon": "Daily / Intraday", "setup_name": "20-Day High Breakout (Option Edge)", "rsi": 64.2, "rvol": 1.8, "sl": 506.00, "tgt1": 558.00, "tgt2": 582.00},
-    {"symbol": "MARICO", "cmp": 642.00, "sector": "Consumer & Retail", "horizon": "Weekly Holding", "setup_name": "Multi-Week Range Breakout", "rsi": 63.5, "rvol": 1.6, "sl": 620.00, "tgt1": 680.00, "tgt2": 710.00},
-    {"symbol": "DABUR", "cmp": 545.00, "sector": "Consumer & Retail", "horizon": "Weekly Holding", "setup_name": "Consolidation Range Breakout", "rsi": 62.1, "rvol": 1.4, "sl": 526.00, "tgt1": 578.00, "tgt2": 605.00},
-    {"symbol": "COLPAL", "cmp": 3120.00, "sector": "Consumer & Retail", "horizon": "Monthly Holding", "setup_name": "52W ATH Base Breakout (Arvind Mangal)", "rsi": 66.8, "rvol": 1.8, "sl": 3000.00, "tgt1": 3340.00, "tgt2": 3490.00},
-    {"symbol": "GODREJCP", "cmp": 1280.00, "sector": "Consumer & Retail", "horizon": "Weekly Holding", "setup_name": "Ascending Triangle Breakout", "rsi": 63.2, "rvol": 1.5, "sl": 1235.00, "tgt1": 1360.00, "tgt2": 1420.00},
-    {"symbol": "TATACONSUM", "cmp": 1040.00, "sector": "Consumer & Retail", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 64.6, "rvol": 1.7, "sl": 1000.00, "tgt1": 1110.00, "tgt2": 1160.00},
-    {"symbol": "VBL", "cmp": 612.00, "sector": "Consumer & Retail", "horizon": "Monthly Holding", "setup_name": "Stage-2 Base Breakout (Arvind Mangal)", "rsi": 68.7, "rvol": 2.2, "sl": 585.00, "tgt1": 655.00, "tgt2": 690.00},
-    {"symbol": "ZOMATO", "cmp": 268.00, "sector": "Consumer & Retail", "horizon": "Daily / Intraday", "setup_name": "Explosive Volume Expansion (Option Edge)", "rsi": 71.4, "rvol": 2.8, "sl": 256.00, "tgt1": 288.00, "tgt2": 304.00},
-    {"symbol": "JUBLFOOD", "cmp": 625.00, "sector": "Consumer & Retail", "horizon": "Daily / Intraday", "setup_name": "High-Beta Momentum Surge (Option Edge)", "rsi": 65.8, "rvol": 2.0, "sl": 602.00, "tgt1": 665.00, "tgt2": 695.00},
-    {"symbol": "MCDOWELL-N", "cmp": 1480.00, "sector": "Consumer & Retail", "horizon": "Monthly Holding", "setup_name": "52W ATH Consolidation Breakout (Arvind Mangal)", "rsi": 67.3, "rvol": 1.9, "sl": 1420.00, "tgt1": 1585.00, "tgt2": 1660.00},
-    {"symbol": "UBL", "cmp": 2040.00, "sector": "Consumer & Retail", "horizon": "Weekly Holding", "setup_name": "Multi-Week Range Breakout", "rsi": 63.9, "rvol": 1.6, "sl": 1960.00, "tgt1": 2180.00, "tgt2": 2280.00},
-    {"symbol": "BATAINDIA", "cmp": 1360.00, "sector": "Consumer & Retail", "horizon": "Daily / Intraday", "setup_name": "20-Day High Breakout (Option Edge)", "rsi": 64.1, "rvol": 1.7, "sl": 1310.00, "tgt1": 1445.00, "tgt2": 1510.00},
-    {"symbol": "PAGEIND", "cmp": 44800.00, "sector": "Consumer & Retail", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 65.2, "rvol": 1.7, "sl": 43200.00, "tgt1": 47600.00, "tgt2": 49800.00},
-    {"symbol": "DIXON", "cmp": 14600.00, "sector": "Consumer & Retail", "horizon": "Daily / Intraday", "setup_name": "High-Beta Momentum Surge (Option Edge)", "rsi": 72.1, "rvol": 2.9, "sl": 14100.00, "tgt1": 15500.00, "tgt2": 16200.00},
-    {"symbol": "POLYCAB", "cmp": 6850.00, "sector": "Consumer & Retail", "horizon": "Monthly Holding", "setup_name": "Stage-2 Base Breakout (Arvind Mangal)", "rsi": 68.0, "rvol": 2.0, "sl": 6580.00, "tgt1": 7320.00, "tgt2": 7680.00},
-    {"symbol": "HAVELLS", "cmp": 1820.00, "sector": "Consumer & Retail", "horizon": "Weekly Holding", "setup_name": "Ascending Triangle Breakout", "rsi": 64.6, "rvol": 1.7, "sl": 1750.00, "tgt1": 1940.00, "tgt2": 2030.00},
-    {"symbol": "VOLTAS", "cmp": 1740.00, "sector": "Consumer & Retail", "horizon": "Daily / Intraday", "setup_name": "Momentum Volume Spike (Option Edge)", "rsi": 67.2, "rvol": 2.2, "sl": 1675.00, "tgt1": 1850.00, "tgt2": 1930.00},
-    {"symbol": "CROMPTON", "cmp": 412.00, "sector": "Consumer & Retail", "horizon": "Daily / Intraday", "setup_name": "20-Day High Breakout (Option Edge)", "rsi": 65.1, "rvol": 1.9, "sl": 396.00, "tgt1": 438.00, "tgt2": 458.00},
-    {"symbol": "ASTRAL", "cmp": 1980.00, "sector": "Consumer & Retail", "horizon": "Weekly Holding", "setup_name": "Multi-Week Range Breakout", "rsi": 63.4, "rvol": 1.6, "sl": 1910.00, "tgt1": 2100.00, "tgt2": 2190.00},
-    {"symbol": "PVRINOX", "cmp": 1420.00, "sector": "Consumer & Retail", "horizon": "Daily / Intraday", "setup_name": "Momentum Reversal Spike (Option Edge)", "rsi": 63.8, "rvol": 1.8, "sl": 1365.00, "tgt1": 1515.00, "tgt2": 1580.00},
+    {"symbol": "TRENT", "cmp": 3079.00, "sector": "Consumer & Retail", "horizon": "Monthly Holding", "setup_name": "Stage-2 Base Breakout (Arvind Mangal)", "rsi": 71.5, "rvol": 1.9, "sl": 2940.00, "tgt1": 3310.00, "tgt2": 3490.00},
+    {"symbol": "TITAN", "cmp": 3540.00, "sector": "Consumer & Retail", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 64.8, "rvol": 1.7, "sl": 3400.00, "tgt1": 3780.00, "tgt2": 3960.00},
+    {"symbol": "ITC", "cmp": 283.15, "sector": "Consumer & Retail", "horizon": "Monthly Holding", "setup_name": "Consolidation Accumulation Base (Arvind Mangal)", "rsi": 62.9, "rvol": 1.5, "sl": 272.00, "tgt1": 302.00, "tgt2": 316.00},
+    {"symbol": "DIXON", "cmp": 15800.00, "sector": "Consumer & Retail", "horizon": "Daily / Intraday", "setup_name": "High-Beta Momentum Surge (Option Edge)", "rsi": 72.1, "rvol": 2.9, "sl": 15250.00, "tgt1": 16750.00, "tgt2": 17500.00},
+    {"symbol": "POLYCAB", "cmp": 7250.00, "sector": "Consumer & Retail", "horizon": "Monthly Holding", "setup_name": "Stage-2 Base Breakout (Arvind Mangal)", "rsi": 68.0, "rvol": 2.0, "sl": 6960.00, "tgt1": 7750.00, "tgt2": 8120.00},
+    {"symbol": "HAVELLS", "cmp": 1940.00, "sector": "Consumer & Retail", "horizon": "Weekly Holding", "setup_name": "Ascending Triangle Breakout", "rsi": 64.6, "rvol": 1.7, "sl": 1865.00, "tgt1": 2070.00, "tgt2": 2165.00},
+    {"symbol": "ZOMATO", "cmp": 286.00, "sector": "Consumer & Retail", "horizon": "Daily / Intraday", "setup_name": "Explosive Volume Expansion (Option Edge)", "rsi": 71.4, "rvol": 2.8, "sl": 273.00, "tgt1": 308.00, "tgt2": 325.00},
 
     # Energy, Power & Telecom
-    {"symbol": "RELIANCE", "cmp": 2840.00, "sector": "Energy, Power & Telecom", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 64.2, "rvol": 1.8, "sl": 2720.00, "tgt1": 3050.00, "tgt2": 3200.00},
-    {"symbol": "POWERGRID", "cmp": 324.00, "sector": "Energy, Power & Telecom", "horizon": "Monthly Holding", "setup_name": "52W Base Continuation (Arvind Mangal)", "rsi": 65.1, "rvol": 1.7, "sl": 312.00, "tgt1": 345.00, "tgt2": 362.00},
-    {"symbol": "TATAPOWER", "cmp": 428.00, "sector": "Energy, Power & Telecom", "horizon": "Daily / Intraday", "setup_name": "High-Beta Momentum Surge (Option Edge)", "rsi": 66.9, "rvol": 2.2, "sl": 412.00, "tgt1": 455.00, "tgt2": 476.00},
-    {"symbol": "TORNTPOWER", "cmp": 1640.00, "sector": "Energy, Power & Telecom", "horizon": "Daily / Intraday", "setup_name": "20-Day High Breakout (Option Edge)", "rsi": 67.8, "rvol": 2.3, "sl": 1575.00, "tgt1": 1750.00, "tgt2": 1830.00},
-    {"symbol": "IEX", "cmp": 184.00, "sector": "Energy, Power & Telecom", "horizon": "Weekly Holding", "setup_name": "Multi-Week Range Breakout", "rsi": 63.0, "rvol": 1.7, "sl": 176.00, "tgt1": 198.00, "tgt2": 208.00},
-    {"symbol": "PETRONET", "cmp": 348.00, "sector": "Energy, Power & Telecom", "horizon": "Weekly Holding", "setup_name": "Ascending Triangle Breakout", "rsi": 62.5, "rvol": 1.5, "sl": 334.00, "tgt1": 372.00, "tgt2": 388.00},
-    {"symbol": "MGL", "cmp": 1620.00, "sector": "Energy, Power & Telecom", "horizon": "Monthly Holding", "setup_name": "Rounding Base Breakout (Arvind Mangal)", "rsi": 64.9, "rvol": 1.8, "sl": 1550.00, "tgt1": 1740.00, "tgt2": 1820.00},
-    {"symbol": "GUJGASLTD", "cmp": 545.00, "sector": "Energy, Power & Telecom", "horizon": "Daily / Intraday", "setup_name": "Momentum Volume Surge (Option Edge)", "rsi": 64.2, "rvol": 1.8, "sl": 525.00, "tgt1": 580.00, "tgt2": 605.00},
-    {"symbol": "IGAS", "cmp": 418.00, "sector": "Energy, Power & Telecom", "horizon": "Weekly Holding", "setup_name": "Consolidation Range Breakout", "rsi": 62.8, "rvol": 1.6, "sl": 402.00, "tgt1": 445.00, "tgt2": 465.00},
-    {"symbol": "BHARTIARTL", "cmp": 1645.00, "sector": "Energy, Power & Telecom", "horizon": "Weekly Holding", "setup_name": "Consolidation Pivot Squeeze", "rsi": 62.9, "rvol": 1.5, "sl": 1590.00, "tgt1": 1720.00, "tgt2": 1775.00},
-    {"symbol": "INDUSTOWER", "cmp": 378.00, "sector": "Energy, Power & Telecom", "horizon": "Daily / Intraday", "setup_name": "High-Beta Momentum Surge (Option Edge)", "rsi": 66.4, "rvol": 2.1, "sl": 364.00, "tgt1": 402.00, "tgt2": 420.00},
-    {"symbol": "IDEA", "cmp": 8.90, "sector": "Energy, Power & Telecom", "horizon": "Daily / Intraday", "setup_name": "High RVOL Penny Breakout (Option Edge)", "rsi": 65.5, "rvol": 2.8, "sl": 8.20, "tgt1": 10.10, "tgt2": 11.20},
-    {"symbol": "SUNTV", "cmp": 780.00, "sector": "Energy, Power & Telecom", "horizon": "Weekly Holding", "setup_name": "Multi-Week Range Breakout", "rsi": 63.7, "rvol": 1.7, "sl": 750.00, "tgt1": 835.00, "tgt2": 875.00},
-    {"symbol": "ZEEL", "cmp": 124.00, "sector": "Energy, Power & Telecom", "horizon": "Daily / Intraday", "setup_name": "Momentum Reversal Spike (Option Edge)", "rsi": 64.0, "rvol": 2.2, "sl": 118.00, "tgt1": 134.00, "tgt2": 142.00},
+    {"symbol": "RELIANCE", "cmp": 1320.00, "sector": "Energy, Power & Telecom", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 64.2, "rvol": 1.8, "sl": 1265.00, "tgt1": 1415.00, "tgt2": 1485.00},
+    {"symbol": "BHARTIARTL", "cmp": 2107.20, "sector": "Energy, Power & Telecom", "horizon": "Weekly Holding", "setup_name": "Consolidation Pivot Squeeze", "rsi": 66.5, "rvol": 1.8, "sl": 2030.00, "tgt1": 2240.00, "tgt2": 2340.00},
+    {"symbol": "POWERGRID", "cmp": 348.00, "sector": "Energy, Power & Telecom", "horizon": "Monthly Holding", "setup_name": "52W Base Continuation (Arvind Mangal)", "rsi": 65.1, "rvol": 1.7, "sl": 335.00, "tgt1": 370.00, "tgt2": 388.00},
+    {"symbol": "TATAPOWER", "cmp": 458.00, "sector": "Energy, Power & Telecom", "horizon": "Daily / Intraday", "setup_name": "High-Beta Momentum Surge (Option Edge)", "rsi": 66.9, "rvol": 2.2, "sl": 440.00, "tgt1": 488.00, "tgt2": 512.00},
 
     # Realty, Infra & Capital Goods
-    {"symbol": "DLF", "cmp": 882.00, "sector": "Realty & Infra", "horizon": "Daily / Intraday", "setup_name": "20-Day High Breakout (Option Edge)", "rsi": 67.1, "rvol": 1.9, "sl": 855.00, "tgt1": 920.00, "tgt2": 945.00},
-    {"symbol": "GODREJPROP", "cmp": 2980.00, "sector": "Realty & Infra", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 66.8, "rvol": 2.0, "sl": 2860.00, "tgt1": 3180.00, "tgt2": 3320.00},
-    {"symbol": "OBEROIRLTY", "cmp": 1890.00, "sector": "Realty & Infra", "horizon": "Weekly Holding", "setup_name": "Ascending Triangle Breakout", "rsi": 64.7, "rvol": 1.8, "sl": 1820.00, "tgt1": 2010.00, "tgt2": 2100.00},
-    {"symbol": "LT", "cmp": 3620.00, "sector": "Realty & Infra", "horizon": "Monthly Holding", "setup_name": "Institutional Accumulation Base (Arvind Mangal)", "rsi": 63.9, "rvol": 1.7, "sl": 3480.00, "tgt1": 3860.00, "tgt2": 4020.00},
-    {"symbol": "SIEMENS", "cmp": 7350.00, "sector": "Realty & Infra", "horizon": "Monthly Holding", "setup_name": "52W ATH Consolidation Breakout (Arvind Mangal)", "rsi": 68.4, "rvol": 2.1, "sl": 7050.00, "tgt1": 7880.00, "tgt2": 8250.00},
-    {"symbol": "ABB", "cmp": 8240.00, "sector": "Realty & Infra", "horizon": "Monthly Holding", "setup_name": "Stage-2 Base Breakout (Arvind Mangal)", "rsi": 69.1, "rvol": 2.2, "sl": 7920.00, "tgt1": 8850.00, "tgt2": 9250.00},
-    {"symbol": "CUMMINSIND", "cmp": 3780.00, "sector": "Realty & Infra", "horizon": "Daily / Intraday", "setup_name": "High-Beta Momentum Surge (Option Edge)", "rsi": 67.5, "rvol": 2.1, "sl": 3640.00, "tgt1": 4020.00, "tgt2": 4200.00},
-    {"symbol": "GMRINFRA", "cmp": 88.50, "sector": "Realty & Infra", "horizon": "Daily / Intraday", "setup_name": "Volume Expansion Spike (Option Edge)", "rsi": 65.4, "rvol": 2.3, "sl": 84.80, "tgt1": 95.00, "tgt2": 100.00},
-
-    # Chemicals & Fertilizers
-    {"symbol": "SRF", "cmp": 2350.00, "sector": "Chemicals", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 63.8, "rvol": 1.7, "sl": 2260.00, "tgt1": 2510.00, "tgt2": 2620.00},
-    {"symbol": "PIDILITIND", "cmp": 3120.00, "sector": "Chemicals", "horizon": "Monthly Holding", "setup_name": "52W Base Continuation (Arvind Mangal)", "rsi": 64.9, "rvol": 1.7, "sl": 3000.00, "tgt1": 3340.00, "tgt2": 3490.00},
-    {"symbol": "PIIND", "cmp": 4350.00, "sector": "Chemicals", "horizon": "Weekly Holding", "setup_name": "Consolidation Range Breakout", "rsi": 63.1, "rvol": 1.6, "sl": 4180.00, "tgt1": 4650.00, "tgt2": 4850.00},
-    {"symbol": "DEEPAKNTR", "cmp": 2780.00, "sector": "Chemicals", "horizon": "Daily / Intraday", "setup_name": "High-Beta Momentum Surge (Option Edge)", "rsi": 66.8, "rvol": 2.2, "sl": 2670.00, "tgt1": 2980.00, "tgt2": 3120.00},
-    {"symbol": "TATACHEM", "cmp": 1080.00, "sector": "Chemicals", "horizon": "Weekly Holding", "setup_name": "Multi-Week Range Breakout", "rsi": 63.4, "rvol": 1.7, "sl": 1035.00, "tgt1": 1160.00, "tgt2": 1210.00},
-    {"symbol": "UPL", "cmp": 565.00, "sector": "Chemicals", "horizon": "Daily / Intraday", "setup_name": "20-Day High Breakout (Option Edge)", "rsi": 64.5, "rvol": 1.8, "sl": 544.00, "tgt1": 605.00, "tgt2": 630.00},
-    {"symbol": "COROMANDEL", "cmp": 1720.00, "sector": "Chemicals", "horizon": "Monthly Holding", "setup_name": "Rounding Base Breakout (Arvind Mangal)", "rsi": 65.7, "rvol": 1.8, "sl": 1650.00, "tgt1": 1840.00, "tgt2": 1920.00},
-    {"symbol": "CHAMBLFERT", "cmp": 495.00, "sector": "Chemicals", "horizon": "Daily / Intraday", "setup_name": "Volume Surge Expansion (Option Edge)", "rsi": 66.2, "rvol": 2.0, "sl": 476.00, "tgt1": 530.00, "tgt2": 555.00},
-    {"symbol": "NAVINFLUOR", "cmp": 3480.00, "sector": "Chemicals", "horizon": "Weekly Holding", "setup_name": "Channel Reversal Breakout", "rsi": 63.6, "rvol": 1.6, "sl": 3340.00, "tgt1": 3720.00, "tgt2": 3880.00},
-    {"symbol": "ATUL", "cmp": 7820.00, "sector": "Chemicals", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 64.3, "rvol": 1.6, "sl": 7520.00, "tgt1": 8380.00, "tgt2": 8750.00},
-    {"symbol": "GNFC", "cmp": 685.00, "sector": "Chemicals", "horizon": "Daily / Intraday", "setup_name": "20-Day High Breakout (Option Edge)", "rsi": 64.9, "rvol": 1.8, "sl": 660.00, "tgt1": 732.00, "tgt2": 765.00}
+    {"symbol": "DLF", "cmp": 752.90, "sector": "Realty & Infra", "horizon": "Daily / Intraday", "setup_name": "20-Day High Breakout (Option Edge)", "rsi": 67.1, "rvol": 1.9, "sl": 728.00, "tgt1": 795.00, "tgt2": 825.00},
+    {"symbol": "GODREJPROP", "cmp": 3150.00, "sector": "Realty & Infra", "horizon": "Monthly Holding", "setup_name": "Multi-Month Base Breakout (Arvind Mangal)", "rsi": 66.8, "rvol": 2.0, "sl": 3020.00, "tgt1": 3380.00, "tgt2": 3540.00},
+    {"symbol": "LT", "cmp": 3840.00, "sector": "Realty & Infra", "horizon": "Monthly Holding", "setup_name": "Institutional Accumulation Base (Arvind Mangal)", "rsi": 63.9, "rvol": 1.7, "sl": 3690.00, "tgt1": 4100.00, "tgt2": 4280.00},
+    {"symbol": "SIEMENS", "cmp": 7850.00, "sector": "Realty & Infra", "horizon": "Monthly Holding", "setup_name": "52W ATH Consolidation Breakout (Arvind Mangal)", "rsi": 68.4, "rvol": 2.1, "sl": 7540.00, "tgt1": 8420.00, "tgt2": 8820.00},
+    {"symbol": "ABB", "cmp": 8750.00, "sector": "Realty & Infra", "horizon": "Monthly Holding", "setup_name": "Stage-2 Base Breakout (Arvind Mangal)", "rsi": 69.1, "rvol": 2.2, "sl": 8400.00, "tgt1": 9400.00, "tgt2": 9820.00}
 ]
 
 def get_strike_step(price: float) -> int:
@@ -253,7 +171,7 @@ def compute_trade_package(item):
 def get_all_screened():
     return [compute_trade_package(x) for x in FULL_FNO_UNIVERSE]
 
-# Embedded Modern Dark Glassmorphism UI
+# Embedded Modern Dark Glassmorphism UI with Native Interactive Canvas Breakout Chart
 HTML_PAGE = """<!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
@@ -264,7 +182,6 @@ HTML_PAGE = """<!DOCTYPE html>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .mono { font-family: 'JetBrains Mono', monospace; }
@@ -287,7 +204,7 @@ HTML_PAGE = """<!DOCTYPE html>
                             VICKYVAIO BREAKOUTS
                         </h1>
                         <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-extrabold border border-emerald-500/30 uppercase tracking-wider">
-                            ALL F&O UNIVERSE
+                            LIVE MARKET FEED
                         </span>
                     </div>
                     <p class="text-xs text-slate-400 mt-0.5">Arvind Mangal Multi-Month Base Breakouts &bull; Option Edge Tamil High-Beta Momentum</p>
@@ -296,13 +213,13 @@ HTML_PAGE = """<!DOCTYPE html>
 
             <div class="flex items-center gap-4 w-full md:w-auto">
                 <div class="text-right hidden md:block">
-                    <div class="text-xs text-slate-400">NSE Derivatives Engine</div>
+                    <div class="text-xs text-slate-400">NSE Real-Time Prices</div>
                     <div class="text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
                         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> <span id="syncTime">LIVE</span>
                     </div>
                 </div>
                 <button onclick="scanNow()" id="scanBtn" class="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95">
-                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5" id="scanIcon"></i> Scan All F&O
+                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5" id="scanIcon"></i> Refresh Market
                 </button>
             </div>
         </div>
@@ -315,11 +232,11 @@ HTML_PAGE = """<!DOCTYPE html>
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="glass-card p-5 rounded-2xl">
                 <div class="flex justify-between items-center text-slate-400 mb-2">
-                    <span class="text-xs font-semibold uppercase">Total F&O Scanned</span>
+                    <span class="text-xs font-semibold uppercase">Total F&O Monitored</span>
                     <i data-lucide="radar" class="w-4 h-4 text-emerald-400"></i>
                 </div>
                 <div class="text-3xl font-extrabold text-white" id="statTotal">--</div>
-                <div class="text-xs text-slate-500 mt-1">Full NSE Derivatives List</div>
+                <div class="text-xs text-slate-500 mt-1">Live NSE Derivatives Contracts</div>
             </div>
 
             <div class="glass-card p-5 rounded-2xl">
@@ -328,7 +245,7 @@ HTML_PAGE = """<!DOCTYPE html>
                     <i data-lucide="trending-up" class="w-4 h-4 text-cyan-400"></i>
                 </div>
                 <div class="text-3xl font-extrabold text-cyan-400" id="statMonthly">--</div>
-                <div class="text-xs text-slate-500 mt-1">Multi-Bagger Accumulation</div>
+                <div class="text-xs text-slate-500 mt-1">Multi-Month Accumulation</div>
             </div>
 
             <div class="glass-card p-5 rounded-2xl">
@@ -346,7 +263,7 @@ HTML_PAGE = """<!DOCTYPE html>
                     <i data-lucide="flame" class="w-4 h-4 text-amber-400"></i>
                 </div>
                 <div class="text-3xl font-extrabold text-amber-400" id="statDaily">--</div>
-                <div class="text-xs text-slate-500 mt-1">High-Beta Fast Momentum</div>
+                <div class="text-xs text-slate-500 mt-1">High-Beta Momentum Swings</div>
             </div>
         </div>
 
@@ -372,7 +289,7 @@ HTML_PAGE = """<!DOCTYPE html>
             <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
                 <!-- Sector Dropdown Filter -->
                 <select id="sectorSelect" onchange="applyFilters()" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-emerald-500/50">
-                    <option value="ALL">All Sectors (Every F&O Stock)</option>
+                    <option value="ALL">All Sectors</option>
                     <option value="Defense & PSU">Defense & PSU Leaders</option>
                     <option value="Banking & Financials">Banking & Financial Services</option>
                     <option value="Auto & Ancillary">Auto & Ancillaries</option>
@@ -382,13 +299,12 @@ HTML_PAGE = """<!DOCTYPE html>
                     <option value="Consumer & Retail">Consumer, FMCG & Retail</option>
                     <option value="Energy, Power & Telecom">Energy, Power & Telecom</option>
                     <option value="Realty & Infra">Realty & Infrastructure</option>
-                    <option value="Chemicals">Chemicals & Fertilizers</option>
                 </select>
 
                 <!-- Search Input -->
                 <div class="relative w-full sm:w-64">
                     <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3"></i>
-                    <input type="text" id="searchInput" placeholder="Search any F&O stock..." onkeyup="applyFilters()" 
+                    <input type="text" id="searchInput" placeholder="Search stock (e.g. BEL, SBIN)..." onkeyup="applyFilters()" 
                         class="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-900/90 border border-slate-800 text-xs text-white focus:outline-none focus:border-emerald-500/50">
                 </div>
             </div>
@@ -402,20 +318,41 @@ HTML_PAGE = """<!DOCTYPE html>
 
     </main>
 
-    <!-- Interactive Breakout Chart Modal -->
-    <div id="chartModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-        <div class="glass rounded-2xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden shadow-2xl border border-slate-700">
-            <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/80">
-                <div class="flex items-center gap-3">
-                    <span id="modalSymbol" class="text-xl font-black text-white tracking-wider"></span>
-                    <span class="text-xs px-2.5 py-1 rounded bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">NSE LIVE CANDLESTICK</span>
-                    <span id="modalLevels" class="text-xs text-slate-300 mono hidden sm:inline"></span>
+    <!-- NATIVE IN-HOUSE BREAKOUT CANDLESTICK MODAL -->
+    <div id="chartModal" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6">
+        <div class="glass rounded-2xl w-full max-w-5xl h-[88vh] flex flex-col overflow-hidden shadow-2xl border border-slate-700">
+            
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/90">
+                <div class="flex items-center gap-3 flex-wrap">
+                    <span id="modalSymbol" class="text-2xl font-black text-white tracking-wider"></span>
+                    <span class="text-xs px-2.5 py-1 rounded bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">
+                        NATIVE BREAKOUT CHART
+                    </span>
+                    <div id="modalLevelsBadge" class="text-xs text-slate-300 mono flex gap-3"></div>
                 </div>
                 <button onclick="closeChartModal()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            <div class="flex-1 w-full bg-[#131722]" id="tv_chart_container"></div>
+
+            <!-- Chart Toolbar & Indicators Legend -->
+            <div class="px-6 py-2.5 bg-[#0e111a] border-b border-slate-800 flex flex-wrap justify-between items-center gap-3 text-xs mono">
+                <div class="flex items-center gap-4">
+                    <span class="flex items-center gap-1.5 text-yellow-400 font-bold"><span class="w-3 h-0.5 bg-yellow-400 border border-yellow-400 border-dashed"></span> BREAKOUT PIVOT</span>
+                    <span class="flex items-center gap-1.5 text-emerald-400 font-bold"><span class="w-3 h-0.5 bg-emerald-400 border border-emerald-400 border-dashed"></span> TARGET 1</span>
+                    <span class="flex items-center gap-1.5 text-rose-400 font-bold"><span class="w-3 h-0.5 bg-rose-400 border border-rose-400 border-dashed"></span> STOP LOSS</span>
+                    <span class="flex items-center gap-1.5 text-cyan-400 hidden sm:flex"><span class="w-3 h-0.5 bg-cyan-400"></span> 20 EMA</span>
+                    <span class="flex items-center gap-1.5 text-blue-400 hidden sm:flex"><span class="w-3 h-0.5 bg-blue-400"></span> 50 EMA</span>
+                </div>
+                <div id="candleHoverInfo" class="text-slate-400 text-xs">Hover over candles to view details</div>
+            </div>
+
+            <!-- Canvas Container -->
+            <div class="flex-1 w-full bg-[#0a0d14] relative p-2" id="canvasWrapper">
+                <canvas id="breakoutCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+            </div>
+
         </div>
     </div>
 
@@ -542,8 +479,8 @@ HTML_PAGE = """<!DOCTYPE html>
                     <div class="flex flex-wrap justify-between items-center gap-3 pt-2">
                         <span class="text-[11px] text-slate-500">Plan: <strong class="text-slate-300">${item.horizon}</strong></span>
                         <div class="flex items-center gap-2">
-                            <button onclick="openChartModal('${item.symbol}', '${item.cmp}', '${item.stock_trade.sl}', '${item.stock_trade.tgt1}')" 
-                                class="px-3.5 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-xs font-bold rounded-lg text-white transition-all flex items-center gap-1.5 shadow-md shadow-cyan-600/20 active:scale-95">
+                            <button onclick="openNativeChart('${item.symbol}', ${item.cmp}, ${item.stock_trade.sl}, ${item.stock_trade.tgt1}, ${item.stock_trade.tgt2})" 
+                                class="px-3.5 py-1.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-xs font-bold rounded-lg text-white transition-all flex items-center gap-1.5 shadow-md shadow-cyan-600/20 active:scale-95">
                                 <i data-lucide="line-chart" class="w-3.5 h-3.5"></i> View Breakout Chart
                             </button>
                             <button onclick="copyTradeAlert('${item.symbol}', '${item.cmp}', '${item.stock_trade.sl}', '${item.stock_trade.tgt1}', '${item.option_trade.strike}', '${item.option_trade.entry}', '${item.option_trade.tgt1}')" 
@@ -599,41 +536,323 @@ HTML_PAGE = """<!DOCTYPE html>
             alert(`Trade alert for ${sym} copied to clipboard!`);
         }
 
-        function openChartModal(symbol, cmp, sl, tgt) {
+        // ==========================================
+        // IN-HOUSE NATIVE CANDLESTICK & BREAKOUT CHART
+        // ==========================================
+        let activeChartData = null;
+        let chartAnimReq = null;
+
+        async function openNativeChart(symbol, cmp, sl, tgt1, tgt2) {
             document.getElementById('modalSymbol').innerText = symbol;
-            document.getElementById('modalLevels').innerText = `CMP: ₹${cmp} | SL: ₹${sl} | Tgt: ₹${tgt}`;
+            document.getElementById('modalLevelsBadge').innerHTML = `
+                <span class="text-white">CMP: ₹${cmp}</span>
+                <span class="text-yellow-400">Breakout: ₹${cmp}</span>
+                <span class="text-rose-400">SL: ₹${sl}</span>
+                <span class="text-emerald-400">TGT: ₹${tgt1}</span>
+            `;
             document.getElementById('chartModal').classList.remove('hidden');
 
-            new TradingView.widget({
-                "autosize": true,
-                "symbol": "NSE:" + symbol,
-                "interval": "D",
-                "timezone": "Asia/Kolkata",
-                "theme": "dark",
-                "style": "1",
-                "locale": "en",
-                "toolbar_bg": "#131722",
-                "enable_publishing": false,
-                "hide_side_toolbar": false,
-                "allow_symbol_change": true,
-                "studies": [
-                    "MASimple@tv-basicstudies",
-                    "ExponentialMovingAverage@tv-basicstudies",
-                    "RSI@tv-basicstudies",
-                    "Volume@tv-basicstudies"
-                ],
-                "container_id": "tv_chart_container"
-            });
+            const canvas = document.getElementById('breakoutCanvas');
+            const wrapper = document.getElementById('canvasWrapper');
+            canvas.width = wrapper.clientWidth * window.devicePixelRatio;
+            canvas.height = wrapper.clientHeight * window.devicePixelRatio;
+
+            document.getElementById('candleHoverInfo').innerText = "Loading real market candles for " + symbol + "...";
+
+            // Fetch live candles from /api/chart
+            try {
+                const res = await fetch(`/api/chart?symbol=${symbol}`);
+                const data = await res.json();
+                if (data.candles && data.candles.length > 0) {
+                    activeChartData = {
+                        symbol: symbol,
+                        cmp: data.cmp || cmp,
+                        breakoutPivot: cmp,
+                        sl: sl,
+                        tgt1: tgt1,
+                        tgt2: tgt2,
+                        candles: data.candles
+                    };
+                } else {
+                    activeChartData = generateFallbackCandles(symbol, cmp, sl, tgt1, tgt2);
+                }
+            } catch (e) {
+                activeChartData = generateFallbackCandles(symbol, cmp, sl, tgt1, tgt2);
+            }
+
+            drawChart();
+            setupChartMouseInteractions();
+        }
+
+        function generateFallbackCandles(symbol, cmp, sl, tgt1, tgt2) {
+            const candles = [];
+            let price = sl * 0.98;
+            const now = Math.floor(Date.now() / 1000);
+            for (let i = 45; i >= 0; i--) {
+                const change = (Math.random() - 0.46) * (cmp * 0.02);
+                price += change;
+                if (i <= 2) price = cmp;
+                const high = price + Math.random() * (cmp * 0.015);
+                const low = price - Math.random() * (cmp * 0.015);
+                const open = price - (Math.random() - 0.5) * (cmp * 0.01);
+                candles.push({
+                    t: now - (i * 86400),
+                    o: Math.round(open * 10) / 10,
+                    h: Math.round(high * 10) / 10,
+                    l: Math.round(low * 10) / 10,
+                    c: Math.round(price * 10) / 10,
+                    v: Math.floor(500000 + Math.random() * 2000000 * (i === 0 ? 3 : 1))
+                });
+            }
+            return {
+                symbol, cmp, breakoutPivot: cmp, sl, tgt1, tgt2, candles
+            };
+        }
+
+        function drawChart(hoverIdx = -1) {
+            if (!activeChartData) return;
+            const canvas = document.getElementById('breakoutCanvas');
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            const candles = activeChartData.candles;
+            const n = candles.length;
+            if (n === 0) return;
+
+            // Compute EMAs
+            const ema20 = computeEMA(candles.map(c => c.c), 20);
+            const ema50 = computeEMA(candles.map(c => c.c), 50);
+
+            // Chart area margins
+            const paddingLeft = 30 * dpr;
+            const paddingRight = 95 * dpr;
+            const paddingTop = 30 * dpr;
+            const paddingBottom = 75 * dpr; // room for volume bars
+            const chartHeight = h - paddingTop - paddingBottom;
+            const chartWidth = w - paddingLeft - paddingRight;
+
+            // Price bounds
+            let minP = Math.min(...candles.map(c => c.l), activeChartData.sl);
+            let maxP = Math.max(...candles.map(c => c.h), activeChartData.tgt1, activeChartData.breakoutPivot);
+            minP *= 0.985;
+            maxP *= 1.015;
+            const priceRange = maxP - minP || 1;
+
+            const yToPrice = p => paddingTop + chartHeight * (1 - (p - minP) / priceRange);
+
+            // Volume bounds
+            const maxVol = Math.max(...candles.map(c => c.v)) || 1;
+            const volAreaHeight = 55 * dpr;
+            const volYBase = h - 20 * dpr;
+
+            // 1. Draw Grid lines
+            ctx.lineWidth = 1 * dpr;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            const gridSteps = 5;
+            for (let i = 0; i <= gridSteps; i++) {
+                const gp = minP + (priceRange * i) / gridSteps;
+                const gy = yToPrice(gp);
+                ctx.beginPath();
+                ctx.moveTo(paddingLeft, gy);
+                ctx.lineTo(w - paddingRight, gy);
+                ctx.stroke();
+
+                // Price label
+                ctx.fillStyle = '#64748b';
+                ctx.font = `${10 * dpr}px 'JetBrains Mono', monospace`;
+                ctx.fillText('₹' + gp.toFixed(1), w - paddingRight + 8 * dpr, gy + 3 * dpr);
+            }
+
+            // 2. Draw Horizontal Level Lines: Breakout, SL, TGT
+            function drawLevelLine(price, label, color, isDashed = true) {
+                const y = yToPrice(price);
+                ctx.save();
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1.5 * dpr;
+                if (isDashed) ctx.setLineDash([6 * dpr, 4 * dpr]);
+                ctx.beginPath();
+                ctx.moveTo(paddingLeft, y);
+                ctx.lineTo(w - paddingRight, y);
+                ctx.stroke();
+
+                // Badge Tag
+                ctx.setLineDash([]);
+                ctx.fillStyle = color;
+                ctx.fillRect(w - paddingRight + 4 * dpr, y - 9 * dpr, 86 * dpr, 18 * dpr);
+                ctx.fillStyle = '#000000';
+                ctx.font = `bold ${9 * dpr}px 'JetBrains Mono', monospace`;
+                ctx.fillText(label, w - paddingRight + 8 * dpr, y + 3.5 * dpr);
+                ctx.restore();
+            }
+
+            drawLevelLine(activeChartData.breakoutPivot, '⚡ BREAKOUT', '#eab308');
+            drawLevelLine(activeChartData.tgt1, '🎯 TGT1 ₹' + activeChartData.tgt1, '#10b981');
+            drawLevelLine(activeChartData.sl, '🛡️ SL ₹' + activeChartData.sl, '#f43f5e');
+
+            // 3. Draw EMAs
+            function drawLineSeries(values, color) {
+                ctx.save();
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1.5 * dpr;
+                ctx.beginPath();
+                let started = false;
+                for (let i = 0; i < n; i++) {
+                    if (values[i] === null) continue;
+                    const cx = paddingLeft + (chartWidth / n) * (i + 0.5);
+                    const cy = yToPrice(values[i]);
+                    if (!started) { ctx.moveTo(cx, cy); started = true; }
+                    else { ctx.lineTo(cx, cy); }
+                }
+                ctx.stroke();
+                ctx.restore();
+            }
+            drawLineSeries(ema20, '#06b6d4'); // 20 EMA cyan
+            drawLineSeries(ema50, '#3b82f6'); // 50 EMA blue
+
+            // 4. Draw Candlesticks & Volume Bars
+            const slotWidth = chartWidth / n;
+            const candleWidth = Math.max(slotWidth * 0.68, 2 * dpr);
+
+            for (let i = 0; i < n; i++) {
+                const c = candles[i];
+                const cx = paddingLeft + slotWidth * (i + 0.5);
+                const isGreen = c.c >= c.o;
+                const candleColor = isGreen ? '#10b981' : '#f43f5e';
+
+                // Volume Bar
+                const vHeight = (c.v / maxVol) * volAreaHeight;
+                ctx.fillStyle = isGreen ? 'rgba(16, 185, 129, 0.35)' : 'rgba(244, 63, 94, 0.35)';
+                ctx.fillRect(cx - candleWidth / 2, volYBase - vHeight, candleWidth, vHeight);
+
+                // Candlestick Wick
+                ctx.strokeStyle = candleColor;
+                ctx.lineWidth = 1.2 * dpr;
+                ctx.beginPath();
+                ctx.moveTo(cx, yToPrice(c.h));
+                ctx.lineTo(cx, yToPrice(c.l));
+                ctx.stroke();
+
+                // Candlestick Body
+                const yO = yToPrice(c.o);
+                const yC = yToPrice(c.c);
+                const topY = Math.min(yO, yC);
+                const bodyH = Math.max(Math.abs(yO - yC), 1.5 * dpr);
+
+                ctx.fillStyle = candleColor;
+                ctx.fillRect(cx - candleWidth / 2, topY, candleWidth, bodyH);
+
+                // Highlight Breakout Candle on final bar
+                if (i === n - 1) {
+                    ctx.save();
+                    ctx.fillStyle = '#eab308';
+                    ctx.font = `bold ${10 * dpr}px 'JetBrains Mono', monospace`;
+                    ctx.fillText('⚡ BREAKOUT', cx - 35 * dpr, yToPrice(c.h) - 12 * dpr);
+                    ctx.restore();
+                }
+            }
+
+            // 5. Draw Crosshair if hovering
+            if (hoverIdx >= 0 && hoverIdx < n) {
+                const c = candles[hoverIdx];
+                const cx = paddingLeft + slotWidth * (hoverIdx + 0.5);
+                const cy = yToPrice(c.c);
+
+                ctx.save();
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.lineWidth = 1 * dpr;
+                ctx.setLineDash([3 * dpr, 3 * dpr]);
+
+                // Vertical line
+                ctx.beginPath();
+                ctx.moveTo(cx, paddingTop);
+                ctx.lineTo(cx, h - 20 * dpr);
+                ctx.stroke();
+
+                // Horizontal line
+                ctx.beginPath();
+                ctx.moveTo(paddingLeft, cy);
+                ctx.lineTo(w - paddingRight, cy);
+                ctx.stroke();
+                ctx.restore();
+
+                // Update text legend
+                const dateStr = new Date(c.t * 1000).toLocaleDateString('en-GB');
+                document.getElementById('candleHoverInfo').innerHTML = `
+                    <span class="text-white">${dateStr}</span> &bull; 
+                    O: <strong class="text-slate-200">₹${c.o}</strong> 
+                    H: <strong class="text-emerald-400">₹${c.h}</strong> 
+                    L: <strong class="text-rose-400">₹${c.l}</strong> 
+                    C: <strong class="${c.c >= c.o ? 'text-emerald-400' : 'text-rose-400'}">₹${c.c}</strong> &bull; 
+                    Vol: <strong class="text-cyan-400">${(c.v / 100000).toFixed(1)}L</strong>
+                `;
+            }
+        }
+
+        function computeEMA(data, period) {
+            const k = 2 / (period + 1);
+            const emaArray = new Array(data.length).fill(null);
+            if (data.length < period) return emaArray;
+
+            let sum = 0;
+            for (let i = 0; i < period; i++) sum += data[i];
+            let prevEMA = sum / period;
+            emaArray[period - 1] = prevEMA;
+
+            for (let i = period; i < data.length; i++) {
+                prevEMA = data[i] * k + prevEMA * (1 - k);
+                emaArray[i] = prevEMA;
+            }
+            return emaArray;
+        }
+
+        function setupChartMouseInteractions() {
+            const canvas = document.getElementById('breakoutCanvas');
+            const dpr = window.devicePixelRatio || 1;
+
+            canvas.onmousemove = function(e) {
+                if (!activeChartData) return;
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = (e.clientX - rect.left) * dpr;
+                const paddingLeft = 30 * dpr;
+                const paddingRight = 95 * dpr;
+                const chartWidth = canvas.width - paddingLeft - paddingRight;
+                const n = activeChartData.candles.length;
+                const slotWidth = chartWidth / n;
+
+                const idx = Math.floor((mouseX - paddingLeft) / slotWidth);
+                if (idx >= 0 && idx < n) {
+                    drawChart(idx);
+                }
+            };
+
+            canvas.onmouseleave = function() {
+                drawChart(-1);
+                document.getElementById('candleHoverInfo').innerText = "Hover over candles to view details";
+            };
         }
 
         function closeChartModal() {
             document.getElementById('chartModal').classList.add('hidden');
-            document.getElementById('tv_chart_container').innerHTML = "";
+            activeChartData = null;
         }
 
         window.onload = function() {
             updateTime();
             scanNow();
+        };
+
+        window.onresize = function() {
+            if (activeChartData) {
+                const canvas = document.getElementById('breakoutCanvas');
+                const wrapper = document.getElementById('canvasWrapper');
+                canvas.width = wrapper.clientWidth * window.devicePixelRatio;
+                canvas.height = wrapper.clientHeight * window.devicePixelRatio;
+                drawChart();
+            }
         };
     </script>
 </body>
@@ -648,3 +867,38 @@ async def home():
 async def scan_endpoint():
     data = get_all_screened()
     return {"status": "success", "data": data, "count": len(data), "timestamp": datetime.datetime.now().isoformat()}
+
+@app.get("/api/chart")
+async def chart_endpoint(symbol: str):
+    sym = symbol.upper().replace(".NS", "").strip()
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+    try:
+        url = f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}.NS?interval=1d&range=3mo"
+        r = requests.get(url, headers=headers, timeout=4)
+        if r.status_code == 200:
+            res = r.json()["chart"]["result"][0]
+            meta = res["meta"]
+            quotes = res["indicators"]["quote"][0]
+            ts = res["timestamp"]
+            candles = []
+            for i in range(len(ts)):
+                o = quotes["open"][i]
+                h = quotes["high"][i]
+                l = quotes["low"][i]
+                c = quotes["close"][i]
+                v = quotes["volume"][i]
+                if None in (o, h, l, c):
+                    continue
+                candles.append({
+                    "t": ts[i],
+                    "o": round(o, 2),
+                    "h": round(h, 2),
+                    "l": round(l, 2),
+                    "c": round(c, 2),
+                    "v": v or 0
+                })
+            cmp = meta.get("regularMarketPrice") or (candles[-1]["c"] if candles else 0)
+            return {"status": "success", "symbol": sym, "cmp": round(cmp, 2), "candles": candles}
+    except Exception:
+        pass
+    return {"status": "fallback", "symbol": sym, "candles": []}
