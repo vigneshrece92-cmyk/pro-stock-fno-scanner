@@ -229,11 +229,11 @@ def scan_symbol(s, nse_options):
             pattern = "Cup & Handle Accumulation"
         elif cmp >= h60 * 0.992:
             horizon = "Monthly Holding"
-            setup_name = "Multi-Month Base Breakout (Arvind Mangal)"
+            setup_name = "Multi-Month Base Breakout"
             pattern = "Multi-Month Base / Stage-2 Transition"
         elif rvol >= 1.6:
             horizon = "Daily / Intraday"
-            setup_name = "High-Beta Momentum Surge (Option Edge)"
+            setup_name = "High-Beta Momentum Surge"
             pattern = "High-Volume Range Expansion"
         else:
             horizon = "Weekly Holding"

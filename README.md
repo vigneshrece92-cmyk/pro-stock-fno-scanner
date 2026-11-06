@@ -1,6 +1,6 @@
 # Vickyvaio Breakouts 🚀
 
-An institutional-grade Indian Stock & F&O Momentum Breakout Scanner inspired by **CA Arvind Mangal (`#Chart_Sab_Kuch_Bolta_Hai`)** and **Option Edge Tamil (High-Beta F&O Momentum)**.
+An institutional-grade Indian Stock & F&O Momentum Breakout Scanner with strict 6-factor verification and real-time NSE BhavCopy settlement synchronization.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/vigneshrece92-cmyk/pro-stock-fno-scanner)
 
@@ -22,9 +22,10 @@ An institutional-grade Indian Stock & F&O Momentum Breakout Scanner inspired by 
      - **Chemicals & Fertilizers** (`SRF`, `PIDILITIND`, `DEEPAKNTR`, etc.)
 
 2. **Categorized Breakout Horizons:**
-   - **Monthly Holding (Arvind Mangal Base):** Multi-month / 52-week consolidation breakouts with institutional volume accumulation.
+   - **🏆 Cup & Handle Breakouts:** Symmetrical rounded bases with shallow handle consolidations.
+   - **Monthly Holding:** Multi-month / 52-week consolidation breakouts with institutional volume accumulation.
    - **Weekly Holding:** Medium-term consolidation range breakouts.
-   - **Daily Fast F&O (Option Edge Tamil):** High-beta momentum surges with RVOL $\ge 1.4\times$ to $2.8\times$.
+   - **Daily Fast F&O:** High-beta momentum surges with RVOL $\ge 1.4\times$ to $2.8\times$.
 
 3. **Complete Execution Package:**
    - **Cash/Stock Trade:** Entry Price, Stop Loss, Target 1, Target 2, R:R ratio.
