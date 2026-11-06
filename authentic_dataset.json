@@ -15,11 +15,11 @@
     "rvol": 2.95,
     "stock_trade": {
       "entry": 1571.2,
-      "sl": 1329.4,
-      "tgt1": 1933.9,
-      "tgt2": 2248.24,
-      "rr": "1:1.5",
-      "potential_pct": "+23.1% / +43.1%"
+      "sl": 1492.64,
+      "tgt1": 1696.9,
+      "tgt2": 1791.17,
+      "rr": "1:1.6",
+      "potential_pct": "+8.0% / +14.0%"
     },
     "option_trade": {
       "strike": "1570 CE",
@@ -32,7 +32,6 @@
       "margin_required": 19460,
       "profit_tgt1": 8750,
       "profit_tgt2": 18480,
-      "oi": 855400,
       "contract": "ICICIBANK26NOV1570CE",
       "source": "Official NSE BhavCopy"
     }
@@ -53,11 +52,11 @@
     "rvol": 3.26,
     "stock_trade": {
       "entry": 3287.2,
-      "sl": 2744.3,
-      "tgt1": 4101.55,
-      "tgt2": 4807.32,
+      "sl": 3188.58,
+      "tgt1": 3435.13,
+      "tgt2": 3543.61,
       "rr": "1:1.5",
-      "potential_pct": "+24.8% / +46.2%"
+      "potential_pct": "+4.5% / +7.8%"
     },
     "option_trade": {
       "strike": "3300 CE",
@@ -70,7 +69,6 @@
       "margin_required": 10600,
       "profit_tgt1": 4760,
       "profit_tgt2": 10060,
-      "oi": 1042200,
       "contract": "M&M26NOV3300CE",
       "source": "Official NSE BhavCopy"
     }
@@ -91,11 +89,11 @@
     "rvol": 2.3,
     "stock_trade": {
       "entry": 788.25,
-      "sl": 669.2,
-      "tgt1": 966.82,
-      "tgt2": 1121.59,
-      "rr": "1:1.5",
-      "potential_pct": "+22.7% / +42.3%"
+      "sl": 748.84,
+      "tgt1": 851.31,
+      "tgt2": 898.6,
+      "rr": "1:1.6",
+      "potential_pct": "+8.0% / +14.0%"
     },
     "option_trade": {
       "strike": "790 CE",
@@ -108,7 +106,6 @@
       "margin_required": 10400,
       "profit_tgt1": 4680,
       "profit_tgt2": 9880,
-      "oi": 7216300,
       "contract": "HDFCBANK26NOV790CE",
       "source": "Official NSE BhavCopy"
     }
@@ -129,11 +126,11 @@
     "rvol": 5.55,
     "stock_trade": {
       "entry": 5000.0,
-      "sl": 4209.0,
-      "tgt1": 6186.5,
-      "tgt2": 7214.8,
+      "sl": 4850.0,
+      "tgt1": 5225.0,
+      "tgt2": 5390.0,
       "rr": "1:1.5",
-      "potential_pct": "+23.7% / +44.3%"
+      "potential_pct": "+4.5% / +7.8%"
     },
     "option_trade": {
       "strike": "5000 CE",
@@ -146,7 +143,6 @@
       "margin_required": 15286,
       "profit_tgt1": 6886,
       "profit_tgt2": 14516,
-      "oi": 842450,
       "contract": "TITAN26NOV5000CE",
       "source": "Official NSE BhavCopy"
     }
@@ -167,11 +163,11 @@
     "rvol": 1.32,
     "stock_trade": {
       "entry": 1322.9,
-      "sl": 1196.9,
-      "tgt1": 1511.9,
-      "tgt2": 1675.7,
-      "rr": "1:1.5",
-      "potential_pct": "+14.3% / +26.7%"
+      "sl": 1256.76,
+      "tgt1": 1428.72,
+      "tgt2": 1508.09,
+      "rr": "1:1.6",
+      "potential_pct": "+8.0% / +14.0%"
     },
     "option_trade": {
       "strike": "1320 CE",
@@ -184,7 +180,6 @@
       "margin_required": 15750,
       "profit_tgt1": 7062,
       "profit_tgt2": 14938,
-      "oi": 870000,
       "contract": "AXISBANK26NOV1320CE",
       "source": "Official NSE BhavCopy"
     }
@@ -205,11 +200,11 @@
     "rvol": 1.53,
     "stock_trade": {
       "entry": 186.3,
-      "sl": 163.41,
-      "tgt1": 220.64,
-      "tgt2": 250.39,
+      "sl": 178.85,
+      "tgt1": 197.48,
+      "tgt2": 206.42,
       "rr": "1:1.5",
-      "potential_pct": "+18.4% / +34.4%"
+      "potential_pct": "+6.0% / +10.8%"
     },
     "option_trade": {
       "strike": "187.5 CE",
@@ -222,7 +217,6 @@
       "margin_required": 12320,
       "profit_tgt1": 5555,
       "profit_tgt2": 11605,
-      "oi": 3093750,
       "contract": "TATASTEEL26NOV187.5CE",
       "source": "Official NSE BhavCopy"
     }
@@ -243,11 +237,11 @@
     "rvol": 1.34,
     "stock_trade": {
       "entry": 10320.5,
-      "sl": 8797.0,
-      "tgt1": 12605.75,
-      "tgt2": 14586.3,
-      "rr": "1:1.5",
-      "potential_pct": "+22.1% / +41.3%"
+      "sl": 9804.48,
+      "tgt1": 11146.13,
+      "tgt2": 11765.36,
+      "rr": "1:1.6",
+      "potential_pct": "+8.0% / +14.0%"
     },
     "option_trade": {
       "strike": "10300 CE",
@@ -260,7 +254,6 @@
       "margin_required": 43500,
       "profit_tgt1": 19580,
       "profit_tgt2": 41320,
-      "oi": 98500,
       "contract": "DIVISLAB26NOV10300CE",
       "source": "Official NSE BhavCopy"
     }
@@ -281,11 +274,11 @@
     "rvol": 1.05,
     "stock_trade": {
       "entry": 480.0,
-      "sl": 427.7,
-      "tgt1": 558.45,
-      "tgt2": 626.44,
-      "rr": "1:1.5",
-      "potential_pct": "+16.3% / +30.5%"
+      "sl": 456.0,
+      "tgt1": 518.4,
+      "tgt2": 547.2,
+      "rr": "1:1.6",
+      "potential_pct": "+8.0% / +14.0%"
     },
     "option_trade": {
       "strike": "480 CE",
@@ -298,7 +291,6 @@
       "margin_required": 15300,
       "profit_tgt1": 6900,
       "profit_tgt2": 14500,
-      "oi": 5560000,
       "contract": "KOTAKBANK26NOV480CE",
       "source": "Official NSE BhavCopy"
     }
@@ -319,11 +311,11 @@
     "rvol": 0.95,
     "stock_trade": {
       "entry": 1087.75,
-      "sl": 899.15,
-      "tgt1": 1370.65,
-      "tgt2": 1615.83,
+      "sl": 1044.24,
+      "tgt1": 1153.01,
+      "tgt2": 1205.23,
       "rr": "1:1.5",
-      "potential_pct": "+26.0% / +48.5%"
+      "potential_pct": "+6.0% / +10.8%"
     },
     "option_trade": {
       "strike": "1090 CE",
@@ -336,7 +328,6 @@
       "margin_required": 16912,
       "profit_tgt1": 7613,
       "profit_tgt2": 16088,
-      "oi": 573750,
       "contract": "BAJFINANCE26NOV1090CE",
       "source": "Official NSE BhavCopy"
     }
@@ -357,11 +348,11 @@
     "rvol": 1.53,
     "stock_trade": {
       "entry": 4117.7,
-      "sl": 3592.9,
-      "tgt1": 4904.9,
-      "tgt2": 5587.14,
-      "rr": "1:1.5",
-      "potential_pct": "+19.1% / +35.7%"
+      "sl": 3911.81,
+      "tgt1": 4447.12,
+      "tgt2": 4694.19,
+      "rr": "1:1.6",
+      "potential_pct": "+8.0% / +14.0%"
     },
     "option_trade": {
       "strike": "4100 CE",
@@ -374,7 +365,6 @@
       "margin_required": 13965,
       "profit_tgt1": 6283,
       "profit_tgt2": 13265,
-      "oi": 414050,
       "contract": "LT26NOV4100CE",
       "source": "Official NSE BhavCopy"
     }
@@ -395,11 +385,11 @@
     "rvol": 3.29,
     "stock_trade": {
       "entry": 958.4,
-      "sl": 851.1,
-      "tgt1": 1119.35,
-      "tgt2": 1258.84,
+      "sl": 929.65,
+      "tgt1": 1001.52,
+      "tgt2": 1033.15,
       "rr": "1:1.5",
-      "potential_pct": "+16.8% / +31.3%"
+      "potential_pct": "+4.5% / +7.8%"
     },
     "option_trade": {
       "strike": "960 CE",
@@ -412,7 +402,6 @@
       "margin_required": 18480,
       "profit_tgt1": 8330,
       "profit_tgt2": 17570,
-      "oi": 1502900,
       "contract": "HINDALCO26NOV960CE",
       "source": "Official NSE BhavCopy"
     }
@@ -433,11 +422,11 @@
     "rvol": 1.76,
     "stock_trade": {
       "entry": 2107.2,
-      "sl": 1756.2,
-      "tgt1": 2633.7,
-      "tgt2": 3090.0,
-      "rr": "1:1.5",
-      "potential_pct": "+25.0% / +46.6%"
+      "sl": 2001.84,
+      "tgt1": 2275.78,
+      "tgt2": 2402.21,
+      "rr": "1:1.6",
+      "potential_pct": "+8.0% / +14.0%"
     },
     "option_trade": {
       "strike": "2100 CE",
@@ -450,7 +439,6 @@
       "margin_required": 11922,
       "profit_tgt1": 5367,
       "profit_tgt2": 11305,
-      "oi": 4512500,
       "contract": "BHARTIARTL26NOV2100CE",
       "source": "Official NSE BhavCopy"
     }
@@ -471,11 +459,11 @@
     "rvol": 1.85,
     "stock_trade": {
       "entry": 10900.0,
-      "sl": 9637.0,
-      "tgt1": 12794.5,
-      "tgt2": 14436.4,
+      "sl": 10573.0,
+      "tgt1": 11390.5,
+      "tgt2": 11750.2,
       "rr": "1:1.5",
-      "potential_pct": "+17.4% / +32.4%"
+      "potential_pct": "+4.5% / +7.8%"
     },
     "option_trade": {
       "strike": "10900 CE",
@@ -488,7 +476,6 @@
       "margin_required": 16196,
       "profit_tgt1": 7286,
       "profit_tgt2": 15386,
-      "oi": 69975,
       "contract": "BAJAJ-AUTO26NOV10900CE",
       "source": "Official NSE BhavCopy"
     }
@@ -509,11 +496,11 @@
     "rvol": 1.43,
     "stock_trade": {
       "entry": 1018.5,
-      "sl": 937.5,
-      "tgt1": 1140.0,
-      "tgt2": 1245.3,
+      "sl": 977.76,
+      "tgt1": 1079.61,
+      "tgt2": 1128.5,
       "rr": "1:1.5",
-      "potential_pct": "+11.9% / +22.3%"
+      "potential_pct": "+6.0% / +10.8%"
     },
     "option_trade": {
       "strike": "1020 CE",
@@ -526,7 +513,6 @@
       "margin_required": 14737,
       "profit_tgt1": 6638,
       "profit_tgt2": 13987,
-      "oi": 5061750,
       "contract": "SBIN26NOV1020CE",
       "source": "Official NSE BhavCopy"
     }
@@ -547,11 +533,11 @@
     "rvol": 0.65,
     "stock_trade": {
       "entry": 1864.7,
-      "sl": 1624.8,
-      "tgt1": 2224.55,
-      "tgt2": 2536.42,
+      "sl": 1790.11,
+      "tgt1": 1976.59,
+      "tgt2": 2066.09,
       "rr": "1:1.5",
-      "potential_pct": "+19.3% / +36.0%"
+      "potential_pct": "+6.0% / +10.8%"
     },
     "option_trade": {
       "strike": "1860 CE",
@@ -564,7 +550,6 @@
       "margin_required": 10980,
       "profit_tgt1": 4950,
       "profit_tgt2": 10440,
-      "oi": 358800,
       "contract": "BAJAJFINSV26NOV1860CE",
       "source": "Official NSE BhavCopy"
     }
@@ -585,11 +570,11 @@
     "rvol": 1.09,
     "stock_trade": {
       "entry": 752.9,
-      "sl": 634.15,
-      "tgt1": 931.02,
-      "tgt2": 1085.4,
-      "rr": "1:1.5",
-      "potential_pct": "+23.7% / +44.2%"
+      "sl": 715.25,
+      "tgt1": 813.14,
+      "tgt2": 858.32,
+      "rr": "1:1.6",
+      "potential_pct": "+8.0% / +14.0%"
     },
     "option_trade": {
       "strike": "750 CE",
@@ -602,7 +587,6 @@
       "margin_required": 17385,
       "profit_tgt1": 7790,
       "profit_tgt2": 16530,
-      "oi": 547200,
       "contract": "DLF26NOV750CE",
       "source": "Official NSE BhavCopy"
     }
@@ -623,11 +607,11 @@
     "rvol": 1.87,
     "stock_trade": {
       "entry": 12750.0,
-      "sl": 10985.0,
-      "tgt1": 15397.5,
-      "tgt2": 17692.0,
+      "sl": 12367.5,
+      "tgt1": 13323.75,
+      "tgt2": 13744.5,
       "rr": "1:1.5",
-      "potential_pct": "+20.8% / +38.8%"
+      "potential_pct": "+4.5% / +7.8%"
     },
     "option_trade": {
       "strike": "12700 CE",
@@ -640,7 +624,6 @@
       "margin_required": 14765,
       "profit_tgt1": 6645,
       "profit_tgt2": 14025,
-      "oi": 256400,
       "contract": "MARUTI26NOV12700CE",
       "source": "Official NSE BhavCopy"
     }
@@ -661,11 +644,11 @@
     "rvol": 1.3,
     "stock_trade": {
       "entry": 2869.0,
-      "sl": 2305.0,
-      "tgt1": 3715.0,
-      "tgt2": 4448.2,
+      "sl": 2754.24,
+      "tgt1": 3041.14,
+      "tgt2": 3178.85,
       "rr": "1:1.5",
-      "potential_pct": "+29.5% / +55.0%"
+      "potential_pct": "+6.0% / +10.8%"
     },
     "option_trade": {
       "strike": "2850 CE",
@@ -678,7 +661,6 @@
       "margin_required": 23375,
       "profit_tgt1": 10505,
       "profit_tgt2": 22220,
-      "oi": 212850,
       "contract": "MUTHOOTFIN26NOV2850CE",
       "source": "Official NSE BhavCopy"
     }
@@ -699,11 +681,11 @@
     "rvol": 1.13,
     "stock_trade": {
       "entry": 1860.0,
-      "sl": 1719.1,
-      "tgt1": 2071.35,
-      "tgt2": 2254.52,
+      "sl": 1786.06,
+      "tgt1": 1970.91,
+      "tgt2": 2059.64,
       "rr": "1:1.5",
-      "potential_pct": "+11.4% / +21.2%"
+      "potential_pct": "+6.0% / +10.7%"
     },
     "option_trade": {
       "strike": "1860 CE",
@@ -716,7 +698,6 @@
       "margin_required": 12792,
       "profit_tgt1": 5758,
       "profit_tgt2": 12162,
-      "oi": 460950,
       "contract": "SUNPHARMA26NOV1860CE",
       "source": "Official NSE BhavCopy"
     }
@@ -737,11 +718,11 @@
     "rvol": 0.75,
     "stock_trade": {
       "entry": 1785.0,
-      "sl": 1415.0,
-      "tgt1": 2340.0,
-      "tgt2": 2821.0,
+      "sl": 1713.6,
+      "tgt1": 1892.1,
+      "tgt2": 1977.78,
       "rr": "1:1.5",
-      "potential_pct": "+31.1% / +58.0%"
+      "potential_pct": "+6.0% / +10.8%"
     },
     "option_trade": {
       "strike": "1780 CE",
@@ -754,7 +735,6 @@
       "margin_required": 27188,
       "profit_tgt1": 12250,
       "profit_tgt2": 25812,
-      "oi": 108125,
       "contract": "CHOLAFIN26NOV1780CE",
       "source": "Official NSE BhavCopy"
     }
@@ -775,11 +755,11 @@
     "rvol": 1.25,
     "stock_trade": {
       "entry": 1411.0,
-      "sl": 1292.0,
-      "tgt1": 1589.5,
-      "tgt2": 1744.2,
+      "sl": 1369.0,
+      "tgt1": 1474.0,
+      "tgt2": 1524.4,
       "rr": "1:1.5",
-      "potential_pct": "+12.7% / +23.6%"
+      "potential_pct": "+4.5% / +8.0%"
     },
     "option_trade": {
       "strike": "1410 CE",
@@ -792,7 +772,6 @@
       "margin_required": 10179,
       "profit_tgt1": 4569,
       "profit_tgt2": 9669,
-      "oi": 153850,
       "contract": "CIPLA26NOV1410CE",
       "source": "Official NSE BhavCopy"
     }
@@ -813,11 +792,11 @@
     "rvol": 0.74,
     "stock_trade": {
       "entry": 4491.7,
-      "sl": 3741.9,
-      "tgt1": 5616.4,
-      "tgt2": 6591.14,
-      "rr": "1:1.5",
-      "potential_pct": "+25.0% / +46.7%"
+      "sl": 4267.11,
+      "tgt1": 4851.04,
+      "tgt2": 5120.55,
+      "rr": "1:1.6",
+      "potential_pct": "+8.0% / +14.0%"
     },
     "option_trade": {
       "strike": "4500 CE",
@@ -830,7 +809,6 @@
       "margin_required": 15610,
       "profit_tgt1": 7018,
       "profit_tgt2": 14822,
-      "oi": 343000,
       "contract": "TVSMOTOR26NOV4500CE",
       "source": "Official NSE BhavCopy"
     }
@@ -851,11 +829,11 @@
     "rvol": 0.97,
     "stock_trade": {
       "entry": 126.55,
-      "sl": 113.71,
-      "tgt1": 145.81,
-      "tgt2": 162.5,
-      "rr": "1:1.5",
-      "potential_pct": "+15.2% / +28.4%"
+      "sl": 121.17,
+      "tgt1": 135.16,
+      "tgt2": 141.61,
+      "rr": "1:1.6",
+      "potential_pct": "+6.8% / +11.9%"
     },
     "option_trade": {
       "strike": "127 CE",
@@ -868,7 +846,6 @@
       "margin_required": 18480,
       "profit_tgt1": 7920,
       "profit_tgt2": 17520,
-      "oi": 2728000,
       "contract": "PNB26NOV127CE",
       "source": "Official NSE BhavCopy"
     }
@@ -889,11 +866,11 @@
     "rvol": 1.34,
     "stock_trade": {
       "entry": 5513.0,
-      "sl": 4825.0,
-      "tgt1": 6545.0,
-      "tgt2": 7439.4,
+      "sl": 5292.48,
+      "tgt1": 5843.78,
+      "tgt2": 6108.4,
       "rr": "1:1.5",
-      "potential_pct": "+18.7% / +34.9%"
+      "potential_pct": "+6.0% / +10.8%"
     },
     "option_trade": {
       "strike": "5500 CE",
@@ -906,7 +883,6 @@
       "margin_required": 18488,
       "profit_tgt1": 8317,
       "profit_tgt2": 17558,
-      "oi": 206550,
       "contract": "HEROMOTOCO26NOV5500CE",
       "source": "Official NSE BhavCopy"
     }
@@ -927,11 +903,11 @@
     "rvol": 0.78,
     "stock_trade": {
       "entry": 283.15,
-      "sl": 252.8,
-      "tgt1": 328.67,
-      "tgt2": 368.13,
-      "rr": "1:1.5",
-      "potential_pct": "+16.1% / +30.0%"
+      "sl": 268.99,
+      "tgt1": 305.81,
+      "tgt2": 322.8,
+      "rr": "1:1.6",
+      "potential_pct": "+8.0% / +14.0%"
     },
     "option_trade": {
       "strike": "282.5 CE",
@@ -944,7 +920,6 @@
       "margin_required": 8108,
       "profit_tgt1": 3622,
       "profit_tgt2": 7762,
-      "oi": 3663900,
       "contract": "ITC26NOV282.5CE",
       "source": "Official NSE BhavCopy"
     }
@@ -965,11 +940,11 @@
     "rvol": 1.49,
     "stock_trade": {
       "entry": 1809.3,
-      "sl": 1468.4,
-      "tgt1": 2320.65,
-      "tgt2": 2763.82,
+      "sl": 1736.93,
+      "tgt1": 1917.85,
+      "tgt2": 2004.7,
       "rr": "1:1.5",
-      "potential_pct": "+28.3% / +52.8%"
+      "potential_pct": "+6.0% / +10.8%"
     },
     "option_trade": {
       "strike": "1800 CE",
@@ -982,7 +957,6 @@
       "margin_required": 15795,
       "profit_tgt1": 7117,
       "profit_tgt2": 15015,
-      "oi": 363025,
       "contract": "GODREJPROP26NOV1800CE",
       "source": "Official NSE BhavCopy"
     }
@@ -1003,11 +977,11 @@
     "rvol": 1.11,
     "stock_trade": {
       "entry": 1320.0,
-      "sl": 1152.2,
-      "tgt1": 1571.7,
-      "tgt2": 1789.84,
+      "sl": 1267.2,
+      "tgt1": 1399.2,
+      "tgt2": 1462.56,
       "rr": "1:1.5",
-      "potential_pct": "+19.1% / +35.6%"
+      "potential_pct": "+6.0% / +10.8%"
     },
     "option_trade": {
       "strike": "1320 CE",
@@ -1020,7 +994,6 @@
       "margin_required": 12000,
       "profit_tgt1": 5400,
       "profit_tgt2": 11400,
-      "oi": 10355000,
       "contract": "RELIANCE26NOV1320CE",
       "source": "Official NSE BhavCopy"
     }
@@ -1041,11 +1014,11 @@
     "rvol": 0.98,
     "stock_trade": {
       "entry": 250.31,
-      "sl": 225.2,
-      "tgt1": 287.98,
-      "tgt2": 320.62,
-      "rr": "1:1.5",
-      "potential_pct": "+15.0% / +28.1%"
+      "sl": 239.64,
+      "tgt1": 267.38,
+      "tgt2": 280.19,
+      "rr": "1:1.6",
+      "potential_pct": "+6.8% / +11.9%"
     },
     "option_trade": {
       "strike": "250 CE",
@@ -1058,7 +1031,6 @@
       "margin_required": 14859,
       "profit_tgt1": 6786,
       "profit_tgt2": 14098,
-      "oi": 5642325,
       "contract": "BANKBARODA26NOV250CE",
       "source": "Official NSE BhavCopy"
     }
@@ -1079,11 +1051,11 @@
     "rvol": 0.88,
     "stock_trade": {
       "entry": 1165.0,
-      "sl": 1000.8,
-      "tgt1": 1411.3,
-      "tgt2": 1624.76,
+      "sl": 1118.4,
+      "tgt1": 1234.9,
+      "tgt2": 1290.82,
       "rr": "1:1.5",
-      "potential_pct": "+21.1% / +39.5%"
+      "potential_pct": "+6.0% / +10.8%"
     },
     "option_trade": {
       "strike": "1160 CE",
@@ -1096,7 +1068,6 @@
       "margin_required": 18125,
       "profit_tgt1": 8125,
       "profit_tgt2": 17188,
-      "oi": 229375,
       "contract": "JINDALSTEL26NOV1160CE",
       "source": "Official NSE BhavCopy"
     }
@@ -1117,11 +1088,11 @@
     "rvol": 0.91,
     "stock_trade": {
       "entry": 7669.5,
-      "sl": 6767.5,
-      "tgt1": 9022.5,
-      "tgt2": 10195.1,
+      "sl": 7362.72,
+      "tgt1": 8129.67,
+      "tgt2": 8497.81,
       "rr": "1:1.5",
-      "potential_pct": "+17.6% / +32.9%"
+      "potential_pct": "+6.0% / +10.8%"
     },
     "option_trade": {
       "strike": "7700 CE",
@@ -1134,7 +1105,6 @@
       "margin_required": 18745,
       "profit_tgt1": 8435,
       "profit_tgt2": 17805,
-      "oi": 83800,
       "contract": "EICHERMOT26NOV7700CE",
       "source": "Official NSE BhavCopy"
     }
@@ -1155,11 +1125,11 @@
     "rvol": 1.14,
     "stock_trade": {
       "entry": 319.9,
-      "sl": 275.4,
-      "tgt1": 386.65,
-      "tgt2": 444.5,
+      "sl": 307.1,
+      "tgt1": 339.1,
+      "tgt2": 354.46,
       "rr": "1:1.5",
-      "potential_pct": "+20.9% / +38.9%"
+      "potential_pct": "+6.0% / +10.8%"
     },
     "option_trade": {
       "strike": "320 CE",
@@ -1172,7 +1142,6 @@
       "margin_required": 14418,
       "profit_tgt1": 6518,
       "profit_tgt2": 13627,
-      "oi": 1514825,
       "contract": "BPCL26NOV320CE",
       "source": "Official NSE BhavCopy"
     }
@@ -1193,11 +1162,11 @@
     "rvol": 2.03,
     "stock_trade": {
       "entry": 146.25,
-      "sl": 124.92,
-      "tgt1": 178.25,
-      "tgt2": 205.97,
-      "rr": "1:1.5",
-      "potential_pct": "+21.9% / +40.8%"
+      "sl": 138.94,
+      "tgt1": 157.95,
+      "tgt2": 166.72,
+      "rr": "1:1.6",
+      "potential_pct": "+8.0% / +14.0%"
     },
     "option_trade": {
       "strike": "146 CE",
@@ -1210,7 +1179,6 @@
       "margin_required": 17599,
       "profit_tgt1": 7751,
       "profit_tgt2": 16526,
-      "oi": 1413750,
       "contract": "IOC26NOV146CE",
       "source": "Official NSE BhavCopy"
     }
@@ -1231,11 +1199,11 @@
     "rvol": 0.59,
     "stock_trade": {
       "entry": 1373.0,
-      "sl": 1167.2,
-      "tgt1": 1681.7,
-      "tgt2": 1949.24,
-      "rr": "1:1.5",
-      "potential_pct": "+22.5% / +42.0%"
+      "sl": 1304.35,
+      "tgt1": 1482.84,
+      "tgt2": 1565.22,
+      "rr": "1:1.6",
+      "potential_pct": "+8.0% / +14.0%"
     },
     "option_trade": {
       "strike": "1370 CE",
@@ -1248,7 +1216,6 @@
       "margin_required": 16375,
       "profit_tgt1": 7375,
       "profit_tgt2": 15563,
-      "oi": 1084375,
       "contract": "DRREDDY26NOV1370CE",
       "source": "Official NSE BhavCopy"
     }
@@ -1269,11 +1236,11 @@
     "rvol": 1.35,
     "stock_trade": {
       "entry": 1357.1,
-      "sl": 1158.0,
-      "tgt1": 1655.75,
-      "tgt2": 1914.58,
+      "sl": 1302.82,
+      "tgt1": 1438.52,
+      "tgt2": 1503.66,
       "rr": "1:1.5",
-      "potential_pct": "+22.0% / +41.1%"
+      "potential_pct": "+6.0% / +10.8%"
     },
     "option_trade": {
       "strike": "1360 CE",
@@ -1286,7 +1253,6 @@
       "margin_required": 16538,
       "profit_tgt1": 7425,
       "profit_tgt2": 15727,
-      "oi": 402300,
       "contract": "JSWSTEEL26NOV1360CE",
       "source": "Official NSE BhavCopy"
     }
@@ -1307,11 +1273,11 @@
     "rvol": 0.67,
     "stock_trade": {
       "entry": 198.0,
-      "sl": 158.3,
-      "tgt1": 257.55,
-      "tgt2": 309.16,
+      "sl": 190.8,
+      "tgt1": 208.8,
+      "tgt2": 217.44,
       "rr": "1:1.5",
-      "potential_pct": "+30.1% / +56.1%"
+      "potential_pct": "+5.5% / +9.8%"
     },
     "option_trade": {
       "strike": "197.5 CE",
@@ -1324,7 +1290,6 @@
       "margin_required": 15600,
       "profit_tgt1": 6900,
       "profit_tgt2": 14700,
-      "oi": 2106000,
       "contract": "WIPRO26NOV197.5CE",
       "source": "Official NSE BhavCopy"
     }
@@ -1345,11 +1310,11 @@
     "rvol": 0.47,
     "stock_trade": {
       "entry": 1831.0,
-      "sl": 1442.5,
-      "tgt1": 2413.75,
-      "tgt2": 2918.8,
+      "sl": 1761.3,
+      "tgt1": 1935.55,
+      "tgt2": 2019.19,
       "rr": "1:1.5",
-      "potential_pct": "+31.8% / +59.4%"
+      "potential_pct": "+5.7% / +10.3%"
     },
     "option_trade": {
       "strike": "1840 CE",
@@ -1362,7 +1327,6 @@
       "margin_required": 25470,
       "profit_tgt1": 11490,
       "profit_tgt2": 24210,
-      "oi": 670800,
       "contract": "TECHM26NOV1840CE",
       "source": "Official NSE BhavCopy"
     }
@@ -1383,11 +1347,11 @@
     "rvol": 0.87,
     "stock_trade": {
       "entry": 185.79,
-      "sl": 160.7,
-      "tgt1": 223.43,
-      "tgt2": 256.04,
+      "sl": 178.36,
+      "tgt1": 196.93,
+      "tgt2": 205.85,
       "rr": "1:1.5",
-      "potential_pct": "+20.3% / +37.8%"
+      "potential_pct": "+6.0% / +10.8%"
     },
     "option_trade": {
       "strike": "185 CE",
@@ -1400,7 +1364,6 @@
       "margin_required": 14200,
       "profit_tgt1": 6390,
       "profit_tgt2": 13490,
-      "oi": 2421100,
       "contract": "GAIL26NOV185CE",
       "source": "Official NSE BhavCopy"
     }
@@ -1421,11 +1384,11 @@
     "rvol": 0.89,
     "stock_trade": {
       "entry": 2076.0,
-      "sl": 1804.5,
-      "tgt1": 2483.25,
-      "tgt2": 2836.2,
+      "sl": 1992.96,
+      "tgt1": 2200.56,
+      "tgt2": 2300.21,
       "rr": "1:1.5",
-      "potential_pct": "+19.6% / +36.6%"
+      "potential_pct": "+6.0% / +10.8%"
     },
     "option_trade": {
       "strike": "2080 CE",
@@ -1438,7 +1401,6 @@
       "margin_required": 27122,
       "profit_tgt1": 12207,
       "profit_tgt2": 25745,
-      "oi": 229425,
       "contract": "COFORGE26NOV2080CE",
       "source": "Official NSE BhavCopy"
     }
@@ -1459,11 +1421,11 @@
     "rvol": 0.79,
     "stock_trade": {
       "entry": 396.0,
-      "sl": 354.55,
-      "tgt1": 458.17,
-      "tgt2": 512.06,
+      "sl": 380.49,
+      "tgt1": 419.26,
+      "tgt2": 437.88,
       "rr": "1:1.5",
-      "potential_pct": "+15.7% / +29.3%"
+      "potential_pct": "+5.9% / +10.6%"
     },
     "option_trade": {
       "strike": "395 CE",
@@ -1476,7 +1438,6 @@
       "margin_required": 12469,
       "profit_tgt1": 5629,
       "profit_tgt2": 11899,
-      "oi": 1749900,
       "contract": "BEL26NOV395CE",
       "source": "Official NSE BhavCopy"
     }
@@ -1497,11 +1458,11 @@
     "rvol": 0.99,
     "stock_trade": {
       "entry": 261.75,
-      "sl": 221.6,
-      "tgt1": 321.98,
-      "tgt2": 374.17,
+      "sl": 251.28,
+      "tgt1": 277.45,
+      "tgt2": 290.02,
       "rr": "1:1.5",
-      "potential_pct": "+23.0% / +42.9%"
+      "potential_pct": "+6.0% / +10.8%"
     },
     "option_trade": {
       "strike": "260 CE",
@@ -1514,7 +1475,6 @@
       "margin_required": 9821,
       "profit_tgt1": 4439,
       "profit_tgt2": 9384,
-      "oi": 1791700,
       "contract": "VEDL26NOV260CE",
       "source": "Official NSE BhavCopy"
     }
@@ -1535,11 +1495,11 @@
     "rvol": 1.14,
     "stock_trade": {
       "entry": 325.75,
-      "sl": 293.0,
-      "tgt1": 374.88,
-      "tgt2": 417.45,
+      "sl": 323.99,
+      "tgt1": 339.43,
+      "tgt2": 350.38,
       "rr": "1:1.5",
-      "potential_pct": "+15.1% / +28.2%"
+      "potential_pct": "+4.2% / +7.6%"
     },
     "option_trade": {
       "strike": "325 CE",
@@ -1552,7 +1512,6 @@
       "margin_required": 19594,
       "profit_tgt1": 8906,
       "profit_tgt2": 18656,
-      "oi": 900000,
       "contract": "NATIONALUM26NOV325CE",
       "source": "Official NSE BhavCopy"
     }
@@ -1573,11 +1532,11 @@
     "rvol": 0.66,
     "stock_trade": {
       "entry": 6053.5,
-      "sl": 5430.0,
-      "tgt1": 6988.75,
-      "tgt2": 7799.3,
+      "sl": 5884.0,
+      "tgt1": 6307.75,
+      "tgt2": 6511.15,
       "rr": "1:1.5",
-      "potential_pct": "+15.4% / +28.8%"
+      "potential_pct": "+4.2% / +7.6%"
     },
     "option_trade": {
       "strike": "6100 CE",
@@ -1590,7 +1549,6 @@
       "margin_required": 17562,
       "profit_tgt1": 7900,
       "profit_tgt2": 16688,
-      "oi": 130250,
       "contract": "PERSISTENT26NOV6100CE",
       "source": "Official NSE BhavCopy"
     }
@@ -1611,11 +1569,11 @@
     "rvol": 1.6,
     "stock_trade": {
       "entry": 4980.0,
-      "sl": 4590.0,
-      "tgt1": 5565.0,
-      "tgt2": 6072.0,
+      "sl": 4830.6,
+      "tgt1": 5204.1,
+      "tgt2": 5368.44,
       "rr": "1:1.5",
-      "potential_pct": "+11.7% / +21.9%"
+      "potential_pct": "+4.5% / +7.8%"
     },
     "option_trade": {
       "strike": "5000 CE",
@@ -1628,7 +1586,6 @@
       "margin_required": 21660,
       "profit_tgt1": 9750,
       "profit_tgt2": 20580,
-      "oi": 340050,
       "contract": "HAL26NOV5000CE",
       "source": "Official NSE BhavCopy"
     }
@@ -1649,11 +1606,11 @@
     "rvol": 2.32,
     "stock_trade": {
       "entry": 352.5,
-      "sl": 333.2,
-      "tgt1": 381.45,
-      "tgt2": 406.54,
+      "sl": 341.93,
+      "tgt1": 368.36,
+      "tgt2": 379.98,
       "rr": "1:1.5",
-      "potential_pct": "+8.2% / +15.3%"
+      "potential_pct": "+4.5% / +7.8%"
     },
     "option_trade": {
       "strike": "350 CE",
@@ -1666,7 +1623,6 @@
       "margin_required": 14790,
       "profit_tgt1": 6670,
       "profit_tgt2": 14065,
-      "oi": 2304050,
       "contract": "TATAPOWER26NOV350CE",
       "source": "Official NSE BhavCopy"
     }
@@ -1687,11 +1643,11 @@
     "rvol": 0.66,
     "stock_trade": {
       "entry": 400.0,
-      "sl": 380.4,
-      "tgt1": 429.4,
-      "tgt2": 454.88,
+      "sl": 403.8,
+      "tgt1": 416.8,
+      "tgt2": 430.24,
       "rr": "1:1.5",
-      "potential_pct": "+7.3% / +13.7%"
+      "potential_pct": "+4.2% / +7.6%"
     },
     "option_trade": {
       "strike": "400 CE",
@@ -1704,7 +1660,6 @@
       "margin_required": 8910,
       "profit_tgt1": 4050,
       "profit_tgt2": 8505,
-      "oi": 1404000,
       "contract": "COALINDIA26NOV400CE",
       "source": "Official NSE BhavCopy"
     }
@@ -1725,11 +1680,11 @@
     "rvol": 4.18,
     "stock_trade": {
       "entry": 158.55,
-      "sl": 147.27,
-      "tgt1": 175.47,
-      "tgt2": 190.13,
+      "sl": 155.24,
+      "tgt1": 163.52,
+      "tgt2": 167.16,
       "rr": "1:1.5",
-      "potential_pct": "+10.7% / +19.9%"
+      "potential_pct": "+3.1% / +5.4%"
     },
     "option_trade": {
       "strike": "157.5 CE",
@@ -1742,7 +1697,6 @@
       "margin_required": 29827,
       "profit_tgt1": 13223,
       "profit_tgt2": 28598,
-      "oi": 1961850,
       "contract": "MOTHERSON26NOV157.5CE",
       "source": "Official NSE BhavCopy"
     }
@@ -1763,11 +1717,11 @@
     "rvol": 1.08,
     "stock_trade": {
       "entry": 418.8,
-      "sl": 377.7,
-      "tgt1": 480.45,
-      "tgt2": 533.88,
+      "sl": 413.14,
+      "tgt1": 436.39,
+      "tgt2": 450.46,
       "rr": "1:1.5",
-      "potential_pct": "+14.7% / +27.5%"
+      "potential_pct": "+4.2% / +7.6%"
     },
     "option_trade": {
       "strike": "420 CE",
@@ -1780,7 +1734,6 @@
       "margin_required": 30450,
       "profit_tgt1": 13650,
       "profit_tgt2": 28875,
-      "oi": 5131875,
       "contract": "BHEL26NOV420CE",
       "source": "Official NSE BhavCopy"
     }

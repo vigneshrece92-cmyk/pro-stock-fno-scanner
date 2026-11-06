@@ -173,10 +173,30 @@ def scan_symbol(s, nse_options):
             setup_name = "Consolidation Pivot Squeeze"
             pattern = "Ascending Base Consolidation"
 
-        sl = round(min(l20, ema20, cmp * 0.965), 2)
-        risk = max(cmp - sl, 0.5)
-        tgt1 = round(cmp + (risk * 1.5), 2)
-        tgt2 = round(cmp + (risk * 2.8), 2)
+        # Realistic Breakout Stop Loss and Targets by Time Horizon:
+        # Swing traders never place 20% stop loss on a breakout.
+        # Daily/Intraday: 2.5% to 3.5% SL -> Target 1: +4% to +5%, Target 2: +7% to +9%
+        # Weekly: 3.5% to 4.5% SL -> Target 1: +5.5% to +7%, Target 2: +9% to +12%
+        # Monthly Base: 4.5% to 5.5% SL -> Target 1: +7.5% to +9.5%, Target 2: +13% to +16%
+        l5 = min(l[-6:-1]) if len(l) >= 6 else l20
+        if horizon == "Daily / Intraday":
+            sl = round(max(l5, cmp * 0.970), 2)  # max ~3% SL
+            risk = max(cmp - sl, cmp * 0.02)
+            tgt1 = round(cmp + (risk * 1.5), 2)   # +4.5% to +5%
+            tgt2 = round(cmp + (risk * 2.6), 2)   # +7.8% to +9%
+        elif horizon == "Weekly Holding":
+            sl = round(max(l5, ema20, cmp * 0.960), 2)  # max ~4% SL
+            risk = max(cmp - sl, cmp * 0.028)
+            tgt1 = round(cmp + (risk * 1.5), 2)   # +6%
+            tgt2 = round(cmp + (risk * 2.7), 2)   # +10.5%
+        else: # Monthly Holding
+            sl = round(max(ema20, cmp * 0.950), 2)  # max ~5% SL
+            risk = max(cmp - sl, cmp * 0.035)
+            tgt1 = round(cmp + (risk * 1.6), 2)   # +8%
+            tgt2 = round(cmp + (risk * 2.8), 2)   # +14%
+
+        tgt1_pct = round(((tgt1 - cmp) / cmp) * 100, 1)
+        tgt2_pct = round(((tgt2 - cmp) / cmp) * 100, 1)
 
         # Match with real NSE option from BhavCopy
         lookup = 'M&M' if s in ['M&M', 'MM'] else s
