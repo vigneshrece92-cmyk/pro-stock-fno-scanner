@@ -275,16 +275,18 @@ def is_market_hours() -> bool:
     # IST is UTC + 5:30
     ist_min = (now_utc.hour * 60 + now_utc.minute + 330) % 1440
     weekday = now_utc.weekday()
-    # Monday to Friday: 9:15 AM (555) to 2:35 PM (875)
-    return (weekday < 5) and (555 <= ist_min <= 875)
+    # Monday to Friday: 9:15 AM (555) to 3:30 PM (930)
+    return (weekday < 5) and (555 <= ist_min <= 930)
 
 def main():
+    if not is_market_hours():
+        logger.info("Market is currently CLOSED (IST). Scanner standing down until next market session (Mon-Fri 9:15 AM - 3:30 PM IST). Zero alerts sent.")
+        return
+
     logger.info("Initializing Angel One SmartAPI and Scrip Master...")
     init_angel_one()
     load_scrip_master()
 
-    # Active run duration: runs continuous 60-second scanning cycles for up to 50 minutes per cloud worker
-    # This guarantees 60-second real-time alert resolution without 15-minute lag!
     start_time = time.time()
     max_duration_seconds = 50 * 60  # 50 minutes
 
@@ -293,11 +295,7 @@ def main():
         if is_market_hours():
             run_cloud_scan()
         else:
-            logger.info("Outside market hours. Standing by...")
-            # If triggered manually off-hours, execute at least one test cycle then exit
-            if time.time() - start_time < 30:
-                run_cloud_scan()
-                break
+            logger.info("Market closed during active session. Standing down.")
             break
 
         # Wait 60 seconds before next scan

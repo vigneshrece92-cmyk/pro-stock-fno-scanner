@@ -811,9 +811,9 @@ HTML_PAGE = """<!DOCTYPE html>
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span id="autoSyncLabel">LIVE • Sync 60s</span>
                 </div>
-                <div onclick="toggleTelegramAutoAlerts()" id="tgAutoPill" title="Click to toggle Telegram 9:15 AM - 2:30 PM Auto-Signals" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-500/10 border border-sky-500/30 text-[11px] font-mono text-sky-400 hover:bg-sky-500/20 cursor-pointer transition-all active:scale-95 shadow-sm">
-                    <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
-                    <span>🤖 TG Signals: ON</span>
+                <div id="tgAutoPill" title="Cloud Scanner runs 9:15 AM - 3:30 PM Mon-Fri" class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-500/10 border border-sky-500/30 text-[11px] font-mono text-sky-400 shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+                    <span>☁️ Cloud Signals (9:15-3:30)</span>
                 </div>
                 <button onclick="scanNow()" id="scanBtn" class="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95">
                     <i data-lucide="refresh-cw" class="w-3.5 h-3.5" id="scanIcon"></i> Re-Scan Feed
@@ -3855,17 +3855,24 @@ Strategy: Institutional Two-Way Systematic Execution`;
             }
         }
 
-        let telegramAutoAlertsEnabled = true;
+        let telegramAutoAlertsEnabled = false; // Always OFF in client browser; cloud worker handles 100% of automation
         let dispatchedSymbolsToday = new Set();
         try {
             const stored = localStorage.getItem('vg_tg_dispatched_' + new Date().toISOString().slice(0, 10));
             if (stored) dispatchedSymbolsToday = new Set(JSON.parse(stored));
         } catch(e) {}
 
+        function isLiveMarketHours() {
+            const now = new Date();
+            const istMinutes = (now.getUTCHours() * 60 + now.getUTCMinutes() + 330) % 1440;
+            const day = now.getUTCDay(); // 0 = Sun, 1 = Mon ... 6 = Sat
+            return (day >= 1 && day <= 5) && (istMinutes >= 555 && istMinutes <= 930);
+        }
+
         function toggleTelegramAutoAlerts() {
             telegramAutoAlertsEnabled = !telegramAutoAlertsEnabled;
             updateTelegramPillUI();
-            showToast(telegramAutoAlertsEnabled ? '🤖 Telegram Auto-Scanner ENABLED (9:15 AM - 2:30 PM)' : '⏸ Telegram Auto-Scanner PAUSED');
+            showToast(telegramAutoAlertsEnabled ? '🤖 Telegram Auto-Scanner ENABLED (Active 9:15 AM - 3:30 PM)' : '⏸ Telegram Auto-Scanner PAUSED');
         }
 
         function updateTelegramPillUI() {
@@ -3873,15 +3880,16 @@ Strategy: Institutional Two-Way Systematic Execution`;
             if (!pill) return;
             if (telegramAutoAlertsEnabled) {
                 pill.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-500/10 border border-sky-500/30 text-[11px] font-mono text-sky-400 hover:bg-sky-500/20 cursor-pointer transition-all active:scale-95 shadow-sm";
-                pill.innerHTML = '<span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span> <span>🤖 TG Signals: ON</span>';
+                pill.innerHTML = '<span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span> <span>🤖 Client Signals: ON</span>';
             } else {
-                pill.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-[11px] font-mono text-slate-400 hover:bg-slate-700 cursor-pointer transition-all active:scale-95 shadow-sm";
-                pill.innerHTML = '<span class="w-2 h-2 rounded-full bg-slate-500"></span> <span>TG Signals: OFF</span>';
+                pill.className = "hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-500/10 border border-sky-500/30 text-[11px] font-mono text-sky-400 shadow-sm";
+                pill.innerHTML = '<span class="w-2 h-2 rounded-full bg-sky-400"></span> <span>☁️ Cloud Signals (9:15-3:30)</span>';
             }
         }
 
         function checkAndDispatchAutoTelegramAlerts() {
             if (!telegramAutoAlertsEnabled) return;
+            if (!isLiveMarketHours()) return;
             if (!fullData || fullData.length === 0) return;
 
             // Fresh A+ setups
@@ -4844,9 +4852,30 @@ async def telegram_send_endpoint(request: Request):
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
+SERVERLESS_DISPATCHED_TODAY = {"date": "", "symbols": set()}
+
+def is_live_market_hours_ist() -> bool:
+    now_utc = datetime.datetime.now(datetime.timezone.utc)
+    # IST is UTC + 5:30
+    ist_min = (now_utc.hour * 60 + now_utc.minute + 330) % 1440
+    weekday = now_utc.weekday()
+    # Monday to Friday: 9:15 AM (555) to 3:30 PM (930)
+    return (weekday < 5) and (555 <= ist_min <= 930)
+
 @app.get("/api/telegram/trigger-scan")
 async def telegram_trigger_scan_endpoint():
     """Serverless cloud-native scan and auto-dispatch to Telegram without local PC"""
+    if not is_live_market_hours_ist():
+        return {
+            "status": "skipped",
+            "message": "Market is currently closed. Automated signals run Monday-Friday 9:15 AM - 3:30 PM IST."
+        }
+
+    today_str = datetime.date.today().isoformat()
+    if SERVERLESS_DISPATCHED_TODAY.get("date") != today_str:
+        SERVERLESS_DISPATCHED_TODAY["date"] = today_str
+        SERVERLESS_DISPATCHED_TODAY["symbols"] = set()
+
     try:
         all_candidates = []
         for b in VERIFIED_BREAKOUT_DATA:
@@ -4861,6 +4890,8 @@ async def telegram_trigger_scan_endpoint():
         dispatched_list = []
         for item in all_candidates:
             sym = item.get("symbol")
+            if not sym or sym in SERVERLESS_DISPATCHED_TODAY["symbols"]:
+                continue
             dist = item.get("pct_dist", 99)
             rvol = item.get("rvol", 1.0)
             rsi = item.get("rsi", 50)
@@ -4918,6 +4949,7 @@ async def telegram_trigger_scan_endpoint():
                 r = requests.post(tg_url, json={"chat_id": str(DEFAULT_TG_CHAT_ID), "text": msg, "parse_mode": "Markdown"}, timeout=7)
                 if r.status_code == 200:
                     dispatched_list.append(sym)
+                    SERVERLESS_DISPATCHED_TODAY["symbols"].add(sym)
                     
         return {"status": "success", "dispatched_count": len(dispatched_list), "dispatched_symbols": dispatched_list}
     except Exception as e:
