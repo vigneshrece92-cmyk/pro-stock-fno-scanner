@@ -807,6 +807,10 @@ HTML_PAGE = """<!DOCTYPE html>
                 <button onclick="openScorecardModal()" class="px-3.5 py-2 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 hover:from-amber-500/30 hover:to-yellow-500/30 border border-amber-500/40 text-amber-300 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 active:scale-95 shadow-sm">
                     <i data-lucide="award" class="w-3.5 h-3.5 text-amber-400"></i> 78.6% Win Scorecard
                 </button>
+                <div class="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-[11px] font-mono text-emerald-400">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span id="autoSyncLabel">LIVE • Sync 60s</span>
+                </div>
                 <button onclick="scanNow()" id="scanBtn" class="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95">
                     <i data-lucide="refresh-cw" class="w-3.5 h-3.5" id="scanIcon"></i> Re-Scan Feed
                 </button>
@@ -2391,11 +2395,33 @@ HTML_PAGE = """<!DOCTYPE html>
             lucide.createIcons();
         }
 
-        async function scanNow() {
+        let autoSyncTimer = null;
+        let syncCountdown = 60;
+
+        function startAutoSync() {
+            if (autoSyncTimer) clearInterval(autoSyncTimer);
+            syncCountdown = 60;
+            autoSyncTimer = setInterval(() => {
+                syncCountdown--;
+                const label = document.getElementById('autoSyncLabel');
+                if (label) {
+                    label.innerText = 'LIVE • Sync ' + syncCountdown + 's';
+                }
+                if (syncCountdown <= 0) {
+                    syncCountdown = 60;
+                    scanNow(true);
+                }
+            }, 1000);
+        }
+
+        async function scanNow(isSilent = false) {
+            syncCountdown = 60;
             const icon = document.getElementById('scanIcon');
             const btn = document.getElementById('scanBtn');
-            if (icon) icon.classList.add('animate-spin');
-            if (btn) btn.disabled = true;
+            if (!isSilent) {
+                if (icon) icon.classList.add('animate-spin');
+                if (btn) btn.disabled = true;
+            }
             try {
                 const res = await fetch('/api/scan?t=' + Date.now());
                 const json = await res.json();
@@ -2419,8 +2445,10 @@ HTML_PAGE = """<!DOCTYPE html>
             } catch (e) {
                 console.log('Error fetching scan:', e);
             } finally {
-                if (icon) icon.classList.remove('animate-spin');
-                if (btn) btn.disabled = false;
+                if (!isSilent) {
+                    if (icon) icon.classList.remove('animate-spin');
+                    if (btn) btn.disabled = false;
+                }
                 updateTime();
             }
         }
@@ -4265,6 +4293,7 @@ Strategy: Institutional Two-Way Systematic Execution`;
         window.onload = function() {
             updateTime();
             scanNow();
+            startAutoSync();
         };
 
         window.onresize = function() {
