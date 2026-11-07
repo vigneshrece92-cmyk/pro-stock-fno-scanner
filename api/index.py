@@ -68,50 +68,59 @@ HTML_PAGE = """<!DOCTYPE html>
     <main class="max-w-7xl mx-auto px-6 py-8 space-y-8">
 
         <!-- Stat Row -->
-        <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
-            <div class="glass-card p-5 rounded-2xl">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
+            <div class="glass-card p-4 rounded-2xl border border-amber-500/50 bg-gradient-to-b from-amber-500/10 to-transparent cursor-pointer hover:border-amber-400 transition-all" onclick="document.getElementById('tabBtnAPlus').click()">
                 <div class="flex justify-between items-center text-slate-400 mb-2">
-                    <span class="text-xs font-semibold uppercase">Verified Breakouts</span>
+                    <span class="text-xs font-extrabold uppercase text-amber-300 flex items-center gap-1">⭐ A+ Setups</span>
+                    <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+                </div>
+                <div class="text-3xl font-black text-amber-300" id="statAPlus">--</div>
+                <div class="text-[11px] text-amber-200/70 mt-1">Top Actionable Picks</div>
+            </div>
+
+            <div class="glass-card p-4 rounded-2xl cursor-pointer hover:border-slate-700 transition-all" onclick="document.getElementById('tabBtnAll').click()">
+                <div class="flex justify-between items-center text-slate-400 mb-2">
+                    <span class="text-xs font-semibold uppercase">All Breakouts</span>
                     <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
                 </div>
                 <div class="text-3xl font-extrabold text-white" id="statTotal">--</div>
-                <div class="text-xs text-slate-500 mt-1">Filtered from All 218 F&O Stocks</div>
+                <div class="text-[11px] text-slate-500 mt-1">From 218 F&O Stocks</div>
             </div>
 
-            <div class="glass-card p-5 rounded-2xl border border-amber-500/30 bg-amber-500/5">
+            <div class="glass-card p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5">
                 <div class="flex justify-between items-center text-slate-400 mb-2">
                     <span class="text-xs font-semibold uppercase text-amber-400">🏆 Cup & Handle</span>
                     <i data-lucide="award" class="w-4 h-4 text-amber-400"></i>
                 </div>
                 <div class="text-3xl font-extrabold text-amber-400" id="statCup">--</div>
-                <div class="text-xs text-slate-500 mt-1">High-Conviction Setups</div>
+                <div class="text-[11px] text-slate-500 mt-1">High-Conviction Base</div>
             </div>
 
-            <div class="glass-card p-5 rounded-2xl">
+            <div class="glass-card p-4 rounded-2xl">
                 <div class="flex justify-between items-center text-slate-400 mb-2">
                     <span class="text-xs font-semibold uppercase">Monthly Base</span>
                     <i data-lucide="trending-up" class="w-4 h-4 text-cyan-400"></i>
                 </div>
                 <div class="text-3xl font-extrabold text-cyan-400" id="statMonthly">--</div>
-                <div class="text-xs text-slate-500 mt-1">Multi-Month Accumulation</div>
+                <div class="text-[11px] text-slate-500 mt-1">Multi-Month Swings</div>
             </div>
 
-            <div class="glass-card p-5 rounded-2xl">
+            <div class="glass-card p-4 rounded-2xl">
                 <div class="flex justify-between items-center text-slate-400 mb-2">
                     <span class="text-xs font-semibold uppercase">Weekly Swings</span>
                     <i data-lucide="calendar" class="w-4 h-4 text-indigo-400"></i>
                 </div>
                 <div class="text-3xl font-extrabold text-indigo-400" id="statWeekly">--</div>
-                <div class="text-xs text-slate-500 mt-1">Consolidation Range Pivots</div>
+                <div class="text-[11px] text-slate-500 mt-1">Consolidation Pivots</div>
             </div>
 
-            <div class="glass-card p-5 rounded-2xl">
+            <div class="glass-card p-4 rounded-2xl">
                 <div class="flex justify-between items-center text-slate-400 mb-2">
                     <span class="text-xs font-semibold uppercase">Daily F&O</span>
                     <i data-lucide="zap" class="w-4 h-4 text-emerald-400"></i>
                 </div>
                 <div class="text-3xl font-extrabold text-emerald-400" id="statDaily">--</div>
-                <div class="text-xs text-slate-500 mt-1">High-Beta Momentum Swings</div>
+                <div class="text-[11px] text-slate-500 mt-1">Momentum Fast-Track</div>
             </div>
         </div>
 
@@ -120,7 +129,10 @@ HTML_PAGE = """<!DOCTYPE html>
             
             <!-- Horizon Tabs -->
             <div class="flex gap-2 p-1.5 rounded-xl bg-slate-900 border border-slate-800 w-full lg:w-auto overflow-x-auto" id="tabs">
-                <button onclick="setHorizon('ALL', this)" class="tab-btn px-4 py-2 rounded-lg text-xs font-bold transition-all bg-emerald-500 text-black whitespace-nowrap">
+                <button id="tabBtnAPlus" onclick="setHorizon('APLUS', this)" class="tab-btn px-4 py-2 rounded-lg text-xs font-black transition-all bg-gradient-to-r from-amber-500 to-yellow-400 text-black shadow-lg shadow-amber-500/20 whitespace-nowrap flex items-center gap-1.5 active:scale-95">
+                    ⭐ A+ Fresh Setups (<span id="tabCountAPlus">0</span>)
+                </button>
+                <button id="tabBtnAll" onclick="setHorizon('ALL', this)" class="tab-btn px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white hover:bg-slate-800 whitespace-nowrap">
                     All Breakouts (<span id="tabCountAll">0</span>)
                 </button>
                 <button onclick="setHorizon('Cup & Handle Breakout', this)" class="tab-btn px-4 py-2 rounded-lg text-xs font-semibold text-amber-300 hover:text-white hover:bg-slate-800 transition-all whitespace-nowrap flex items-center gap-1.5">
@@ -208,7 +220,14 @@ HTML_PAGE = """<!DOCTYPE html>
 
     <script>
         let fullData = [];
-        let activeHorizon = 'ALL';
+        let activeHorizon = 'APLUS';
+
+        function isAPlus(item) {
+            const isFresh = (item.pct_dist >= 0.0 && item.pct_dist <= 2.0) || (item.stage && item.stage.includes('IMMINENT') && item.pct_dist >= -0.8);
+            const isGoodVol = item.rvol >= 1.25;
+            const isGoodRsi = item.rsi >= 60.0 && item.rsi <= 82.0;
+            return isFresh && isGoodVol && isGoodRsi;
+        }
 
         const COMPANY_NAMES = {
             'DLF': 'DLF Ltd',
@@ -272,13 +291,17 @@ HTML_PAGE = """<!DOCTYPE html>
         function setHorizon(horizon, btnElement) {
             activeHorizon = horizon;
             document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('bg-emerald-500', 'text-black');
+                btn.classList.remove('bg-emerald-500', 'text-black', 'bg-gradient-to-r', 'from-amber-500', 'to-yellow-400', 'shadow-lg', 'shadow-amber-500/20');
                 btn.classList.add('text-slate-300', 'hover:bg-slate-800');
             });
             const targetBtn = btnElement || (typeof event !== 'undefined' && event ? event.currentTarget || event.target : null);
             if (targetBtn && targetBtn.classList) {
                 targetBtn.classList.remove('text-slate-300', 'hover:bg-slate-800');
-                targetBtn.classList.add('bg-emerald-500', 'text-black');
+                if (horizon === 'APLUS') {
+                    targetBtn.classList.add('bg-gradient-to-r', 'from-amber-500', 'to-yellow-400', 'text-black', 'shadow-lg', 'shadow-amber-500/20');
+                } else {
+                    targetBtn.classList.add('bg-emerald-500', 'text-black');
+                }
             }
             applyFilters();
         }
@@ -287,9 +310,10 @@ HTML_PAGE = """<!DOCTYPE html>
             const query = document.getElementById('searchInput').value.toUpperCase().trim();
             const sector = document.getElementById('sectorSelect').value;
 
-            const filtered = fullData.filter(item => {
+            let filtered = fullData.filter(item => {
                 let matchHorizon = false;
                 if (activeHorizon === 'ALL') matchHorizon = true;
+                else if (activeHorizon === 'APLUS') matchHorizon = isAPlus(item);
                 else if (activeHorizon === 'Cup & Handle Breakout') matchHorizon = (item.setup_name && item.setup_name.includes('Cup & Handle')) || (item.pattern && item.pattern.includes('Cup & Handle'));
                 else matchHorizon = (item.horizon === activeHorizon);
 
@@ -298,6 +322,10 @@ HTML_PAGE = """<!DOCTYPE html>
                 const matchSearch = (!query || item.symbol.includes(query) || cName.includes(query) || (item.setup_name && item.setup_name.toUpperCase().includes(query)) || (item.pattern && item.pattern.toUpperCase().includes(query)));
                 return matchHorizon && matchSector && matchSearch;
             });
+
+            if (activeHorizon === 'APLUS') {
+                filtered.sort((a, b) => (b.score - a.score) || (b.rvol - a.rvol) || (a.pct_dist - b.pct_dist));
+            }
 
             renderCards(filtered);
         }
@@ -320,6 +348,7 @@ HTML_PAGE = """<!DOCTYPE html>
             data.forEach(item => {
                 const cName = item.company_name || getCompanyName(item.symbol);
                 const isCup = (item.setup_name && item.setup_name.includes('Cup & Handle')) || (item.pattern && item.pattern.includes('Cup & Handle'));
+                const isA_Plus = isAPlus(item);
 
                 let badgeColor = 'bg-amber-950 text-amber-300 border-amber-700/50';
                 if (item.horizon === 'Monthly Holding') badgeColor = 'bg-cyan-950 text-cyan-300 border-cyan-700/50';
@@ -330,6 +359,11 @@ HTML_PAGE = """<!DOCTYPE html>
                 else if (item.stage.includes('BASE SQUEEZE')) stageBadge = 'bg-cyan-950/80 text-cyan-300 border-cyan-700/60';
 
                 const distStr = item.pct_dist >= 0 ? `+${item.pct_dist}% above pivot` : `${item.pct_dist}% to pivot`;
+
+                const aPlusBadgeHtml = isA_Plus ? `
+                    <span class="text-xs px-2.5 py-0.5 rounded font-black bg-gradient-to-r from-amber-500/25 to-yellow-500/25 text-amber-300 border border-amber-400/60 flex items-center gap-1 shadow-sm shadow-amber-500/10">
+                        ⭐ A+ SETUP
+                    </span>` : '';
 
                 const cupBadgeHtml = isCup ? `
                     <span class="text-xs px-2.5 py-0.5 rounded font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1 shadow-sm shadow-amber-500/10">
@@ -342,6 +376,7 @@ HTML_PAGE = """<!DOCTYPE html>
                         <div>
                             <div class="flex items-center gap-2.5 flex-wrap">
                                 <span class="text-2xl font-black tracking-tight text-white">${item.symbol}</span>
+                                ${aPlusBadgeHtml}
                                 ${cupBadgeHtml}
                                 <span class="text-xs px-2.5 py-1 rounded-md font-bold uppercase tracking-wider border ${badgeColor}">
                                     ${item.horizon}
@@ -460,20 +495,23 @@ HTML_PAGE = """<!DOCTYPE html>
         }
 
         function updateStats() {
-            let monthly = 0, weekly = 0, daily = 0, cup = 0;
+            let monthly = 0, weekly = 0, daily = 0, cup = 0, aplus = 0;
             fullData.forEach(item => {
                 if (item.horizon === 'Monthly Holding') monthly++;
                 if (item.horizon === 'Weekly Holding') weekly++;
                 if (item.horizon === 'Daily / Intraday') daily++;
                 if ((item.setup_name && item.setup_name.includes('Cup & Handle')) || (item.pattern && item.pattern.includes('Cup & Handle'))) cup++;
+                if (isAPlus(item)) aplus++;
             });
 
             document.getElementById('statTotal').innerText = fullData.length;
+            if (document.getElementById('statAPlus')) document.getElementById('statAPlus').innerText = aplus;
             if (document.getElementById('statCup')) document.getElementById('statCup').innerText = cup;
             document.getElementById('statMonthly').innerText = monthly;
             document.getElementById('statWeekly').innerText = weekly;
             document.getElementById('statDaily').innerText = daily;
             document.getElementById('tabCountAll').innerText = fullData.length;
+            if (document.getElementById('tabCountAPlus')) document.getElementById('tabCountAPlus').innerText = aplus;
             if (document.getElementById('tabCountCup')) document.getElementById('tabCountCup').innerText = cup;
         }
 
