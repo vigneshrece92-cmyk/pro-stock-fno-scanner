@@ -811,6 +811,10 @@ HTML_PAGE = """<!DOCTYPE html>
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span id="autoSyncLabel">LIVE • Sync 60s</span>
                 </div>
+                <div onclick="toggleTelegramAutoAlerts()" id="tgAutoPill" title="Click to toggle Telegram 9:15 AM - 2:30 PM Auto-Signals" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-500/10 border border-sky-500/30 text-[11px] font-mono text-sky-400 hover:bg-sky-500/20 cursor-pointer transition-all active:scale-95 shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
+                    <span>🤖 TG Signals: ON</span>
+                </div>
                 <button onclick="scanNow()" id="scanBtn" class="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95">
                     <i data-lucide="refresh-cw" class="w-3.5 h-3.5" id="scanIcon"></i> Re-Scan Feed
                 </button>
@@ -2445,6 +2449,7 @@ HTML_PAGE = """<!DOCTYPE html>
                 fullData = (currentMarketMode === 'BULLISH') ? allBreakouts : allBreakdowns;
                 updateStats();
                 applyFilters();
+                checkAndDispatchAutoTelegramAlerts();
             } catch (e) {
                 console.log('Error fetching scan:', e);
             } finally {
@@ -3814,6 +3819,107 @@ Strategy: Institutional Two-Way Systematic Execution`;
             }
         }
 
+        async function sendDirectTelegram() {
+            const statusEl = document.getElementById('directTgStatus');
+            if (statusEl) statusEl.innerHTML = '<span class="text-amber-400">⚡ Dispatching to connected Telegram bot...</span>';
+            try {
+                const res = await fetch('/api/telegram/send', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ message: activeTelegramAlertText })
+                });
+                const json = await res.json();
+                if (json.status === 'success') {
+                    if (statusEl) statusEl.innerHTML = '<span class="text-emerald-400 font-bold">✓ Sent directly to your Telegram! Check your phone.</span>';
+                    showToast('Alert sent to Telegram (Chat: 927756502)!');
+                } else {
+                    if (statusEl) statusEl.innerHTML = '<span class="text-rose-400 font-bold">Failed: ' + json.message + '</span>';
+                }
+            } catch (e) {
+                if (statusEl) statusEl.innerHTML = '<span class="text-rose-400 font-bold">Network error sending alert</span>';
+            }
+        }
+
+        let telegramAutoAlertsEnabled = true;
+        let dispatchedSymbolsToday = new Set();
+        try {
+            const stored = localStorage.getItem('vg_tg_dispatched_' + new Date().toISOString().slice(0, 10));
+            if (stored) dispatchedSymbolsToday = new Set(JSON.parse(stored));
+        } catch(e) {}
+
+        function toggleTelegramAutoAlerts() {
+            telegramAutoAlertsEnabled = !telegramAutoAlertsEnabled;
+            updateTelegramPillUI();
+            showToast(telegramAutoAlertsEnabled ? '🤖 Telegram Auto-Scanner ENABLED (9:15 AM - 2:30 PM)' : '⏸ Telegram Auto-Scanner PAUSED');
+        }
+
+        function updateTelegramPillUI() {
+            const pill = document.getElementById('tgAutoPill');
+            if (!pill) return;
+            if (telegramAutoAlertsEnabled) {
+                pill.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-500/10 border border-sky-500/30 text-[11px] font-mono text-sky-400 hover:bg-sky-500/20 cursor-pointer transition-all active:scale-95 shadow-sm";
+                pill.innerHTML = '<span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span> <span>🤖 TG Signals: ON</span>';
+            } else {
+                pill.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-[11px] font-mono text-slate-400 hover:bg-slate-700 cursor-pointer transition-all active:scale-95 shadow-sm";
+                pill.innerHTML = '<span class="w-2 h-2 rounded-full bg-slate-500"></span> <span>TG Signals: OFF</span>';
+            }
+        }
+
+        function checkAndDispatchAutoTelegramAlerts() {
+            if (!telegramAutoAlertsEnabled) return;
+            if (!fullData || fullData.length === 0) return;
+
+            // Fresh A+ setups
+            const freshSetups = fullData.filter(item => {
+                return isAPlus(item) && !dispatchedSymbolsToday.has(item.symbol);
+            });
+
+            if (freshSetups.length > 0) {
+                const target = freshSetups[0];
+                dispatchSingleStockTelegram(target);
+            }
+        }
+
+        async function dispatchSingleStockTelegram(item) {
+            dispatchedSymbolsToday.add(item.symbol);
+            try {
+                const todayKey = 'vg_tg_dispatched_' + new Date().toISOString().slice(0, 10);
+                localStorage.setItem(todayKey, JSON.stringify(Array.from(dispatchedSymbolsToday)));
+            } catch(e) {}
+
+            const isBull = (currentMarketMode === 'BULLISH');
+            const alertEmoji = isBull ? '🎯' : '🩸';
+            const actionText = isBull ? 'CALL (CE) OPTION' : 'PUT (PE) OPTION';
+            const cName = item.company_name || getCompanyName(item.symbol);
+            const st = item.stock_trade || {};
+            const opt = item.option_trade || {};
+
+            const text = alertEmoji + " *VICKYVAIO BREAKOUT SIGNAL: " + item.symbol + "*\n" +
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+                "• *Company:* " + cName + "\n" +
+                "• *Setup:* " + (item.setup_name || item.pattern) + " (A+ High Conviction)\n" +
+                "• *Spot CMP:* ₹" + item.cmp + " | SL: ₹" + (st.sl || '') + " | Tgt: ₹" + (st.tgt1 || '') + "\n" +
+                "• *" + actionText + ":* " + item.symbol + " " + (opt.strike || '') + "\n" +
+                "• *Premium Entry:* ₹" + (opt.entry || '') + "\n" +
+                "• *Stop-Loss (-30%):* ₹" + (opt.sl || '') + "\n" +
+                "• *Target 1 (+45%):* ₹" + (opt.tgt1 || '') + " (+₹" + Math.round(((opt.tgt1 || 0) - (opt.entry || 0)) * (opt.lot_size || 1)).toLocaleString('en-IN') + ")\n" +
+                "• *Target 2 (+95% Doubler):* ₹" + (opt.tgt2 || '') + " (+₹" + Math.round(((opt.tgt2 || 0) - (opt.entry || 0)) * (opt.lot_size || 1)).toLocaleString('en-IN') + ")\n" +
+                "• *Lot Size:* " + (opt.lot_size || '') + " | *Margin Required:* ₹" + Number(opt.margin_required || 15000).toLocaleString('en-IN') + "\n" +
+                "• *Volume Surge:* " + (item.rvol || 1.5) + "x RVOL | *RSI:* " + (item.rsi || 65) + "\n" +
+                "• *Execution Rule:* Buy with LIMIT order at ₹" + (opt.entry || '') + ". Book 50% at T1, trail SL to cost.\n" +
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+                "🔗 [Open Live Chart](https://pro-stock-fno-scanner.vercel.app)";
+
+            try {
+                await fetch('/api/telegram/send', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ message: text })
+                });
+                showToast("⚡ Dispatched " + item.symbol + " signal to Telegram!");
+            } catch (e) {}
+        }
+
         function renderOiView(data) {
             if (!data) return;
             document.getElementById('oiNiftyPcr').innerText = data.nifty_pcr;
@@ -4560,9 +4666,14 @@ Strategy: Institutional Two-Way Systematic Execution`;
                     <textarea id="telegramPreviewText" rows="9" class="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 font-mono text-[11px] focus:outline-none focus:border-sky-500" readonly></textarea>
                 </div>
 
+                <button onclick="sendDirectTelegram()" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-black text-xs transition-all flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-sky-500/20">
+                    <i data-lucide="send" class="w-4 h-4"></i> ⚡ Push Instantly to My Telegram (927756502)
+                </button>
+                <div id="directTgStatus" class="text-center text-[11px] font-mono min-h-[16px]"></div>
+
                 <div class="flex items-center gap-2">
-                    <a id="telegramShareBtn" href="#" target="_blank" class="flex-1 py-2.5 px-4 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-black text-xs transition-all flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-sky-500/20">
-                        <i data-lucide="send" class="w-4 h-4"></i> 1-Tap Open in Telegram
+                    <a id="telegramShareBtn" href="#" target="_blank" class="flex-1 py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition-all flex items-center justify-center gap-2 active:scale-95">
+                        <i data-lucide="external-link" class="w-4 h-4"></i> Open in Telegram App
                     </a>
                     <button onclick="copyTelegramText()" class="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition-all flex items-center gap-1.5 active:scale-95">
                         <i data-lucide="copy" class="w-4 h-4"></i> Copy Text
@@ -4646,6 +4757,28 @@ async def webhook_alert_endpoint(request: Request):
             requests.post(webhook_url, json=payload, timeout=4)
             return {"status": "success", "message": "Dispatched to webhook successfully!"}
         return {"status": "error", "message": "No webhook_url provided"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+DEFAULT_TG_TOKEN = "7031852910:AAGkhuuDnuvAYY_llzuBryJQ_uAod9ekFk4"
+DEFAULT_TG_CHAT_ID = "927756502"
+
+@app.post("/api/telegram/send")
+async def telegram_send_endpoint(request: Request):
+    try:
+        body = await request.json()
+        message = body.get("message")
+        token = body.get("token") or DEFAULT_TG_TOKEN
+        chat_id = body.get("chat_id") or DEFAULT_TG_CHAT_ID
+        if not message:
+            return {"status": "error", "message": "No message provided"}
+        
+        tg_url = f"https://api.telegram.org/bot{token}/sendMessage"
+        resp = requests.post(tg_url, json={"chat_id": str(chat_id), "text": message, "parse_mode": "Markdown"}, timeout=7)
+        if resp.status_code == 200:
+            return {"status": "success", "message": "Dispatched to Telegram successfully!"}
+        else:
+            return {"status": "error", "message": f"Telegram API error {resp.status_code}: {resp.text}"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
