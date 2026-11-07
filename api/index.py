@@ -2007,6 +2007,9 @@ HTML_PAGE = """<!DOCTYPE html>
                     <span id="modalPatternBadge" class="text-xs px-2.5 py-0.5 rounded font-extrabold bg-blue-100 text-blue-800 border border-blue-200">
                         PATTERN
                     </span>
+                    <span class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> AUTO-SYNC 20s
+                    </span>
                     <div id="modalLevelsBadge" class="text-xs text-slate-600 mono flex gap-3 flex-wrap"></div>
                 </div>
                 <div class="flex items-center gap-2">
@@ -3195,6 +3198,7 @@ Strategy: Institutional Two-Way Systematic Execution`;
         // INSTITUTIONAL TRADINGVIEW VISUAL ENGINE
         // ========================================================
         let activeChartData = null;
+        let chartLiveInterval = null;
 
         async function openNativeChart(symbol, companyName, cmp, resistance, baseFloor, sl, tgt1, tgt2, setupName, pattern, tradeType) {
             const cName = companyName || getCompanyName(symbol);
@@ -3252,6 +3256,36 @@ Strategy: Institutional Two-Way Systematic Execution`;
 
             drawChart();
             setupChartMouseInteractions();
+
+            // Auto-refresh chart every 20 seconds while open
+            if (chartLiveInterval) clearInterval(chartLiveInterval);
+            chartLiveInterval = setInterval(async () => {
+                const modal = document.getElementById('chartModal');
+                if (!activeChartData || !modal || modal.classList.contains('hidden')) {
+                    clearInterval(chartLiveInterval);
+                    return;
+                }
+                try {
+                    const r = await fetch(`/api/chart?symbol=${activeChartData.symbol}&t=${Date.now()}`);
+                    const d = await r.json();
+                    if (d.candles && d.candles.length > 0) {
+                        activeChartData.candles = d.candles;
+                        if (d.cmp) activeChartData.cmp = d.cmp;
+                        const levelsBadge = document.getElementById('modalLevelsBadge');
+                        if (levelsBadge) {
+                            const isS = (activeChartData.tradeType === 'SHORT');
+                            levelsBadge.innerHTML = `
+                                <span class="text-slate-900 font-bold">CMP: ₹${activeChartData.cmp}</span>
+                                <span class="${isS ? 'text-indigo-600' : 'text-amber-600'} font-bold">Pivot: ₹${activeChartData.resistance}</span>
+                                <span class="${isS ? 'text-rose-600' : 'text-indigo-600'} font-bold">Floor: ₹${activeChartData.baseFloor}</span>
+                                <span class="text-emerald-600 font-bold">T1: ₹${activeChartData.tgt1}</span>
+                                <span class="text-emerald-700 font-bold">T2: ₹${activeChartData.tgt2}</span>
+                            `;
+                        }
+                        drawChart();
+                    }
+                } catch (err) {}
+            }, 20000);
         }
 
         function generateFallbackCandles(symbol, companyName, cmp, resistance, baseFloor, sl, tgt1, tgt2, setupName, pattern, tradeType) {
@@ -3509,9 +3543,12 @@ Strategy: Institutional Two-Way Systematic Execution`;
             ctx.restore();
 
             // 8. TARGET 1 HORIZONTAL DASHED LINE & LABELS
+            const isT1Hit = isShort ? (activeChartData.cmp <= activeChartData.tgt1) : (activeChartData.cmp >= activeChartData.tgt1);
+            const isT2Hit = isShort ? (activeChartData.cmp <= activeChartData.tgt2) : (activeChartData.cmp >= activeChartData.tgt2);
+
             ctx.save();
-            ctx.strokeStyle = isShort ? '#991b1b' : '#0f172a';
-            ctx.lineWidth = 1.5 * dpr;
+            ctx.strokeStyle = isT1Hit ? '#059669' : (isShort ? '#991b1b' : '#0f172a');
+            ctx.lineWidth = isT1Hit ? 2 * dpr : 1.5 * dpr;
             ctx.setLineDash([6 * dpr, 4 * dpr]);
             ctx.beginPath();
             ctx.moveTo(ptB_x, ptB_y);
@@ -3519,37 +3556,39 @@ Strategy: Institutional Two-Way Systematic Execution`;
             ctx.stroke();
             ctx.setLineDash([]);
 
-            ctx.fillStyle = isShort ? '#991b1b' : '#0f172a';
+            ctx.fillStyle = isT1Hit ? '#059669' : (isShort ? '#991b1b' : '#0f172a');
             ctx.font = `bold ${10.5 * dpr}px 'JetBrains Mono', monospace`;
             ctx.textAlign = 'right';
-            ctx.fillText(`Target 1 - ${activeChartData.tgt1.toLocaleString('en-IN')}`, ptB_x - 10 * dpr, ptB_y - 4 * dpr);
+            ctx.fillText(`Target 1 - ${activeChartData.tgt1.toLocaleString('en-IN')}${isT1Hit ? ' (🎯 HIT)' : ''}`, ptB_x - 10 * dpr, ptB_y - 4 * dpr);
 
+            ctx.fillStyle = isT1Hit ? '#059669' : '#0f172a';
             ctx.fillRect(w - paddingRight + 2 * dpr, ptB_y - 8.5 * dpr, 85 * dpr, 17 * dpr);
             ctx.fillStyle = '#ffffff';
             ctx.font = `bold ${9 * dpr}px 'JetBrains Mono', monospace`;
             ctx.textAlign = 'left';
-            ctx.fillText(activeChartData.tgt1.toLocaleString('en-IN'), w - paddingRight + 8 * dpr, ptB_y + 3.5 * dpr);
+            ctx.fillText(activeChartData.tgt1.toLocaleString('en-IN') + (isT1Hit ? ' ✓' : ''), w - paddingRight + 8 * dpr, ptB_y + 3.5 * dpr);
             ctx.restore();
 
             // 9. TARGET 2 HORIZONTAL SOLID LINE & LABELS
             ctx.save();
-            ctx.strokeStyle = isShort ? '#991b1b' : '#0f172a';
-            ctx.lineWidth = 1.5 * dpr;
+            ctx.strokeStyle = isT2Hit ? '#059669' : (isShort ? '#991b1b' : '#0f172a');
+            ctx.lineWidth = isT2Hit ? 2.5 * dpr : 1.5 * dpr;
             ctx.beginPath();
             ctx.moveTo(ptD_x, ptD_y);
             ctx.lineTo(w - paddingRight, ptD_y);
             ctx.stroke();
 
-            ctx.fillStyle = isShort ? '#991b1b' : '#0f172a';
+            ctx.fillStyle = isT2Hit ? '#059669' : (isShort ? '#991b1b' : '#0f172a');
             ctx.font = `bold ${10.5 * dpr}px 'JetBrains Mono', monospace`;
             ctx.textAlign = 'right';
-            ctx.fillText(`Target 2 - ${activeChartData.tgt2.toLocaleString('en-IN')}`, ptD_x - 10 * dpr, ptD_y - 4 * dpr);
+            ctx.fillText(`Target 2 - ${activeChartData.tgt2.toLocaleString('en-IN')}${isT2Hit ? ' (🚀 HIT)' : ''}`, ptD_x - 10 * dpr, ptD_y - 4 * dpr);
 
+            ctx.fillStyle = isT2Hit ? '#059669' : '#0f172a';
             ctx.fillRect(w - paddingRight + 2 * dpr, ptD_y - 8.5 * dpr, 85 * dpr, 17 * dpr);
             ctx.fillStyle = '#ffffff';
             ctx.font = `bold ${9 * dpr}px 'JetBrains Mono', monospace`;
             ctx.textAlign = 'left';
-            ctx.fillText(activeChartData.tgt2.toLocaleString('en-IN'), w - paddingRight + 8 * dpr, ptD_y + 3.5 * dpr);
+            ctx.fillText(activeChartData.tgt2.toLocaleString('en-IN') + (isT2Hit ? ' ✓' : ''), w - paddingRight + 8 * dpr, ptD_y + 3.5 * dpr);
             ctx.restore();
 
             // 10. CURRENT MARKET PRICE (CMP) GUIDE & PILL
@@ -3626,6 +3665,10 @@ Strategy: Institutional Two-Way Systematic Execution`;
         }
 
         function closeChartModal() {
+            if (chartLiveInterval) {
+                clearInterval(chartLiveInterval);
+                chartLiveInterval = null;
+            }
             document.getElementById('chartModal').classList.add('hidden');
             activeChartData = null;
         }
