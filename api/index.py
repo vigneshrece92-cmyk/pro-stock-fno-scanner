@@ -930,6 +930,15 @@ HTML_PAGE = """<!DOCTYPE html>
                 <button onclick="setHorizon('Daily / Intraday', this)" class="tab-btn px-4 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-all whitespace-nowrap">
                     Daily Fast F&O
                 </button>
+                <button id="tabBtnTriple" onclick="setHorizon('TRIPLE', this)" class="tab-btn px-4 py-2 rounded-lg text-xs font-medium text-indigo-300 hover:text-white hover:bg-slate-800 transition-all whitespace-nowrap flex items-center gap-1.5">
+                    🏆 Triple Confluence (<span id="tabCountTriple">0</span>)
+                </button>
+                <button id="tabBtnOrb" onclick="setHorizon('ORB', this)" class="tab-btn px-4 py-2 rounded-lg text-xs font-medium text-amber-300 hover:text-white hover:bg-slate-800 transition-all whitespace-nowrap flex items-center gap-1.5">
+                    ⏰ 9:15 AM ORB (<span id="tabCountOrb">0</span>)
+                </button>
+                <button id="tabBtnLowIv" onclick="setHorizon('LOW_IV', this)" class="tab-btn px-4 py-2 rounded-lg text-xs font-medium text-emerald-300 hover:text-white hover:bg-slate-800 transition-all whitespace-nowrap flex items-center gap-1.5">
+                    🌊 Cheap Low IV (<span id="tabCountLowIv">0</span>)
+                </button>
             </div>
 
             <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
@@ -1592,6 +1601,9 @@ HTML_PAGE = """<!DOCTYPE html>
                 if (activeHorizon === 'ALL') matchHorizon = true;
                 else if (activeHorizon === 'APLUS') matchHorizon = isAPlus(item);
                 else if (activeHorizon === 'CUP') matchHorizon = (item.setup_name && (item.setup_name.includes('Cup & Handle') || item.setup_name.includes('Inverted Cup'))) || (item.pattern && (item.pattern.includes('Cup') || item.pattern.includes('Inverted')));
+                else if (activeHorizon === 'TRIPLE') matchHorizon = item.is_triple;
+                else if (activeHorizon === 'ORB') matchHorizon = item.is_orb;
+                else if (activeHorizon === 'LOW_IV') matchHorizon = (item.iv_status === 'LOW_IV');
                 else matchHorizon = (item.horizon === activeHorizon);
 
                 const matchSector = (sector === 'ALL' || item.sector === sector);
