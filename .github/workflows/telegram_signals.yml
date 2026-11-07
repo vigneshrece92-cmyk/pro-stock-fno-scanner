@@ -1,0 +1,39 @@
+name: Real-Time Telegram F&O Signal Scanner
+
+on:
+  schedule:
+    # 9:15 AM to 2:30 PM IST (Monday - Friday)
+    # In UTC: 3:45 AM to 9:00 AM UTC
+    # Runs every 15 minutes during active market hours
+    - cron: '45 3 * * 1-5'
+    - cron: '0,15,30,45 4,5,6,7,8 * * 1-5'
+    - cron: '0 9 * * 1-5'
+  workflow_dispatch: # Allows manual trigger from GitHub UI anytime
+
+jobs:
+  scan_and_alert:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          pip install requests pyotp smartapi-python
+
+      - name: Run Cloud Scanner Cycle & Dispatch Telegram Signals
+        env:
+          ANGEL_API_KEY: ${{ secrets.ANGEL_API_KEY || 'hmnP0Ln2' }}
+          ANGEL_CLIENT_CODE: ${{ secrets.ANGEL_CLIENT_CODE || 'V54384326' }}
+          ANGEL_PIN: ${{ secrets.ANGEL_PIN || '2305' }}
+          ANGEL_TOTP_KEY: ${{ secrets.ANGEL_TOTP_KEY || '47CUKNA5GCAHYNYZVXVXBQBVKE' }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN || '7031852910:AAGkhuuDnuvAYY_llzuBryJQ_uAod9ekFk4' }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID || '927756502' }}
+        run: |
+          python cloud_scanner.py

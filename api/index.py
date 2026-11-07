@@ -4782,6 +4782,83 @@ async def telegram_send_endpoint(request: Request):
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
+@app.get("/api/telegram/trigger-scan")
+async def telegram_trigger_scan_endpoint():
+    """Serverless cloud-native scan and auto-dispatch to Telegram without local PC"""
+    try:
+        all_candidates = []
+        for b in VERIFIED_BREAKOUT_DATA:
+            b_copy = dict(b)
+            b_copy["_mode"] = "BULLISH"
+            all_candidates.append(b_copy)
+        for bd in VERIFIED_BREAKDOWN_DATA:
+            bd_copy = dict(bd)
+            bd_copy["_mode"] = "BEARISH"
+            all_candidates.append(bd_copy)
+            
+        dispatched_list = []
+        for item in all_candidates:
+            sym = item.get("symbol")
+            dist = item.get("pct_dist", 99)
+            rvol = item.get("rvol", 1.0)
+            rsi = item.get("rsi", 50)
+            mode = item.get("_mode")
+            
+            is_bull = (mode == "BULLISH")
+            if is_bull:
+                is_fresh = (0.0 <= dist <= 2.0)
+                is_good = is_fresh and (rvol >= 1.25) and (58 <= rsi <= 82)
+            else:
+                is_fresh = (dist <= 0.8)
+                is_good = is_fresh and (rvol >= 1.25)
+                
+            if is_good:
+                emoji = "🎯" if is_bull else "🩸"
+                action = "CALL (CE) OPTION" if is_bull else "PUT (PE) OPTION"
+                cname = item.get("company_name", sym)
+                st = item.get("stock_trade", {})
+                opt = item.get("option_trade", {})
+                
+                strike = opt.get("strike", "ATM")
+                contract = opt.get("contract", f"{sym} {strike}")
+                entry = opt.get("entry", 0)
+                sl = opt.get("sl", round(entry * 0.70, 2))
+                tgt1 = opt.get("tgt1", round(entry * 1.45, 2))
+                tgt2 = opt.get("tgt2", round(entry * 1.95, 2))
+                lot = opt.get("lot_size", 100)
+                margin = opt.get("margin_required", round(entry * lot))
+                
+                t1_gain = round((tgt1 - entry) * lot)
+                t2_gain = round((tgt2 - entry) * lot)
+                
+                msg = (
+                    f"{emoji} *VICKYVAIO CLOUD BREAKOUT SIGNAL: {sym}*\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                    f"• *Company:* {cname}\n"
+                    f"• *Feed:* ☁️ Cloud Serverless Auto-Trigger\n"
+                    f"• *Setup:* {item.get('setup_name', 'Breakout')} (A+ High Conviction)\n"
+                    f"• *Spot CMP:* ₹{item.get('cmp')} | SL: ₹{st.get('sl')} | Tgt: ₹{st.get('tgt1')}\n"
+                    f"• *{action}:* `{contract}` ({strike})\n"
+                    f"• *Premium Entry:* ₹{entry}\n"
+                    f"• *Stop-Loss (-30%):* ₹{sl}\n"
+                    f"• *Target 1 (+45%):* ₹{tgt1} (+₹{t1_gain:,})\n"
+                    f"• *Target 2 (+95% Doubler):* ₹{tgt2} (+₹{t2_gain:,})\n"
+                    f"• *Lot Size:* {lot} | *Margin Req:* ₹{margin:,}\n"
+                    f"• *Volume Surge:* {rvol}x RVOL | *RSI:* {rsi}\n"
+                    f"• *Execution Rule:* Buy with LIMIT order at ₹{entry}. Book 50% at T1, trail SL to cost.\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                    f"🔗 [Open Live Terminal](https://pro-stock-fno-scanner.vercel.app)"
+                )
+                
+                tg_url = f"https://api.telegram.org/bot{DEFAULT_TG_TOKEN}/sendMessage"
+                r = requests.post(tg_url, json={"chat_id": str(DEFAULT_TG_CHAT_ID), "text": msg, "parse_mode": "Markdown"}, timeout=7)
+                if r.status_code == 200:
+                    dispatched_list.append(sym)
+                    
+        return {"status": "success", "dispatched_count": len(dispatched_list), "dispatched_symbols": dispatched_list}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
 @app.get("/api/scan")
 async def scan_endpoint():
     try:
