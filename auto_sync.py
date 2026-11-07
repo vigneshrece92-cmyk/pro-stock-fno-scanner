@@ -137,24 +137,118 @@ COMPANY_NAMES = {
     'BHEL': 'Bharat Heavy Electricals Ltd',
 }
 
+SECTORS_MAP = {
+    # Banking & Financials
+    'HDFCBANK': 'Banking & Financials', 'ICICIBANK': 'Banking & Financials', 'SBIN': 'Banking & Financials',
+    'AXISBANK': 'Banking & Financials', 'KOTAKBANK': 'Banking & Financials', 'PNB': 'Banking & Financials',
+    'BANKBARODA': 'Banking & Financials', 'BAJFINANCE': 'Banking & Financials', 'BAJAJFINSV': 'Banking & Financials',
+    'CHOLAFIN': 'Banking & Financials', 'MUTHOOTFIN': 'Banking & Financials', 'CANBK': 'Banking & Financials',
+    'UNIONBANK': 'Banking & Financials', 'INDIANB': 'Banking & Financials', 'MAHABANK': 'Banking & Financials',
+    'BANKINDIA': 'Banking & Financials', 'BANDHANBNK': 'Banking & Financials', 'FEDERALBNK': 'Banking & Financials',
+    'IDFCFIRSTB': 'Banking & Financials', 'RBLBANK': 'Banking & Financials', 'YESBANK': 'Banking & Financials',
+    'AUBANK': 'Banking & Financials', 'JIOFIN': 'Banking & Financials', 'SHRIRAMFIN': 'Banking & Financials',
+    'M&MFIN': 'Banking & Financials', 'POONAWALLA': 'Banking & Financials', 'PNBHOUSING': 'Banking & Financials',
+    'LICHSGFIN': 'Banking & Financials', 'HUDCO': 'Banking & Financials', 'IREDA': 'Banking & Financials',
+    'PFC': 'Banking & Financials', 'RECLTD': 'Banking & Financials', 'HDFCLIFE': 'Banking & Financials',
+    'SBILIFE': 'Banking & Financials', 'ICICIPRULI': 'Banking & Financials', 'ICICIGI': 'Banking & Financials',
+    'HDFCAMC': 'Banking & Financials', 'MCX': 'Banking & Financials', 'BSE': 'Banking & Financials',
+    'CDSL': 'Banking & Financials', 'ANGELONE': 'Banking & Financials', '360ONE': 'Banking & Financials',
+    'MOTILALOFS': 'Banking & Financials', 'ABCAPITAL': 'Banking & Financials', 'MFSL': 'Banking & Financials',
+    'MANAPPURAM': 'Banking & Financials', 'SBICARD': 'Banking & Financials', 'ANANDRATHI': 'Banking & Financials',
+    'CAMS': 'Banking & Financials', 'CUB': 'Banking & Financials', 'INDUSINDBK': 'Banking & Financials',
+    'KARURVYSYA': 'Banking & Financials', 'KFINTECH': 'Banking & Financials', 'LICI': 'Banking & Financials',
+    'LTF': 'Banking & Financials', 'NAM-INDIA': 'Banking & Financials', 'UJJIVANSFB': 'Banking & Financials',
+    'ICICILIFE': 'Banking & Financials',
+
+    # Auto & Ancillary
+    'MARUTI': 'Auto & Ancillary', 'M&M': 'Auto & Ancillary', 'TATAMOTORS': 'Auto & Ancillary',
+    'BAJAJ-AUTO': 'Auto & Ancillary', 'HEROMOTOCO': 'Auto & Ancillary', 'TVSMOTOR': 'Auto & Ancillary',
+    'EICHERMOT': 'Auto & Ancillary', 'ASHOKLEY': 'Auto & Ancillary', 'BHARATFORG': 'Auto & Ancillary',
+    'MOTHERSON': 'Auto & Ancillary', 'BOSCHLTD': 'Auto & Ancillary', 'UNOMINDA': 'Auto & Ancillary',
+    'BALKRISIND': 'Auto & Ancillary', 'MRF': 'Auto & Ancillary', 'APOLLOTYRE': 'Auto & Ancillary',
+    'FORCEMOT': 'Auto & Ancillary', 'HYUNDAI': 'Auto & Ancillary', 'ATHERENERG': 'Auto & Ancillary',
+    'TIINDIA': 'Auto & Ancillary', 'SONACOMS': 'Auto & Ancillary', 'EXIDEIND': 'Auto & Ancillary',
+    'AMARAJABAT': 'Auto & Ancillary', 'TMPV': 'Auto & Ancillary', 'VMM': 'Auto & Ancillary',
+
+    # IT & Tech
+    'TCS': 'IT & Tech', 'INFY': 'IT & Tech', 'HCLTECH': 'IT & Tech', 'WIPRO': 'IT & Tech',
+    'TECHM': 'IT & Tech', 'LTIM': 'IT & Tech', 'PERSISTENT': 'IT & Tech', 'COFORGE': 'IT & Tech',
+    'MPHASIS': 'IT & Tech', 'TATAELXSI': 'IT & Tech', 'KPITTECH': 'IT & Tech', 'OFSS': 'IT & Tech',
+    'CYIENT': 'IT & Tech', 'LTTS': 'IT & Tech', 'NAUKRI': 'IT & Tech', 'PAYTM': 'IT & Tech',
+    'KAYNES': 'IT & Tech', 'SYRMA': 'IT & Tech', 'POLICYBZR': 'IT & Tech', 'LTM': 'IT & Tech',
+    'SAGILITY': 'IT & Tech',
+
+    # Metals & Mining
+    'TATASTEEL': 'Metals & Mining', 'JSWSTEEL': 'Metals & Mining', 'HINDALCO': 'Metals & Mining',
+    'JINDALSTEL': 'Metals & Mining', 'VEDL': 'Metals & Mining', 'NATIONALUM': 'Metals & Mining',
+    'NMDC': 'Metals & Mining', 'SAIL': 'Metals & Mining', 'COALINDIA': 'Metals & Mining',
+    'HINDZINC': 'Metals & Mining', 'APLAPOLLO': 'Metals & Mining', 'JINDALSAW': 'Metals & Mining',
+
+    # Pharma & Healthcare
+    'SUNPHARMA': 'Pharma & Healthcare', 'CIPLA': 'Pharma & Healthcare', 'DRREDDY': 'Pharma & Healthcare',
+    'DIVISLAB': 'Pharma & Healthcare', 'LUPIN': 'Pharma & Healthcare', 'AUROPHARMA': 'Pharma & Healthcare',
+    'TORNTPHARM': 'Pharma & Healthcare', 'ALKEM': 'Pharma & Healthcare', 'ZYDUSLIFE': 'Pharma & Healthcare',
+    'GLENMARK': 'Pharma & Healthcare', 'BIOCON': 'Pharma & Healthcare', 'IPCALAB': 'Pharma & Healthcare',
+    'LAURUSLABS': 'Pharma & Healthcare', 'MANKIND': 'Pharma & Healthcare', 'MAXHEALTH': 'Pharma & Healthcare',
+    'APOLLOHOSP': 'Pharma & Healthcare', 'FORTIS': 'Pharma & Healthcare', 'SYNGENE': 'Pharma & Healthcare',
+    'METROPOLIS': 'Pharma & Healthcare', 'LALPATHLAB': 'Pharma & Healthcare', 'ABBOTINDIA': 'Pharma & Healthcare',
+
+    # Energy, Power & Telecom
+    'RELIANCE': 'Energy, Power & Telecom', 'ONGC': 'Energy, Power & Telecom', 'IOC': 'Energy, Power & Telecom',
+    'BPCL': 'Energy, Power & Telecom', 'HPCL': 'Energy, Power & Telecom', 'GAIL': 'Energy, Power & Telecom',
+    'NTPC': 'Energy, Power & Telecom', 'POWERGRID': 'Energy, Power & Telecom', 'TATAPOWER': 'Energy, Power & Telecom',
+    'JSWENERGY': 'Energy, Power & Telecom', 'ADANIGREEN': 'Energy, Power & Telecom', 'ADANIPOWER': 'Energy, Power & Telecom',
+    'ADANIENSOL': 'Energy, Power & Telecom', 'IEX': 'Energy, Power & Telecom', 'PETRONET': 'Energy, Power & Telecom',
+    'OIL': 'Energy, Power & Telecom', 'NHPC': 'Energy, Power & Telecom', 'SJVN': 'Energy, Power & Telecom',
+    'BHARTIARTL': 'Energy, Power & Telecom', 'IDEA': 'Energy, Power & Telecom', 'INDUSTOWER': 'Energy, Power & Telecom',
+    'INOXWIND': 'Energy, Power & Telecom', 'SUZLON': 'Energy, Power & Telecom', 'HINDPETRO': 'Energy, Power & Telecom',
+    'ENRIN': 'Energy, Power & Telecom', 'PREMIERENE': 'Energy, Power & Telecom', 'WAAREEENER': 'Energy, Power & Telecom',
+    'POWERINDIA': 'Energy, Power & Telecom', 'GVT&D': 'Energy, Power & Telecom',
+
+    # Consumer & Retail
+    'TITAN': 'Consumer & Retail', 'ITC': 'Consumer & Retail', 'HINDUNILVR': 'Consumer & Retail',
+    'NESTLEIND': 'Consumer & Retail', 'BRITANNIA': 'Consumer & Retail', 'TATACONSUM': 'Consumer & Retail',
+    'DABUR': 'Consumer & Retail', 'MARICO': 'Consumer & Retail', 'GODREJCP': 'Consumer & Retail',
+    'COLPAL': 'Consumer & Retail', 'VBL': 'Consumer & Retail', 'UNITDSPR': 'Consumer & Retail',
+    'RADICO': 'Consumer & Retail', 'TRENT': 'Consumer & Retail', 'DMART': 'Consumer & Retail',
+    'ABFRL': 'Consumer & Retail', 'NYKAA': 'Consumer & Retail', 'ZOMATO': 'Consumer & Retail',
+    'JUBLFOOD': 'Consumer & Retail', 'PAGEIND': 'Consumer & Retail', 'BATAINDIA': 'Consumer & Retail',
+    'HAVELLS': 'Consumer & Retail', 'POLYCAB': 'Consumer & Retail', 'VOLTAS': 'Consumer & Retail',
+    'CROMPTON': 'Consumer & Retail', 'AMBER': 'Consumer & Retail', 'DIXON': 'Consumer & Retail',
+    'KALYANKJIL': 'Consumer & Retail', 'DEVYANI': 'Consumer & Retail', 'GODFRYPHLP': 'Consumer & Retail',
+    'PATANJALI': 'Consumer & Retail', 'PGEL': 'Consumer & Retail', 'ASIANPAINT': 'Consumer & Retail',
+    'BLUESTARCO': 'Consumer & Retail', 'SWIGGY': 'Consumer & Retail', 'ETERNAL': 'Consumer & Retail',
+
+    # Realty & Infra
+    'DLF': 'Realty & Infra', 'GODREJPROP': 'Realty & Infra', 'OBEROIRLTY': 'Realty & Infra',
+    'LODHA': 'Realty & Infra', 'PRESTIGE': 'Realty & Infra', 'PHOENIXLTD': 'Realty & Infra',
+    'BRIGADE': 'Realty & Infra', 'SOBHA': 'Realty & Infra', 'LT': 'Realty & Infra',
+    'ADANIPORTS': 'Realty & Infra', 'GMRINFRA': 'Realty & Infra', 'IRB': 'Realty & Infra',
+    'CONCOR': 'Realty & Infra', 'ULTRACEMCO': 'Realty & Infra', 'AMBUJACEM': 'Realty & Infra',
+    'ACC': 'Realty & Infra', 'SHREECEM': 'Realty & Infra', 'DALBHARAT': 'Realty & Infra',
+    'GRASIM': 'Realty & Infra', 'SIEMENS': 'Realty & Infra', 'ABB': 'Realty & Infra',
+    'CUMMINSIND': 'Realty & Infra', 'CGPOWER': 'Realty & Infra', 'KEI': 'Realty & Infra',
+    'INDIGO': 'Realty & Infra', 'INDHOTEL': 'Realty & Infra', 'ASTRAL': 'Realty & Infra',
+    'SUPREMEIND': 'Realty & Infra', 'GMRAIRPORT': 'Realty & Infra', 'DELHIVERY': 'Realty & Infra',
+    'ADANIENT': 'Realty & Infra',
+
+    # Defense & PSU
+    'BEL': 'Defense & PSU', 'HAL': 'Defense & PSU', 'BHEL': 'Defense & PSU',
+    'MAZDOCK': 'Defense & PSU', 'COCHINSHIP': 'Defense & PSU', 'BDL': 'Defense & PSU',
+    'RVNL': 'Defense & PSU', 'IRFC': 'Defense & PSU', 'IRCTC': 'Defense & PSU',
+    'RAILTEL': 'Defense & PSU', 'DATAPATTNS': 'Defense & PSU', 'NBCC': 'Defense & PSU',
+    'SOLARINDS': 'Defense & PSU',
+
+    # Chemicals & Fertilizers
+    'SRF': 'Chemicals & Fertilizers', 'PIDILITIND': 'Chemicals & Fertilizers', 'DEEPAKNTR': 'Chemicals & Fertilizers',
+    'PIIND': 'Chemicals & Fertilizers', 'GUJGASLTD': 'Chemicals & Fertilizers', 'AARTIIND': 'Chemicals & Fertilizers',
+    'TATACHEM': 'Chemicals & Fertilizers', 'UPL': 'Chemicals & Fertilizers', 'COROMANDEL': 'Chemicals & Fertilizers',
+    'CHAMBLFERT': 'Chemicals & Fertilizers', 'NAVINFLUOR': 'Chemicals & Fertilizers', 'ATUL': 'Chemicals & Fertilizers',
+    'FLUOROCHEM': 'Chemicals & Fertilizers', 'SUMICHEM': 'Chemicals & Fertilizers'
+}
+
 def get_sector(sym):
-    sectors = {
-        'EICHERMOT': 'Auto & Ancillary', 'MARUTI': 'Auto & Ancillary', 'HEROMOTOCO': 'Auto & Ancillary',
-        'BAJAJ-AUTO': 'Auto & Ancillary', 'M&M': 'Auto & Ancillary', 'TVSMOTOR': 'Auto & Ancillary', 'MOTHERSON': 'Auto & Ancillary',
-        'GODREJPROP': 'Realty & Infra', 'DLF': 'Realty & Infra', 'LT': 'Realty & Infra',
-        'ICICIBANK': 'Banking & Financials', 'SBIN': 'Banking & Financials', 'HDFCBANK': 'Banking & Financials',
-        'BAJFINANCE': 'Banking & Financials', 'PNB': 'Banking & Financials', 'MUTHOOTFIN': 'Banking & Financials',
-        'BANKBARODA': 'Banking & Financials', 'BAJAJFINSV': 'Banking & Financials', 'AXISBANK': 'Banking & Financials',
-        'KOTAKBANK': 'Banking & Financials', 'CHOLAFIN': 'Banking & Financials',
-        'DIVISLAB': 'Pharma & Healthcare', 'CIPLA': 'Pharma & Healthcare', 'DRREDDY': 'Pharma & Healthcare',
-        'SUNPHARMA': 'Pharma & Healthcare',
-        'TITAN': 'Consumer & Retail', 'ITC': 'Consumer & Retail',
-        'TATAPOWER': 'Energy, Power & Telecom', 'BHARTIARTL': 'Energy, Power & Telecom', 'RELIANCE': 'Energy, Power & Telecom',
-        'BPCL': 'Defense & PSU', 'GAIL': 'Defense & PSU', 'IOC': 'Defense & PSU', 'BEL': 'Defense & PSU', 'HAL': 'Defense & PSU', 'BHEL': 'Defense & PSU', 'COALINDIA': 'Defense & PSU',
-        'NATIONALUM': 'Metals & Mining', 'TATASTEEL': 'Metals & Mining', 'HINDALCO': 'Metals & Mining', 'JSWSTEEL': 'Metals & Mining', 'VEDL': 'Metals & Mining', 'JINDALSTEL': 'Metals & Mining',
-        'WIPRO': 'IT & Tech', 'TECHM': 'IT & Tech', 'PERSISTENT': 'IT & Tech', 'COFORGE': 'IT & Tech'
-    }
-    return sectors.get(sym, 'F&O')
+    return SECTORS_MAP.get(sym, 'Other F&O')
 
 def scan_symbol(s, nse_options):
     try:
@@ -300,9 +394,11 @@ def scan_symbol(s, nse_options):
         else:
             option_trade = {}
 
+        comp_name = meta.get('longName') or meta.get('shortName') or COMPANY_NAMES.get(s, f"{s} Ltd")
+
         return {
             "symbol": s,
-            "company_name": COMPANY_NAMES.get(s, f"{s} Ltd"),
+            "company_name": comp_name,
             "cmp": round(cmp, 2),
             "resistance": round(h20, 2),
             "base_floor": round(l20, 2),
@@ -333,11 +429,26 @@ def run_auto_sync():
     nse_opts = fetch_nse_bhavcopy()
     print(f"Loaded options for {len(nse_opts)} symbols.")
     
-    with concurrent.futures.ThreadPoolExecutor(max_workers=25) as ex:
-        matches = list(filter(None, ex.map(lambda s: scan_symbol(s, nse_opts), symbols)))
+    # Extract all active equity F&O stocks across NSE
+    equity_symbols = sorted([
+        s for s in nse_opts.keys() 
+        if not s.startswith('NIFTY') and s not in ['BANKNIFTY', 'FINNIFTY', 'MIDCPNIFTY']
+    ])
+    print(f"Scanning ALL {len(equity_symbols)} F&O equity stocks across NSE...")
+    
+    with concurrent.futures.ThreadPoolExecutor(max_workers=30) as ex:
+        all_results = list(filter(None, ex.map(lambda s: scan_symbol(s, nse_opts), equity_symbols)))
+    
+    # Filter genuine breakouts: Live Breakouts, Imminent Pivots, tight Base Squeezes, or confirmed Cup & Handles
+    matches = [
+        m for m in all_results
+        if m['stage'] in ['LIVE BREAKOUT', 'IMMINENT PIVOT']
+        or m['setup_name'] == 'Cup & Handle Breakout'
+        or (m['stage'] == 'BASE SQUEEZE' and m['pct_dist'] >= -2.0)
+    ]
     
     matches.sort(key=lambda x: x['pct_dist'], reverse=True)
-    print(f"Scanned {len(matches)} authentic breakouts.")
+    print(f"Scanned {len(equity_symbols)} F&O stocks. Found {len(matches)} genuine breakouts.")
     
     with open('authentic_dataset.json', 'w', encoding='utf-8') as f:
         json.dump(matches, f, indent=2, ensure_ascii=True)
