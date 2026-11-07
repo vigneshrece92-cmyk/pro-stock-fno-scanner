@@ -4806,10 +4806,12 @@ async def telegram_trigger_scan_endpoint():
             
             is_bull = (mode == "BULLISH")
             if is_bull:
-                is_fresh = (0.0 <= dist <= 2.0)
+                # -0.5% to +3.5%: Pre-breakout coils up to fast 5-min explosive movers (captures TITAN, HDFCBANK, etc.)
+                is_fresh = (-0.5 <= dist <= 3.5)
                 is_good = is_fresh and (rvol >= 1.25) and (58 <= rsi <= 82)
             else:
-                is_fresh = (dist <= 0.8)
+                # <= 2.5%: Decoupled & momentum breakdown drops (captures ASTRAL, SUPREMEIND, etc.)
+                is_fresh = (dist <= 2.5)
                 is_good = is_fresh and (rvol >= 1.25)
                 
             if is_good:
