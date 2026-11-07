@@ -805,115 +805,6 @@ HTML_PAGE = """<!DOCTYPE html>
         </div>
 
         
-        <!-- GLOBAL MACRO & GEOPOLITICAL WAR RISK RADAR (GIFT Nifty, Crude Oil, US-Iran Conflict Watch) -->
-        <div class="glass-card rounded-2xl p-5 border border-slate-800/90 shadow-2xl relative overflow-hidden bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 space-y-4">
-            
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-slate-800/80 pb-4">
-                
-                <!-- Left: GIFT NIFTY (NSE IX) Status & Indicative Opening Gap -->
-                <div class="flex items-center gap-5 flex-wrap">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-black text-sm">
-                            GIFT
-                        </div>
-                        <div>
-                            <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                                GIFT NIFTY (NSE IX) <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
-                                <span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-300 font-mono">21-HR MARKET</span>
-                            </div>
-                            <div class="flex items-baseline gap-2">
-                                <span class="text-2xl font-black mono text-white" id="giftNiftyPrice">₹25,038.50</span>
-                                <span class="text-xs font-black mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" id="giftNiftyChange">
-                                    +46.50 (+0.19%)
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="h-8 w-px bg-slate-800 hidden sm:block"></div>
-
-                    <!-- Indicative Opening Gap -->
-                    <div>
-                        <div class="text-[10px] text-slate-400 uppercase font-semibold">Indicative Nifty Gap Open</div>
-                        <div class="flex items-center gap-2 mt-0.5">
-                            <span id="indicativeGapBadge" class="text-xs font-black mono px-2.5 py-0.5 rounded bg-slate-700/50 text-slate-300 border border-slate-600">
-                                FLAT / NEUTRAL (+8.15 pts)
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Right: Brent Crude & Safe Haven Gold Radar -->
-                <div class="flex items-center gap-5 flex-wrap w-full lg:w-auto justify-between lg:justify-end">
-                    <div class="flex items-center gap-3">
-                        <div class="text-right">
-                            <div class="text-[10px] text-slate-400 uppercase font-semibold flex items-center justify-end gap-1">
-                                <i data-lucide="flame" class="w-3 h-3 text-amber-500"></i> Brent Crude
-                            </div>
-                            <div class="flex items-baseline gap-1.5 justify-end">
-                                <span class="text-base font-black mono text-amber-300" id="brentPrice">$98.32</span>
-                                <span class="text-[10px] font-bold mono text-rose-400" id="brentPct">(+0.03%)</span>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-[10px] text-slate-400 uppercase font-semibold flex items-center justify-end gap-1">
-                                <i data-lucide="shield" class="w-3 h-3 text-yellow-400"></i> Gold (Safe Haven)
-                            </div>
-                            <div class="flex items-baseline gap-1.5 justify-end">
-                                <span class="text-base font-black mono text-yellow-300" id="goldPrice">$4,074.90</span>
-                                <span class="text-[10px] font-bold mono text-slate-400" id="goldPct">(-0.94%)</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button onclick="openWarModal()" class="px-3.5 py-2 rounded-xl text-xs font-black border transition-all flex items-center gap-2 bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30 shadow-lg shadow-rose-500/10 active:scale-95">
-                        <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400 animate-pulse"></i>
-                        <span>War & Macro Impact Guide</span>
-                    </button>
-                </div>
-
-            </div>
-
-            <!-- Geopolitical & War Escalation Headlines Ticker -->
-            <div class="space-y-2">
-                <div class="flex justify-between items-center text-xs">
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
-                        <span class="text-xs font-black uppercase tracking-wider text-rose-300 flex items-center gap-1.5">
-                            🚨 Geopolitical & War Risk Radar: US-Iran / Middle East Conflict Watch
-                        </span>
-                    </div>
-                    <span id="crudeAlertBadge" class="text-[10px] px-2 py-0.5 rounded font-black border bg-rose-500/20 text-rose-300 border-rose-500/30 hidden sm:inline-block">
-                        CRUDE WAR RISK ELEVATED (> $95/bbl)
-                    </span>
-                </div>
-                <div id="warNewsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
-                    <!-- Populated via JS -->
-                </div>
-            </div>
-
-        </div>
-
-
-        <!-- Breaking Market Catalysts & Live News Ticker Bar -->
-        <div class="glass-card rounded-2xl p-4 border border-slate-800/90 bg-slate-900/60 shadow-xl space-y-3">
-            <div class="flex justify-between items-center border-b border-slate-800/80 pb-2.5">
-                <div class="flex items-center gap-2">
-                    <span class="flex h-2.5 w-2.5 relative">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
-                    </span>
-                    <span class="text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
-                        ⚡ Live Market Catalysts & Breaking News
-                    </span>
-                </div>
-                <div class="text-[11px] text-slate-400 font-medium">Direct Indian Financial Wire</div>
-            </div>
-            <div id="marketNewsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                <!-- Dynamically populated via JS with headline chips -->
-            </div>
-        </div>
-
         <!-- Institutional Two-Way Market Mode Switcher -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900/90 p-2.5 rounded-2xl border border-slate-800 shadow-xl">
             <div class="flex items-center gap-2 w-full sm:w-auto">
@@ -1502,6 +1393,26 @@ HTML_PAGE = """<!DOCTYPE html>
 
         <!-- TAB 5: 📢 CORPORATE CATALYST WIRE -->
         <div id="view_catalysts" class="tab-view hidden space-y-6">
+
+            <!-- Breaking Market Catalysts & Live News Ticker Bar -->
+        <div class="glass-card rounded-2xl p-4 border border-slate-800/90 bg-slate-900/60 shadow-xl space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-800/80 pb-2.5">
+                <div class="flex items-center gap-2">
+                    <span class="flex h-2.5 w-2.5 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+                    </span>
+                    <span class="text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+                        ⚡ Live Market Catalysts & Breaking News
+                    </span>
+                </div>
+                <div class="text-[11px] text-slate-400 font-medium">Direct Indian Financial Wire</div>
+            </div>
+            <div id="marketNewsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                <!-- Dynamically populated via JS with headline chips -->
+            </div>
+        </div>
+
             
             <div class="glass-card rounded-2xl p-6 border border-slate-800 space-y-4">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-800 pb-4">
@@ -1991,48 +1902,54 @@ HTML_PAGE = """<!DOCTYPE html>
             document.getElementById('warModal').classList.add('hidden');
         }
 
-        function renderMacroRadar(macro) {
+                function renderMacroRadar(macro) {
             window.lastMacroData = macro;
             loadMacroWarView();
             if (!macro) return;
-            if (macro.gift_nifty) {
-                document.getElementById('giftNiftyPrice').innerText = '₹' + Number(macro.gift_nifty.price).toLocaleString('en-IN');
+            
+            const gPrice = document.getElementById('giftNiftyPrice');
+            const gChg = document.getElementById('giftNiftyChange');
+            if (macro.gift_nifty && gPrice && gChg) {
+                gPrice.innerText = '₹' + Number(macro.gift_nifty.price).toLocaleString('en-IN');
                 const chgSign = macro.gift_nifty.change >= 0 ? '+' : '';
-                const gChgEl = document.getElementById('giftNiftyChange');
-                gChgEl.innerText = `${chgSign}${macro.gift_nifty.change} (${chgSign}${macro.gift_nifty.pct}%)`;
+                gChg.innerText = `${chgSign}${macro.gift_nifty.change} (${chgSign}${macro.gift_nifty.pct}%)`;
                 if (macro.gift_nifty.change >= 0) {
-                    gChgEl.className = 'text-xs font-black mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+                    gChg.className = 'text-xs font-black mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
                 } else {
-                    gChgEl.className = 'text-xs font-black mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30';
+                    gChg.className = 'text-xs font-black mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30';
                 }
             }
 
-            if (macro.gap_status) {
-                const gapEl = document.getElementById('indicativeGapBadge');
+            const gapEl = document.getElementById('indicativeGapBadge');
+            if (gapEl && macro.gap_status) {
                 gapEl.innerText = macro.gap_status;
                 gapEl.className = `text-xs font-black mono px-2.5 py-0.5 rounded border ${macro.gap_badge}`;
             }
 
-            if (macro.brent_crude) {
-                document.getElementById('brentPrice').innerText = '$' + macro.brent_crude.price;
+            const bPrice = document.getElementById('brentPrice');
+            const bPct = document.getElementById('brentPct');
+            if (macro.brent_crude && bPrice && bPct) {
+                bPrice.innerText = '$' + macro.brent_crude.price;
                 const bSign = macro.brent_crude.pct >= 0 ? '+' : '';
-                document.getElementById('brentPct').innerText = `(${bSign}${macro.brent_crude.pct}%)`;
-                if (macro.brent_crude.alert) {
-                    const cBadge = document.getElementById('crudeAlertBadge');
+                bPct.innerText = `(${bSign}${macro.brent_crude.pct}%)`;
+                const cBadge = document.getElementById('crudeAlertBadge');
+                if (cBadge && macro.brent_crude.alert) {
                     cBadge.innerText = macro.brent_crude.alert.split(':')[0];
                     cBadge.className = `text-[10px] px-2 py-0.5 rounded font-black border ${macro.brent_crude.badge} hidden sm:inline-block`;
                 }
             }
 
-            if (macro.gold) {
-                document.getElementById('goldPrice').innerText = '$' + macro.gold.price;
+            const goldP = document.getElementById('goldPrice');
+            const goldC = document.getElementById('goldPct');
+            if (macro.gold && goldP && goldC) {
+                goldP.innerText = '$' + macro.gold.price;
                 const gSign = macro.gold.pct >= 0 ? '+' : '';
-                document.getElementById('goldPct').innerText = `(${gSign}${macro.gold.pct}%)`;
+                goldC.innerText = `(${gSign}${macro.gold.pct}%)`;
             }
 
-            if (macro.war_news && macro.war_news.length > 0) {
-                const container = document.getElementById('warNewsContainer');
-                container.innerHTML = macro.war_news.slice(0, 3).map(w => {
+            const warCont = document.getElementById('warNewsContainer');
+            if (warCont && macro.war_news && macro.war_news.length > 0) {
+                warCont.innerHTML = macro.war_news.slice(0, 3).map(w => {
                     return `
                     <div class="p-2.5 rounded-xl bg-slate-900/90 border border-rose-900/40 hover:border-rose-500/60 transition-all flex flex-col justify-between space-y-1.5">
                         <div class="flex justify-between items-center text-[10px]">
@@ -2052,7 +1969,7 @@ HTML_PAGE = """<!DOCTYPE html>
 
         function renderMarketNews(headlines) {
             const container = document.getElementById('marketNewsContainer');
-            if (!headlines || headlines.length === 0) return;
+            if (!container || !headlines || headlines.length === 0) return;
             container.innerHTML = headlines.slice(0, 4).map(h => {
                 let badgeClass = 'bg-slate-800 text-slate-300 border-slate-700';
                 if (h.sentiment === 'BULLISH') badgeClass = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
