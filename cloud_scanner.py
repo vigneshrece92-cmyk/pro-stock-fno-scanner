@@ -262,12 +262,41 @@ def run_cloud_scan():
         with open(alert_history_file, "w") as f:
             json.dump({"date": today_str, "symbols": list(dispatched)}, f)
 
-        logger.info(f"Cloud scan finished. New alerts dispatched: {dispatched_count}")
+def is_market_hours() -> bool:
+    now_utc = datetime.datetime.now(datetime.timezone.utc)
+    # IST is UTC + 5:30
+    ist_min = (now_utc.hour * 60 + now_utc.minute + 330) % 1440
+    weekday = now_utc.weekday()
+    # Monday to Friday: 9:15 AM (555) to 2:35 PM (875)
+    return (weekday < 5) and (555 <= ist_min <= 875)
 
-    except Exception as e:
-        logger.error(f"Cloud scan error: {e}")
-
-if __name__ == "__main__":
+def main():
+    logger.info("Initializing Angel One SmartAPI and Scrip Master...")
     init_angel_one()
     load_scrip_master()
-    run_cloud_scan()
+
+    # Active run duration: runs continuous 60-second scanning cycles for up to 50 minutes per cloud worker
+    # This guarantees 60-second real-time alert resolution without 15-minute lag!
+    start_time = time.time()
+    max_duration_seconds = 50 * 60  # 50 minutes
+
+    logger.info("Starting High-Frequency 60-Second Cloud Radar Loop...")
+    while time.time() - start_time < max_duration_seconds:
+        if is_market_hours():
+            run_cloud_scan()
+        else:
+            logger.info("Outside market hours. Standing by...")
+            # If triggered manually off-hours, execute at least one test cycle then exit
+            if time.time() - start_time < 30:
+                run_cloud_scan()
+                break
+            break
+
+        # Wait 60 seconds before next scan
+        time.sleep(60)
+
+    logger.info("Cloud session cycle completed cleanly.")
+
+if __name__ == "__main__":
+    main()
+
