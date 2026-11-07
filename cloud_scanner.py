@@ -183,6 +183,11 @@ def run_cloud_scan():
             except Exception:
                 pass
 
+        nifty_info = data.get("nifty", {})
+        nifty_change = nifty_info.get("change_pct", 0.0)
+        nifty_cmp = nifty_info.get("cmp", 24500)
+        nifty_trend = "BULLISH 🟢" if nifty_change > 0.15 else ("BEARISH 🔴" if nifty_change < -0.15 else "NEUTRAL / CHOPPY ⚪")
+
         dispatched_count = 0
         for item in all_candidates:
             sym = item.get("symbol")
@@ -236,23 +241,35 @@ def run_cloud_scan():
                 t1_gain = round((tgt1 - entry) * lot)
                 t2_gain = round((tgt2 - entry) * lot)
 
+                # Analyze Market Trend Alignment vs Independent Decoupled Breakout (like ASTRAL negative news)
+                is_aligned = (is_bull and nifty_change >= -0.10) or (not is_bull and nifty_change <= 0.10)
+                if is_aligned:
+                    trend_tag = f"✅ Market Aligned (Nifty {nifty_trend} {nifty_change:+.2f}%)"
+                else:
+                    # Stock moving strong AGAINST Nifty (e.g. ASTRAL crash on bad news while Nifty +400 pts)
+                    trend_tag = f"⚡ High-Beta Decoupled (Stock Catalyst Overrides Nifty {nifty_trend} {nifty_change:+.2f}%)"
+
+                trigger_time = datetime.datetime.now().strftime("%I:%M %p IST")
+                tv_link = f"https://in.tradingview.com/chart/?symbol=NSE:{sym}"
+
                 msg = (
                     f"{emoji} *VICKYVAIO BREAKOUT SIGNAL: {sym}*\n"
                     f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
                     f"• *Company:* {cname}\n"
-                    f"• *Feed:* {price_badge}\n"
+                    f"• *Time:* {trigger_time} | *Feed:* {price_badge}\n"
+                    f"• *Trend Alignment:* {trend_tag}\n"
                     f"• *Setup:* {item.get('setup_name', 'Breakout')} (A+ High Conviction)\n"
                     f"• *Spot CMP:* ₹{cmp_val} | SL: ₹{st.get('sl')} | Tgt: ₹{st.get('tgt1')}\n"
                     f"• *{action}:* `{contract}` ({strike})\n"
                     f"• *Live Premium Entry:* ₹{entry}\n"
-                    f"• *Stop-Loss (-30%):* ₹{sl}\n"
+                    f"• *Stop-Loss (-30%):* ₹{sl} (Risk: -₹{round((entry - sl) * lot):,})\n"
                     f"• *Target 1 (+45%):* ₹{tgt1} (+₹{t1_gain:,})\n"
                     f"• *Target 2 (+95% Doubler):* ₹{tgt2} (+₹{t2_gain:,})\n"
                     f"• *Lot Size:* {lot} | *Margin Req:* ₹{margin:,}\n"
                     f"• *Volume Surge:* {rvol}x RVOL | *RSI:* {rsi}\n"
                     f"• *Execution Rule:* Buy with LIMIT order at ₹{entry}. Book 50% at T1, trail SL to cost.\n"
                     f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                    f"🔗 [Open Live Chart](https://pro-stock-fno-scanner.vercel.app)"
+                    f"🔗 [Open TradingView Chart]({tv_link}) | [Open Terminal](https://pro-stock-fno-scanner.vercel.app)"
                 )
 
                 logger.info(f"Dispatching Cloud Alert for {sym} to Telegram...")
