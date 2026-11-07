@@ -3054,7 +3054,6 @@ Strategy: Institutional Two-Way Systematic Execution`;
             }
         }
 
-        let currentCatFilter = 'ALL';
         let currentCatSentimentFilter = 'ALL';
         let currentCatSearchQuery = '';
         let currentCatSetupOnly = false;
