@@ -247,6 +247,7 @@ def run_cloud_scan():
                 is_aligned = (is_bull and nifty_change >= -0.10) or (not is_bull and nifty_change <= 0.10)
                 # Clean, Compact, High-Speed Institutional Signal
                 trend_pill = "Aligned 🟢" if is_aligned else "Decoupled ⚡"
+                tv_link = f"https://in.tradingview.com/chart/?symbol=NSE:{sym}"
                 msg = (
                     f"{emoji} *{sym} {strike}* ({opt_type})\n"
                     f"━━━━━━━━━━━━━━━━━━━\n"
@@ -266,6 +267,8 @@ def run_cloud_scan():
         # Save dispatched history
         with open(alert_history_file, "w") as f:
             json.dump({"date": today_str, "symbols": list(dispatched)}, f)
+    except Exception as e:
+        logger.error(f"Error during cloud scan cycle: {e}")
 
 def is_market_hours() -> bool:
     now_utc = datetime.datetime.now(datetime.timezone.utc)
