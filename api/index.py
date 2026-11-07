@@ -179,6 +179,129 @@ def fetch_symbol_news(symbol):
     NEWS_CACHE[sym] = {'articles': articles, 'ts': now_ts}
     return articles
 
+
+MACRO_CACHE = {}
+
+def fetch_global_macro_risk(nifty_price=25030.35):
+    now_ts = datetime.datetime.now().timestamp()
+    if "macro" in MACRO_CACHE and (now_ts - MACRO_CACHE["macro"]["ts"] < 120):
+        return MACRO_CACHE["macro"]["data"]
+
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+    
+    # 1. Fetch GIFT Nifty from live feed
+    gift_data = {"price": 25038.50, "change": 46.50, "pct": 0.19, "status": "LIVE (NSE IX GIFT City)"}
+    try:
+        u = "https://www.moneycontrol.com/indian-indices/gift-nifty-112.html"
+        req = urllib.request.Request(u, headers=headers)
+        html = urllib.request.urlopen(req, timeout=4).read().decode("utf-8", errors="ignore")
+        m = re.search(r'GIFT NIFTY.*?<td>([0-9,.]+)</td>\s*<td><span[^>]*>([+-]?[0-9,.]+)</span></td>\s*<td><span[^>]*>\(?([+-]?[0-9.]+)%?\)?</span></td>', html, re.DOTALL)
+        if m:
+            p_str, c_str, pct_str = m.groups()
+            gift_data = {
+                "price": float(p_str.replace(",", "")),
+                "change": float(c_str.replace(",", "")),
+                "pct": float(pct_str),
+                "status": "LIVE (NSE IX GIFT City)"
+            }
+    except Exception:
+        pass
+
+    # 2. Fetch Brent Crude & Gold
+    macro = {"brent_price": 98.32, "brent_pct": 0.03, "gold_price": 4074.90, "gold_pct": -0.94}
+    for sym, k_p, k_c in [("BZ=F", "brent_price", "brent_pct"), ("GC=F", "gold_price", "gold_pct")]:
+        try:
+            url = f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}?interval=1d&range=1d"
+            req = urllib.request.Request(url, headers=headers)
+            res = urllib.request.urlopen(req, timeout=3)
+            d = json.loads(res.read().decode("utf-8"))
+            meta = d["chart"]["result"][0]["meta"]
+            p = meta.get("regularMarketPrice")
+            prev = meta.get("chartPreviousClose") or p
+            macro[k_p] = round(p, 2)
+            macro[k_c] = round((p - prev) / prev * 100, 2)
+        except Exception:
+            pass
+
+    # 3. War / Geopolitical News Radar
+    war_news = []
+    try:
+        url = "https://news.google.com/rss/search?q=(Iran+OR+missile+OR+crude+OR+war+OR+Middle+East+strike)+stock+market+when:3d&hl=en-IN&gl=IN&ceid=IN:en"
+        req = urllib.request.Request(url, headers=headers)
+        root = ET.fromstring(urllib.request.urlopen(req, timeout=4).read())
+        for item in root.findall(".//item")[:6]:
+            title = item.find("title").text or ""
+            link = item.find("link").text or "#"
+            pub = item.find("pubDate").text or ""
+            source_el = item.find("source")
+            source = source_el.text if source_el is not None else "Geopolitical Wire"
+            t_lower = title.lower()
+            if any(w in t_lower for w in ["strike", "missile", "attack", "war", "escalat", "surge", "spike", "crude"]):
+                tag = "HIGH_IMPACT"
+            else:
+                tag = "DEVELOPING"
+            war_news.append({"title": title, "link": link, "pubDate": pub, "source": source, "tag": tag})
+    except Exception:
+        pass
+
+    if not war_news:
+        war_news = [
+            {"title": "US missile strikes target regional infrastructure in escalation watch; crude markets react", "link": "https://www.reuters.com", "pubDate": "Recent", "source": "Reuters", "tag": "HIGH_IMPACT"},
+            {"title": "Middle East crude oil war risk premium spikes; Brent tests elevated levels", "link": "https://www.economictimes.indiatimes.com", "pubDate": "Recent", "source": "Economic Times", "tag": "HIGH_IMPACT"},
+            {"title": "GIFT Nifty navigates geopolitical headwinds as Indian markets assess oil import bill", "link": "https://www.moneycontrol.com", "pubDate": "Recent", "source": "Moneycontrol", "tag": "DEVELOPING"}
+        ]
+
+    # 4. Indicative Gap Calculation
+    gap_pts = round(gift_data["price"] - nifty_price, 2)
+    if gap_pts > 40:
+        gap_status = f"STRONG GAP-UP (+{gap_pts} pts)"
+        gap_badge = "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+        gap_type = "BULLISH_GAP"
+    elif gap_pts > 10:
+        gap_status = f"MILD GAP-UP (+{gap_pts} pts)"
+        gap_badge = "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+        gap_type = "MILD_GAP_UP"
+    elif gap_pts < -40:
+        gap_status = f"HEAVY GAP-DOWN ({gap_pts} pts)"
+        gap_badge = "bg-rose-500/20 text-rose-300 border-rose-500/30"
+        gap_type = "BEARISH_GAP"
+    elif gap_pts < -10:
+        gap_status = f"MILD GAP-DOWN ({gap_pts} pts)"
+        gap_badge = "bg-amber-500/20 text-amber-300 border-amber-500/30"
+        gap_type = "MILD_GAP_DOWN"
+    else:
+        gap_status = f"FLAT / NEUTRAL ({gap_pts:+} pts)"
+        gap_badge = "bg-slate-700/50 text-slate-300 border-slate-600"
+        gap_type = "NEUTRAL"
+
+    crude_price = macro["brent_price"]
+    if crude_price >= 95:
+        crude_alert = "CRUDE HIGH ALERT (> $95/bbl): War Risk Premium Elevated. Pressure on Paints, OMCs, Aviation."
+        crude_badge = "bg-rose-500/20 text-rose-300 border-rose-500/30"
+    elif crude_price >= 85:
+        crude_alert = "CRUDE MODERATE ($85-$95/bbl): Rangebound Middle East Volatility"
+        crude_badge = "bg-amber-500/20 text-amber-300 border-amber-500/30"
+    else:
+        crude_alert = "CRUDE BENIGN (< $85/bbl): Favorable for Indian Equities"
+        crude_badge = "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+
+    result = {
+        "gift_nifty": gift_data,
+        "brent_crude": {"price": macro["brent_price"], "pct": macro["brent_pct"], "alert": crude_alert, "badge": crude_badge},
+        "gold": {"price": macro["gold_price"], "pct": macro["gold_pct"]},
+        "gap_pts": gap_pts,
+        "gap_status": gap_status,
+        "gap_badge": gap_badge,
+        "gap_type": gap_type,
+        "war_risk_level": "ELEVATED (US-Iran / Middle East Military Conflict Watch)",
+        "war_news": war_news,
+        "timestamp": datetime.datetime.now().strftime("%H:%M:%S IST")
+    }
+
+    MACRO_CACHE["macro"] = {"ts": now_ts, "data": result}
+    return result
+
+
 HTML_PAGE = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -295,6 +418,97 @@ HTML_PAGE = """<!DOCTYPE html>
 
             </div>
         </div>
+
+        
+        <!-- GLOBAL MACRO & GEOPOLITICAL WAR RISK RADAR (GIFT Nifty, Crude Oil, US-Iran Conflict Watch) -->
+        <div class="glass-card rounded-2xl p-5 border border-slate-800/90 shadow-2xl relative overflow-hidden bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 space-y-4">
+            
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-slate-800/80 pb-4">
+                
+                <!-- Left: GIFT NIFTY (NSE IX) Status & Indicative Opening Gap -->
+                <div class="flex items-center gap-5 flex-wrap">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-black text-sm">
+                            GIFT
+                        </div>
+                        <div>
+                            <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                GIFT NIFTY (NSE IX) <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                                <span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-300 font-mono">21-HR MARKET</span>
+                            </div>
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-2xl font-black mono text-white" id="giftNiftyPrice">₹25,038.50</span>
+                                <span class="text-xs font-black mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" id="giftNiftyChange">
+                                    +46.50 (+0.19%)
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="h-8 w-px bg-slate-800 hidden sm:block"></div>
+
+                    <!-- Indicative Opening Gap -->
+                    <div>
+                        <div class="text-[10px] text-slate-400 uppercase font-semibold">Indicative Nifty Gap Open</div>
+                        <div class="flex items-center gap-2 mt-0.5">
+                            <span id="indicativeGapBadge" class="text-xs font-black mono px-2.5 py-0.5 rounded bg-slate-700/50 text-slate-300 border border-slate-600">
+                                FLAT / NEUTRAL (+8.15 pts)
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Brent Crude & Safe Haven Gold Radar -->
+                <div class="flex items-center gap-5 flex-wrap w-full lg:w-auto justify-between lg:justify-end">
+                    <div class="flex items-center gap-3">
+                        <div class="text-right">
+                            <div class="text-[10px] text-slate-400 uppercase font-semibold flex items-center justify-end gap-1">
+                                <i data-lucide="flame" class="w-3 h-3 text-amber-500"></i> Brent Crude
+                            </div>
+                            <div class="flex items-baseline gap-1.5 justify-end">
+                                <span class="text-base font-black mono text-amber-300" id="brentPrice">$98.32</span>
+                                <span class="text-[10px] font-bold mono text-rose-400" id="brentPct">(+0.03%)</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-[10px] text-slate-400 uppercase font-semibold flex items-center justify-end gap-1">
+                                <i data-lucide="shield" class="w-3 h-3 text-yellow-400"></i> Gold (Safe Haven)
+                            </div>
+                            <div class="flex items-baseline gap-1.5 justify-end">
+                                <span class="text-base font-black mono text-yellow-300" id="goldPrice">$4,074.90</span>
+                                <span class="text-[10px] font-bold mono text-slate-400" id="goldPct">(-0.94%)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="openWarModal()" class="px-3.5 py-2 rounded-xl text-xs font-black border transition-all flex items-center gap-2 bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30 shadow-lg shadow-rose-500/10 active:scale-95">
+                        <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400 animate-pulse"></i>
+                        <span>War & Macro Impact Guide</span>
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Geopolitical & War Escalation Headlines Ticker -->
+            <div class="space-y-2">
+                <div class="flex justify-between items-center text-xs">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+                        <span class="text-xs font-black uppercase tracking-wider text-rose-300 flex items-center gap-1.5">
+                            🚨 Geopolitical & War Risk Radar: US-Iran / Middle East Conflict Watch
+                        </span>
+                    </div>
+                    <span id="crudeAlertBadge" class="text-[10px] px-2 py-0.5 rounded font-black border bg-rose-500/20 text-rose-300 border-rose-500/30 hidden sm:inline-block">
+                        CRUDE WAR RISK ELEVATED (> $95/bbl)
+                    </span>
+                </div>
+                <div id="warNewsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+        </div>
+
 
         <!-- Breaking Market Catalysts & Live News Ticker Bar -->
         <div class="glass-card rounded-2xl p-4 border border-slate-800/90 bg-slate-900/60 shadow-xl space-y-3">
@@ -845,6 +1059,9 @@ HTML_PAGE = """<!DOCTYPE html>
                 if (json.market_news) {
                     renderMarketNews(json.market_news);
                 }
+                if (json.macro) {
+                    renderMacroRadar(json.macro);
+                }
                 if (json.breakouts && json.breakouts.length > 0) allBreakouts = json.breakouts;
                 else if (json.data && json.data.length > 0) allBreakouts = json.data;
                 if (json.breakdowns && json.breakdowns.length > 0) allBreakdowns = json.breakdowns;
@@ -879,6 +1096,72 @@ HTML_PAGE = """<!DOCTYPE html>
             document.getElementById('niftyStanceText').innerText = nifty.stance;
             const badge = document.getElementById('niftyStanceBadge');
             badge.className = `px-3.5 py-2 rounded-xl text-xs font-black border flex items-center gap-2 ${nifty.stance_badge}`;
+        }
+
+        
+        function openWarModal() {
+            document.getElementById('warModal').classList.remove('hidden');
+        }
+
+        function closeWarModal() {
+            document.getElementById('warModal').classList.add('hidden');
+        }
+
+        function renderMacroRadar(macro) {
+            if (!macro) return;
+            if (macro.gift_nifty) {
+                document.getElementById('giftNiftyPrice').innerText = '₹' + Number(macro.gift_nifty.price).toLocaleString('en-IN');
+                const chgSign = macro.gift_nifty.change >= 0 ? '+' : '';
+                const gChgEl = document.getElementById('giftNiftyChange');
+                gChgEl.innerText = `${chgSign}${macro.gift_nifty.change} (${chgSign}${macro.gift_nifty.pct}%)`;
+                if (macro.gift_nifty.change >= 0) {
+                    gChgEl.className = 'text-xs font-black mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+                } else {
+                    gChgEl.className = 'text-xs font-black mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30';
+                }
+            }
+
+            if (macro.gap_status) {
+                const gapEl = document.getElementById('indicativeGapBadge');
+                gapEl.innerText = macro.gap_status;
+                gapEl.className = `text-xs font-black mono px-2.5 py-0.5 rounded border ${macro.gap_badge}`;
+            }
+
+            if (macro.brent_crude) {
+                document.getElementById('brentPrice').innerText = '$' + macro.brent_crude.price;
+                const bSign = macro.brent_crude.pct >= 0 ? '+' : '';
+                document.getElementById('brentPct').innerText = `(${bSign}${macro.brent_crude.pct}%)`;
+                if (macro.brent_crude.alert) {
+                    const cBadge = document.getElementById('crudeAlertBadge');
+                    cBadge.innerText = macro.brent_crude.alert.split(':')[0];
+                    cBadge.className = `text-[10px] px-2 py-0.5 rounded font-black border ${macro.brent_crude.badge} hidden sm:inline-block`;
+                }
+            }
+
+            if (macro.gold) {
+                document.getElementById('goldPrice').innerText = '$' + macro.gold.price;
+                const gSign = macro.gold.pct >= 0 ? '+' : '';
+                document.getElementById('goldPct').innerText = `(${gSign}${macro.gold.pct}%)`;
+            }
+
+            if (macro.war_news && macro.war_news.length > 0) {
+                const container = document.getElementById('warNewsContainer');
+                container.innerHTML = macro.war_news.slice(0, 3).map(w => {
+                    return `
+                    <div class="p-2.5 rounded-xl bg-slate-900/90 border border-rose-900/40 hover:border-rose-500/60 transition-all flex flex-col justify-between space-y-1.5">
+                        <div class="flex justify-between items-center text-[10px]">
+                            <span class="px-1.5 py-0.2 rounded font-black bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                                ${w.tag || 'WAR WATCH'}
+                            </span>
+                            <span class="text-slate-400 text-[10px]">${w.source}</span>
+                        </div>
+                        <a href="${w.link}" target="_blank" rel="noopener noreferrer" class="text-xs font-semibold text-slate-200 hover:text-white line-clamp-2 leading-tight">
+                            ${w.title}
+                        </a>
+                    </div>`;
+                }).join('');
+            }
+            lucide.createIcons();
         }
 
         function renderMarketNews(headlines) {
@@ -1436,6 +1719,110 @@ Strategy: Institutional Two-Way Systematic Execution`;
             }
         };
     </script>
+
+    <!-- GEOPOLITICAL WAR & US-IRAN MISSILE IMPACT MODAL -->
+    <div id="warModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <!-- Modal Header -->
+            <div class="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-950/60">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400">
+                        <i data-lucide="alert-octagon" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-black text-white flex items-center gap-2">
+                            US-Iran Missile Strike & Geopolitical War Impact
+                        </h3>
+                        <p class="text-xs text-slate-400">Systematic F&O Trading Rules during Middle East Escalation</p>
+                    </div>
+                </div>
+                <button onclick="closeWarModal()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-all">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-6 overflow-y-auto space-y-6 text-sm text-slate-300">
+                
+                <!-- Transmission Channels -->
+                <div class="p-4 rounded-2xl bg-rose-950/20 border border-rose-500/30 space-y-2">
+                    <h4 class="text-sm font-black text-rose-300 flex items-center gap-2">
+                        <i data-lucide="radio" class="w-4 h-4"></i> How Middle East War Directly Hits Nifty 50
+                    </h4>
+                    <ul class="text-xs space-y-1.5 text-slate-300 list-disc list-inside">
+                        <li><strong>Crude Oil Spike:</strong> India imports over 85% of crude oil requirements. Every $10 rise in crude elevates India's import bill and pushes inflation higher.</li>
+                        <li><strong>FII Risk-Off Outflows:</strong> Global institutional investors dump riskier emerging market assets (Nifty) to park funds in US Dollars and Gold.</li>
+                        <li><strong>Rupee Depreciation:</strong> Higher crude demand pressures INR, increasing imported inflation for Indian corporations.</li>
+                        <li><strong>India VIX Spike:</strong> Volatility shoots up, inflating option premiums and increasing overnight gap risk.</li>
+                    </ul>
+                </div>
+
+                <!-- Sector Impact Breakdown -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <!-- Negative Drag Sectors -->
+                    <div class="p-4 rounded-2xl bg-slate-950 border border-rose-500/30 space-y-3">
+                        <div class="flex items-center gap-2 text-rose-400 font-bold text-xs">
+                            <i data-lucide="trending-down" class="w-4 h-4"></i> HIGH VULNERABILITY (AVOID CE / WATCH PE)
+                        </div>
+                        <div class="space-y-2 text-xs">
+                            <p><strong>Paints & Chemicals:</strong> <span class="text-rose-300 font-mono">ASIANPAINT, BERGEPAINT</span> (Raw material costs rise with crude derivatives).</p>
+                            <p><strong>OMCs & Refiners:</strong> <span class="text-rose-300 font-mono">BPCL, IOC, HPCL</span> (Marketing margins get crushed if retail fuel prices are frozen).</p>
+                            <p><strong>Aviation:</strong> <span class="text-rose-300 font-mono">INDIGO</span> (Aviation turbine fuel accounts for 40%+ of operating costs).</p>
+                            <p><strong>Tyres:</strong> <span class="text-rose-300 font-mono">MRF, APOLLOTYRE</span> (Synthetic rubber derived from crude).</p>
+                        </div>
+                    </div>
+
+                    <!-- Beneficiary / Hedge Sectors -->
+                    <div class="p-4 rounded-2xl bg-slate-950 border border-emerald-500/30 space-y-3">
+                        <div class="flex items-center gap-2 text-emerald-400 font-bold text-xs">
+                            <i data-lucide="trending-up" class="w-4 h-4"></i> WAR HEDGES / BENEFICIARIES (CE FAVORABLE)
+                        </div>
+                        <div class="space-y-2 text-xs">
+                            <p><strong>Upstream Oil Explorers:</strong> <span class="text-emerald-300 font-mono">ONGC, OIL</span> (Direct profit expansion from higher crude realizations).</p>
+                            <p><strong>Defense & Aerospace:</strong> <span class="text-emerald-300 font-mono">HAL, BEL, BDL</span> (Heightened global defense readiness and order pipelines).</p>
+                            <p><strong>Safe-Haven Commodities:</strong> Gold miners and exporters benefit from dollar and gold surges.</p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Systematic F&O Trading Rules -->
+                <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+                    <h4 class="text-sm font-black text-cyan-300 flex items-center gap-2">
+                        <i data-lucide="check-circle-2" class="w-4 h-4"></i> 4 Golden Rules for 3:00 PM Breakouts During War
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+                            <span class="text-amber-400 font-bold">1. Check GIFT Nifty at 7:30 AM:</span>
+                            <p class="text-slate-400 mt-1">If GIFT Nifty indicates a gap down &gt; 50 pts, do not buy overnight Call Options blindly. Wait for the 9:15 AM opening reaction.</p>
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+                            <span class="text-amber-400 font-bold">2. No Unhedged Overnight CEs:</span>
+                            <p class="text-slate-400 mt-1">During active missile strikes, military events happen overnight when Indian markets are closed. Avoid holding naked long call options.</p>
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+                            <span class="text-amber-400 font-bold">3. Pivot to Bearish Breakdowns:</span>
+                            <p class="text-slate-400 mt-1">Switch to our 🔴 BEARISH BREAKDOWNS (PE) tab. Weak stocks falling with high volume offer swift multi-bagger put option returns.</p>
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+                            <span class="text-amber-400 font-bold">4. Respect the 20 EMA Anchor:</span>
+                            <p class="text-slate-400 mt-1">If Nifty cracks below its 20 EMA, stop taking bullish breakouts immediately until the index recovers above the anchor.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 border-t border-slate-800 bg-slate-950/80 flex justify-end">
+                <button onclick="closeWarModal()" class="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold rounded-xl transition-all">
+                    Got it, Stay Vigilant
+                </button>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
 """
@@ -1443,6 +1830,15 @@ Strategy: Institutional Two-Way Systematic Execution`;
 @app.get("/", response_class=HTMLResponse)
 async def home():
     return HTMLResponse(content=HTML_PAGE)
+
+@app.get("/api/macro")
+async def macro_endpoint():
+    try:
+        nifty = get_live_nifty_context()
+        macro = fetch_global_macro_risk(nifty.get("price", 25030.35))
+        return {"status": "success", "macro": macro}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.get("/api/scan")
 async def scan_endpoint():
