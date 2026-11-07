@@ -114,12 +114,12 @@ def run_scanner_cycle(base_url="https://pro-stock-fno-scanner.vercel.app"):
                     f"🔗 [Open Live Chart](https://pro-stock-fno-scanner.vercel.app)"
                 )
                 
-                print(f"  ⚡ TRIGGERED A+ SIGNAL: {sym} ({action} {strike}) -> Dispatching to Telegram...")
+                print(f"  [TRIGGERED A+] {sym} ({action} {strike}) -> Dispatching to Telegram...")
                 ok = send_telegram_alert(msg)
                 if ok:
-                    print(f"  ✓ Dispatched {sym} to Telegram Chat {CHAT_ID} successfully!")
+                    print(f"  [SUCCESS] Dispatched {sym} to Telegram Chat {CHAT_ID}!")
                 else:
-                    print(f"  ✗ Failed to dispatch {sym}")
+                    print(f"  [FAILED] Failed to dispatch {sym}")
                     
     except Exception as e:
         print(f"  Scan cycle error: {e}")
