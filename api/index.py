@@ -2759,8 +2759,16 @@ HTML_PAGE = """<!DOCTYPE html>
         function calculateStrategyModel() {
             const S = currentStratState.cmp;
             const lot = currentStratState.lotSize;
-            const step = S > 2500 ? 50 : (S > 1000 ? 25 : (S > 500 ? 20 : (S > 100 ? 10 : 2.5)));
-            const atm = Math.round(S / step) * step;
+            
+            // Intelligently determine strike step based on stock price and exchange convention
+            // Sub-100 stocks (MAHABANK, PNB, IDFCFIRSTB) trade on 1.0 integer strikes on NSE
+            let step = S > 2500 ? 50 : (S > 1000 ? 25 : (S > 500 ? 20 : (S > 200 ? 10 : (S > 100 ? 5 : 1))));
+            let atm = Math.round(S / step) * step;
+            if (currentStratState.strikeStr) {
+                const parsed = parseFloat(currentStratState.strikeStr.replace(/[^0-9.]/g, ''));
+                if (!isNaN(parsed) && parsed > 0) atm = parsed;
+            }
+            const spreadWidthStep = (step === 1 && S <= 100) ? 3 : 2;
             const type = currentStratState.type;
 
             let legs = [];
@@ -2779,7 +2787,7 @@ HTML_PAGE = """<!DOCTYPE html>
 
             if (type === 'BULL_CALL_SPREAD') {
                 const k1 = atm;
-                const k2 = atm + step * 2;
+                const k2 = atm + step * spreadWidthStep;
                 const p1 = Math.round(S * 0.025 * 10) / 10;
                 const p2 = Math.round(p1 * 0.42 * 10) / 10;
                 const netDebit = Math.round((p1 - p2) * 10) / 10;
@@ -2809,7 +2817,7 @@ HTML_PAGE = """<!DOCTYPE html>
                 };
             } else if (type === 'BEAR_PUT_SPREAD') {
                 const k1 = atm;
-                const k2 = atm - step * 2;
+                const k2 = atm - step * spreadWidthStep;
                 const p1 = Math.round(S * 0.025 * 10) / 10;
                 const p2 = Math.round(p1 * 0.42 * 10) / 10;
                 const netDebit = Math.round((p1 - p2) * 10) / 10;
@@ -2865,10 +2873,11 @@ HTML_PAGE = """<!DOCTYPE html>
                     return ((intrinsicC + intrinsicP) - totalDebit) * lot;
                 };
             } else if (type === 'IRON_CONDOR') {
-                const kpShort = atm - step * 2;
-                const kpLong = atm - step * 4;
-                const kcShort = atm + step * 2;
-                const kcLong = atm + step * 4;
+                const condorStep = (step === 1 && S <= 100) ? 2 : step;
+                const kpShort = atm - condorStep;
+                const kpLong = atm - condorStep * 2;
+                const kcShort = atm + condorStep;
+                const kcLong = atm + condorStep * 2;
 
                 const ppShort = Math.round(S * 0.014 * 10) / 10;
                 const ppLong = Math.round(ppShort * 0.35 * 10) / 10;
@@ -2876,7 +2885,7 @@ HTML_PAGE = """<!DOCTYPE html>
                 const pcLong = Math.round(pcShort * 0.35 * 10) / 10;
 
                 const netCredit = Math.round(((ppShort - ppLong) + (pcShort - pcLong)) * 10) / 10;
-                const wingWidth = step * 2;
+                const wingWidth = condorStep;
 
                 legs = [
                     { action: 'BUY', opt: kpLong + ' PE', qty: lot, price: ppLong, role: 'Wing Floor Protection', bg: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' },
