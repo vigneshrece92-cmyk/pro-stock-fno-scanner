@@ -4250,7 +4250,7 @@ HTML_PAGE = """<!DOCTYPE html>
                 '━━━━━━━━━━━━━━━━━━━━━━━━━━',
                 '🔗 [Live Terminal](https://pro-stock-fno-scanner.vercel.app)'
             ];
-            const text = lines.join('\n');
+            const text = lines.join('\\n');
             try {
                 const res = await fetch('/api/telegram/send', {
                     method: 'POST',
