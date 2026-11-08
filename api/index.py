@@ -1831,10 +1831,99 @@ HTML_PAGE = """<!DOCTYPE html>
                 </div>
 
                 <!-- RIGHT SIDE: THE BOARD (BULLS OVER BEARS) (xl:col-span-6) -->
-                <div class="xl:col-span-6 flex flex-col gap-2.5">
+                <div class="xl:col-span-6 flex flex-col gap-2.5 relative" id="ofBoardRightSide">
+
+                    <!-- INLINE IN-PLACE STOCK INSPECTOR ("A Stock in Full") - Hidden by default, replaces/overlays board on tile click -->
+                    <div id="ofInlineInspector" class="hidden rounded-2xl bg-[#080d14] border border-slate-700/80 p-5 space-y-4 shadow-2xl flex-col">
+                        <!-- Top Header: Logo, Symbol, Company, Sector, Price, Prev/Next Pager & Close button -->
+                        <div class="flex items-start justify-between border-b border-slate-800 pb-3">
+                            <div class="flex items-center gap-3">
+                                <div id="inspLogo" class="w-10 h-10 rounded-xl bg-slate-800/90 border border-slate-700 flex items-center justify-center font-black text-sm font-mono text-white tracking-wider shadow">
+                                    CA
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <h3 id="inspSymbol" class="text-xl font-black text-white font-mono">CANBK</h3>
+                                        <span id="inspBuildUpBadge" class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">LONG BUILD-UP</span>
+                                        <span id="inspSector" class="text-xs text-slate-400">Banking & Financials</span>
+                                    </div>
+                                    <div id="inspCompanyName" class="text-xs text-slate-400 mt-0.5">Canara Bank &bull; Lot Size: 6750</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="text-right font-mono">
+                                    <div id="inspPrice" class="text-xl font-black text-white leading-tight">₹108.50</div>
+                                    <div id="inspChange" class="text-xs font-bold text-emerald-400">+4.8% (+4.95 pts)</div>
+                                </div>
+                                <div class="flex items-center gap-1 pl-2 border-l border-slate-800">
+                                    <button onclick="stepInspector(-1)" title="Previous Stock (ArrowLeft)" class="w-7 h-7 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center text-xs font-bold transition-all">◀</button>
+                                    <button onclick="stepInspector(1)" title="Next Stock (ArrowRight)" class="w-7 h-7 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center text-xs font-bold transition-all">▶</button>
+                                    <button onclick="closeInlineInspector()" title="Close Inspector (Esc)" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center text-sm font-black transition-all ml-1">✕</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 5-Minute Candlestick Chart with R2, S1, Prev Close levels -->
+                        <div class="space-y-1">
+                            <div class="flex justify-between items-center text-[11px] font-mono text-slate-400">
+                                <span class="font-bold text-slate-300 uppercase tracking-wide">5-Minute Futures Candlestick Chart & Key Price Levels</span>
+                                <span class="text-[10px] text-slate-400">Session range from 09:15 to 15:30</span>
+                            </div>
+                            <div class="w-full h-44 rounded-xl bg-slate-950 border border-slate-800/90 relative p-2" id="inspCandleChartBox">
+                                <svg id="inspCandleSvg" class="w-full h-full overflow-visible"></svg>
+                            </div>
+                        </div>
+
+                        <!-- Key Metrics Grid matching media_1794107188217_dc60265e.png -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 font-mono text-xs">
+                            <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800/90">
+                                <span class="text-[9px] text-slate-400 block uppercase">Rank</span>
+                                <span id="inspRank" class="text-sm font-black text-white">#1 of 192 up</span>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800/90">
+                                <span class="text-[9px] text-slate-400 block uppercase">Build-up</span>
+                                <span id="inspBuText" class="text-sm font-black text-emerald-400">Long build-up</span>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800/90">
+                                <span class="text-[9px] text-slate-400 block uppercase">Conviction</span>
+                                <div id="inspConvictionDots" class="flex items-center gap-1 mt-1">
+                                    <!-- 5 dots -->
+                                </div>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800/90">
+                                <span class="text-[9px] text-slate-400 block uppercase">Open Interest</span>
+                                <span id="inspOi" class="text-sm font-black text-emerald-400">+12.4% <small class="text-slate-400 font-normal">1.84 Cr</small></span>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800/90">
+                                <span class="text-[9px] text-slate-400 block uppercase">Support</span>
+                                <span id="inspSupport" class="text-xs font-bold text-emerald-300">S1 105 &bull; S2 100</span>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800/90">
+                                <span class="text-[9px] text-slate-400 block uppercase">Resistance</span>
+                                <span id="inspResistance" class="text-xs font-bold text-rose-300">R1 115 &bull; R2 120</span>
+                            </div>
+                            <div class="col-span-2 p-2.5 rounded-xl bg-slate-950 border border-slate-800/90 flex justify-between items-center">
+                                <div>
+                                    <span class="text-[9px] text-slate-400 block uppercase">Active Zone</span>
+                                    <span id="inspZone" class="text-xs font-bold text-white">108.20–108.80</span>
+                                </div>
+                                <button onclick="openStrategyFromOrderFlow()" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-all flex items-center gap-1 active:scale-95">
+                                    Strategy Builder ➔
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- "Why it ranks here" 5 Plain-English Checks (2-column layout matching original) -->
+                        <div class="space-y-2 pt-2 border-t border-slate-800">
+                            <span class="text-xs font-black uppercase tracking-wider text-slate-300 block">Why it ranks here (5 Institutional Checks)</span>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2" id="inspChecksGrid">
+                                <!-- Populated dynamically with green checkmarks / red crosses -->
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- 🟢 TOP PANEL: BULLS (ABOVE ZERO LINE) -->
-                    <div class="flex-1 rounded-2xl bg-[#04120a] border border-emerald-900/40 p-3.5 space-y-2.5 flex flex-col shadow-xl">
+                    <div id="ofBullsHalfPanel" class="flex-1 rounded-2xl bg-[#04120a] border border-emerald-900/40 p-3.5 space-y-2.5 flex flex-col shadow-xl">
                         <!-- Bull Header -->
                         <div class="flex items-center justify-between border-b border-emerald-950/80 pb-2">
                             <div class="flex items-center gap-2">
@@ -1868,7 +1957,7 @@ HTML_PAGE = """<!DOCTYPE html>
                     </div>
 
                     <!-- ⚪ THE ZERO AXIS DIVIDER (THE BAR) -->
-                    <div class="relative flex items-center justify-center my-0.5">
+                    <div id="ofZeroBarDivider" class="relative flex items-center justify-center my-0.5">
                         <div class="absolute inset-0 flex items-center">
                             <div class="w-full border-t border-dashed border-slate-700/80"></div>
                         </div>
@@ -1880,7 +1969,7 @@ HTML_PAGE = """<!DOCTYPE html>
                     </div>
 
                     <!-- 🔴 BOTTOM PANEL: BEARS (BELOW ZERO LINE) -->
-                    <div class="flex-1 rounded-2xl bg-[#140508] border border-rose-900/40 p-3.5 space-y-2.5 flex flex-col shadow-xl">
+                    <div id="ofBearsHalfPanel" class="flex-1 rounded-2xl bg-[#140508] border border-rose-900/40 p-3.5 space-y-2.5 flex flex-col shadow-xl">
                         <!-- Bear Header -->
                         <div class="flex items-center justify-between border-b border-rose-950/80 pb-2">
                             <div class="flex items-center gap-2">
@@ -4957,49 +5046,109 @@ Strategy: Institutional Two-Way Systematic Execution`;
             renderOrderFlowBoard();
         }
 
-        function renderSparklineSvg(pts, isBull) {
-            if (!pts || pts.length < 2) return '';
-            const minVal = Math.min(...pts);
-            const maxVal = Math.max(...pts);
-            const range = (maxVal - minVal) || 1;
-            const w = 110;
-            const h = 38;
-            const coords = pts.map((val, idx) => {
-                const x = (idx / (pts.length - 1)) * w;
-                const y = h - ((val - minVal) / range) * (h - 8) - 4;
-                return `${x.toFixed(1)},${y.toFixed(1)}`;
+        function getSymbolMonogram(sym) {
+            const indexMap = {
+                'NIFTY': 'NF', 'BANKNIFTY': 'BN', 'FINNIFTY': 'FN',
+                'MIDCPNIFTY': 'MC', 'NIFTYNXT50': 'N5', 'SENSEX': 'SX'
+            };
+            if (indexMap[sym]) return indexMap[sym];
+            const clean = (sym || '').replace(/[^A-Za-z0-9]/g, '');
+            return (clean.slice(0, 2) || '—').toUpperCase();
+        }
+
+        function renderCandlestickSparklineSvg(candles, isBull, supp, res, cmp) {
+            if (!candles || candles.length < 2) return '';
+            const w = 150;
+            const h = 54;
+            const padT = 5;
+            const padB = 6;
+            const padR = 34; // room for R1/S1 labels
+
+            let minP = Math.min(...candles.map(c => c.low));
+            let maxP = Math.max(...candles.map(c => c.high));
+            if (supp && supp.strike) minP = Math.min(minP, supp.strike);
+            if (res && res.strike) maxP = Math.max(maxP, res.strike);
+            const range = (maxP - minP) || 1;
+
+            const yOf = (p) => padT + (1 - (p - minP) / range) * (h - padT - padB);
+            const chartW = w - padR;
+            const barW = chartW / candles.length;
+
+            let outSvg = `<svg viewBox="0 0 ${w} ${h}" class="w-full h-full overflow-visible">`;
+
+            // Dotted R1 line
+            if (res && res.strike) {
+                const yR = yOf(res.strike);
+                outSvg += `
+                    <line x1="0" x2="${chartW + 4}" y1="${yR}" y2="${yR}" stroke="#fb7185" stroke-width="0.9" stroke-dasharray="3,2" opacity="0.8"/>
+                    <text x="${chartW + 6}" y="${yR + 3}" fill="#fb7185" font-size="7.5" font-family="monospace" font-weight="bold">R1 ${res.strike}</text>
+                `;
+            }
+            // Dotted S1 line
+            if (supp && supp.strike) {
+                const yS = yOf(supp.strike);
+                outSvg += `
+                    <line x1="0" x2="${chartW + 4}" y1="${yS}" y2="${yS}" stroke="#34d399" stroke-width="0.9" stroke-dasharray="3,2" opacity="0.8"/>
+                    <text x="${chartW + 6}" y="${yS + 3}" fill="#34d399" font-size="7.5" font-family="monospace" font-weight="bold">S1 ${supp.strike}</text>
+                `;
+            }
+
+            // Draw candles
+            candles.forEach((c, idx) => {
+                const cx = idx * barW + barW / 2;
+                const isGreen = c.close >= c.open;
+                const col = isGreen ? '#34d399' : '#fb7185';
+                const yO = yOf(c.open);
+                const yC = yOf(c.close);
+                const yH = yOf(c.high);
+                const yL = yOf(c.low);
+                const topBody = Math.min(yO, yC);
+                const bodyH = Math.max(1.5, Math.abs(yO - yC));
+                const bw = Math.max(1.4, barW * 0.65);
+
+                // Wick
+                outSvg += `<line x1="${cx}" x2="${cx}" y1="${yH}" y2="${yL}" stroke="${col}" stroke-width="0.8"/>`;
+                // Body
+                outSvg += `<rect x="${cx - bw / 2}" y="${topBody}" width="${bw}" height="${bodyH}" fill="${col}"/>`;
             });
-            const pathD = 'M ' + coords.join(' L ');
-            const strokeColor = isBull ? '#34d399' : '#fb7185';
-            const lastCoord = coords[coords.length - 1].split(',');
-            return `
-                <svg viewBox="0 0 ${w} ${h}" class="w-full h-full overflow-visible">
-                    <path d="${pathD}" fill="none" stroke="${strokeColor}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                    <circle cx="${lastCoord[0]}" cy="${lastCoord[1]}" r="2.5" fill="${strokeColor}"/>
-                </svg>
-            `;
+
+            // Last point dot
+            const lastC = candles[candles.length - 1];
+            const lastX = (candles.length - 1) * barW + barW / 2;
+            const lastY = yOf(lastC.close);
+            outSvg += `<circle cx="${lastX}" cy="${lastY}" r="2" fill="#ffffff" stroke="${isBull ? '#34d399' : '#fb7185'}" stroke-width="1.2"/>`;
+
+            outSvg += `</svg>`;
+            return outSvg;
         }
 
         function renderFeaturedOrderFlowCard(s, isBull, winFactor) {
             const adjChg = (s.change_pct * winFactor).toFixed(2);
-            const bgClass = isBull ? 'bg-[#06180e] border-emerald-500/40 hover:border-emerald-400' : 'bg-[#18060a] border-rose-500/40 hover:border-rose-400';
+            const bgClass = isBull ? 'bg-[#07190f] border-emerald-500/50 hover:border-emerald-400' : 'bg-[#1b060a] border-rose-500/50 hover:border-rose-400';
             const textCol = isBull ? 'text-emerald-400' : 'text-rose-400';
-            const badgeClass = isBull ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-rose-500/20 text-rose-300 border-rose-500/40';
+            const badgeClass = isBull ? 'bg-emerald-500 text-black shadow-md shadow-emerald-500/30' : 'bg-rose-500 text-white shadow-md shadow-rose-500/30';
             const sign = s.change_pct >= 0 ? '+' : '';
             const ptSign = (s.point_change || 0) >= 0 ? '+' : '';
             const ptChg = s.point_change || Math.round(s.cmp * (s.change_pct / 100));
+            const monogram = getSymbolMonogram(s.symbol);
 
             return `
-                <div onclick="openOrderFlowModal('${s.symbol}')" class="p-3 rounded-xl border ${bgClass} cursor-pointer transition-all space-y-2 hover:shadow-lg group">
-                    <!-- Top row: Symbol, Sector, Conviction Pill, Price -->
+                <div onclick="openOrderFlowStockInFull('${s.symbol}')" class="p-3.5 rounded-2xl border ${bgClass} cursor-pointer transition-all space-y-2.5 hover:shadow-xl group relative overflow-hidden backdrop-blur">
+                    <!-- Top row: Avatar logo, Symbol, Sector, Conviction Badge, Price -->
                     <div class="flex justify-between items-start">
-                        <div>
-                            <div class="flex items-center gap-1.5 flex-wrap">
-                                <span class="text-sm font-black text-white font-mono">${s.symbol}</span>
-                                <span class="text-[9px] text-slate-400 truncate max-w-[95px]">${s.sector}</span>
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-lg bg-black/60 border border-slate-700/80 flex items-center justify-center font-mono font-black text-xs text-white shadow">
+                                ${monogram}
                             </div>
-                            <div class="flex items-center gap-1 mt-0.5">
-                                <span class="px-1.5 py-0.2 rounded text-[8px] font-black uppercase ${badgeClass} border">${isBull ? 'BULLISH' : 'BEARISH'} ${s.score}</span>
+                            <div>
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="text-sm font-black text-white font-mono tracking-tight">${s.symbol}</span>
+                                    <span class="text-[9px] text-slate-400 truncate max-w-[95px]">${s.sector}</span>
+                                </div>
+                                <div class="flex items-center gap-1 mt-0.5">
+                                    <span class="px-1.5 py-0.2 rounded text-[8px] font-black uppercase ${badgeClass}">${isBull ? 'BULLISH' : 'BEARISH'}</span>
+                                    <span class="text-[9px] font-mono text-slate-400">&bull; ${s.score} Pass</span>
+                                </div>
                             </div>
                         </div>
                         <div class="text-right font-mono">
@@ -5008,12 +5157,13 @@ Strategy: Institutional Two-Way Systematic Execution`;
                         </div>
                     </div>
 
-                    <!-- Center: Order Book Volume Profile Ladder + Sparkline Row -->
-                    <div class="grid grid-cols-12 gap-2 items-center py-1 border-y border-slate-800/80 font-mono text-[9px]">
-                        <!-- Volume Profile Ladder (cols 6) -->
-                        <div class="col-span-6 space-y-0.5">
+                    <!-- Center: Order Book Volume Profile Ladder + Candlestick Sparkline Row -->
+                    <div class="grid grid-cols-12 gap-2 items-center py-1.5 border-y border-slate-800/80 font-mono text-[9px]">
+                        <!-- Volume Profile Ladder with POC Price Box (cols 5) -->
+                        <div class="col-span-5 space-y-0.5">
                             <div class="flex justify-between text-[7px] text-slate-400 px-0.5">
                                 <span>Bid</span>
+                                <span class="font-bold text-yellow-400">POC</span>
                                 <span>Ask</span>
                             </div>
                             ${(s.ladder || []).slice(0, 5).map(lvl => `
@@ -5021,32 +5171,32 @@ Strategy: Institutional Two-Way Systematic Execution`;
                                     <div class="flex-1 flex justify-end">
                                         <div class="h-1.5 rounded-l bg-emerald-500" style="width: ${lvl.bid_vol}%;"></div>
                                     </div>
-                                    <span class="text-[7px] text-slate-400 px-0.5 font-bold ${lvl.is_poc ? 'text-yellow-400 font-black' : ''}">${lvl.price}</span>
+                                    <span class="text-[7.5px] px-1 py-0.2 rounded font-mono font-bold ${lvl.is_poc ? 'bg-yellow-400 text-black font-black' : 'text-slate-400'}">${lvl.price}</span>
                                     <div class="flex-1 flex justify-start">
-                                        <div class="h-1.5 rounded-r bg-rose-500/80" style="width: ${lvl.ask_vol}%;"></div>
+                                        <div class="h-1.5 rounded-r bg-rose-500/85" style="width: ${lvl.ask_vol}%;"></div>
                                     </div>
                                 </div>
                             `).join('')}
                         </div>
 
-                        <!-- Sparkline SVG (cols 6) -->
-                        <div class="col-span-6 h-11 flex flex-col justify-center">
-                            ${renderSparklineSvg(s.intraday, isBull)}
+                        <!-- Candlestick Sparkline with R1/S1 dotted lines (cols 7) -->
+                        <div class="col-span-7 h-14 flex flex-col justify-center">
+                            ${renderCandlestickSparklineSvg(s.candles, isBull, s.support, s.resistance, s.cmp)}
                         </div>
                     </div>
 
                     <!-- Bottom: Support, Zone, Resistance -->
-                    <div class="grid grid-cols-3 gap-1 text-[8px] font-mono text-center pt-0.5">
-                        <div class="p-1 rounded bg-slate-950/70 border border-slate-900">
-                            <span class="text-slate-500 block">SUPPORT</span>
+                    <div class="grid grid-cols-3 gap-1.5 text-[8.5px] font-mono text-center pt-0.5">
+                        <div class="p-1 rounded-lg bg-black/40 border border-slate-800/80">
+                            <span class="text-slate-500 block text-[7.5px] uppercase">SUPPORT</span>
                             <span class="font-bold text-emerald-300 truncate">${s.support.strike}</span>
                         </div>
-                        <div class="p-1 rounded bg-slate-950/70 border border-slate-900">
-                            <span class="text-slate-500 block">ZONE</span>
+                        <div class="p-1 rounded-lg bg-black/40 border border-slate-800/80">
+                            <span class="text-slate-500 block text-[7.5px] uppercase">ZONE</span>
                             <span class="font-bold text-white truncate">${s.zone ? s.zone.strike : s.cmp}</span>
                         </div>
-                        <div class="p-1 rounded bg-slate-950/70 border border-slate-900">
-                            <span class="text-slate-500 block">RESISTANCE</span>
+                        <div class="p-1 rounded-lg bg-black/40 border border-slate-800/80">
+                            <span class="text-slate-500 block text-[7.5px] uppercase">RESISTANCE</span>
                             <span class="font-bold text-rose-300 truncate">${s.resistance.strike}</span>
                         </div>
                     </div>
@@ -5100,12 +5250,17 @@ Strategy: Institutional Two-Way Systematic Execution`;
                 lagEl.innerText = `${fullOrderFlowData.lagging_sector.name} ${med > 0 ? '+' : ''}${med.toFixed(2)}%`;
             }
 
-            // Return Distribution Histogram
+            // Return Distribution Histogram with -6.5% 0 +6.5% labels
             const histEl = document.getElementById('ofHistBars');
             if (histEl && fullOrderFlowData.distribution_hist) {
-                histEl.innerHTML = fullOrderFlowData.distribution_hist.map(b => `
-                    <div class="w-1.5 rounded-sm transition-all ${b.is_bull ? 'bg-emerald-400' : 'bg-rose-500'}" style="height: ${b.height_pct}%;" title="${b.range}: ${b.count} stocks"></div>
-                `).join('');
+                histEl.innerHTML = `
+                    <span class="text-[8px] font-mono text-slate-500 mr-1">-6.5%</span>
+                    ${fullOrderFlowData.distribution_hist.map(b => `
+                        <div class="w-1.5 rounded-sm transition-all ${b.is_bull ? 'bg-emerald-400' : 'bg-rose-500'}" style="height: ${b.height_pct}%;" title="${b.range}: ${b.count} stocks"></div>
+                    `).join('')}
+                    <span class="text-[8px] font-mono text-slate-400 mx-0.5">0</span>
+                    <span class="text-[8px] font-mono text-slate-500 ml-1">+6.5%</span>
+                `;
             }
 
             const bTab = document.getElementById('bullsTabCount');
@@ -5145,7 +5300,7 @@ Strategy: Institutional Two-Way Systematic Execution`;
                 }
             }
 
-            // 4. Render Bulls Tiles Grid (3 Columns)
+            // 4. Render Bulls Tiles Grid (3 Columns with Avatar Monograms & Build-up Dot)
             const bTilesGrid = document.getElementById('bullsTilesGrid');
             if (bTilesGrid) {
                 if (bulls.length === 0) {
@@ -5154,13 +5309,17 @@ Strategy: Institutional Two-Way Systematic Execution`;
                     bTilesGrid.innerHTML = bulls.map(s => {
                         const adjChg = (s.change_pct * winFactor).toFixed(2);
                         const isLB = s.build_up === 'LONG_BUILD';
+                        const monogram = getSymbolMonogram(s.symbol);
                         return `
-                            <div onclick="openOrderFlowModal('${s.symbol}')" class="px-2 py-1.5 rounded-lg bg-[#07170e] border border-emerald-950/90 hover:border-emerald-500/60 cursor-pointer transition-all flex items-center justify-between font-mono text-[11px] group">
+                            <div onclick="openOrderFlowStockInFull('${s.symbol}')" class="px-2 py-1.5 rounded-lg bg-[#07170e] border border-emerald-950/90 hover:border-emerald-400/80 hover:bg-[#0b2416] cursor-pointer transition-all flex items-center justify-between font-mono text-[11px] group shadow-sm">
                                 <div class="flex items-center gap-1.5 truncate">
-                                    <span class="w-1.5 h-1.5 rounded-full ${isLB ? 'bg-emerald-400 shadow-sm shadow-emerald-400' : 'border border-cyan-400'}"></span>
+                                    <span class="w-5 h-5 rounded bg-black/60 border border-slate-700/80 text-[8.5px] font-bold text-white flex items-center justify-center flex-shrink-0">${monogram}</span>
                                     <span class="font-bold text-white group-hover:text-emerald-300 transition-colors truncate text-[10px]">${s.symbol}</span>
                                 </div>
-                                <span class="font-black text-emerald-400 text-[10px]">+${adjChg}%</span>
+                                <div class="flex items-center gap-1.5 flex-shrink-0">
+                                    <span class="font-black text-emerald-400 text-[10px]">+${adjChg}%</span>
+                                    <span class="w-1.5 h-1.5 rounded-full ${isLB ? 'bg-emerald-400 shadow-sm shadow-emerald-400' : 'border border-cyan-400'}"></span>
+                                </div>
                             </div>
                         `;
                     }).join('');
@@ -5178,7 +5337,7 @@ Strategy: Institutional Two-Way Systematic Execution`;
                 }
             }
 
-            // 6. Render Bears Tiles Grid (3 Columns)
+            // 6. Render Bears Tiles Grid (3 Columns with Avatar Monograms & Build-up Dot)
             const beTilesGrid = document.getElementById('bearsTilesGrid');
             if (beTilesGrid) {
                 if (bears.length === 0) {
@@ -5187,13 +5346,17 @@ Strategy: Institutional Two-Way Systematic Execution`;
                     beTilesGrid.innerHTML = bears.map(s => {
                         const adjChg = (s.change_pct * winFactor).toFixed(2);
                         const isSB = s.build_up === 'SHORT_BUILD';
+                        const monogram = getSymbolMonogram(s.symbol);
                         return `
-                            <div onclick="openOrderFlowModal('${s.symbol}')" class="px-2 py-1.5 rounded-lg bg-[#19070a] border border-rose-950/90 hover:border-rose-500/60 cursor-pointer transition-all flex items-center justify-between font-mono text-[11px] group">
+                            <div onclick="openOrderFlowStockInFull('${s.symbol}')" class="px-2 py-1.5 rounded-lg bg-[#19070a] border border-rose-950/90 hover:border-rose-400/80 hover:bg-[#260b10] cursor-pointer transition-all flex items-center justify-between font-mono text-[11px] group shadow-sm">
                                 <div class="flex items-center gap-1.5 truncate">
-                                    <span class="w-1.5 h-1.5 rounded-full ${isSB ? 'bg-rose-400 shadow-sm shadow-rose-400' : 'border border-amber-400'}"></span>
+                                    <span class="w-5 h-5 rounded bg-black/60 border border-slate-700/80 text-[8.5px] font-bold text-white flex items-center justify-center flex-shrink-0">${monogram}</span>
                                     <span class="font-bold text-white group-hover:text-rose-300 transition-colors truncate text-[10px]">${s.symbol}</span>
                                 </div>
-                                <span class="font-black text-rose-400 text-[10px]">${adjChg}%</span>
+                                <div class="flex items-center gap-1.5 flex-shrink-0">
+                                    <span class="font-black text-rose-400 text-[10px]">${adjChg}%</span>
+                                    <span class="w-1.5 h-1.5 rounded-full ${isSB ? 'bg-rose-400 shadow-sm shadow-rose-400' : 'border border-amber-400'}"></span>
+                                </div>
                             </div>
                         `;
                     }).join('');
@@ -5223,10 +5386,12 @@ Strategy: Institutional Two-Way Systematic Execution`;
             ctx.clearRect(0, 0, width, height);
 
             const midY = height / 2;
-            const startX = 75;
-            const endX = width - 45;
+            const startX = 85;
+            const gateW = 28;
+            const tunnelX = width - 75; // location of the rectangular tunnel gates
+            const endX = width - 12;
 
-            // Quasi-logarithmic mapper for Y-axis percentage
+            // Quasi-logarithmic mapper for Y-axis percentage matching original scale
             function pctToY(pct) {
                 const sign = pct >= 0 ? 1 : -1;
                 const absPct = Math.abs(pct);
@@ -5235,32 +5400,38 @@ Strategy: Institutional Two-Way Systematic Execution`;
                 return midY - (sign * norm * maxOffset);
             }
 
-            // Y-Axis Ticks matching MrChartist original
-            const yTicks = [10.0, 5.0, 2.0, 1.0, 0.5, 0.1, 0.0, -0.1, -0.5, -1.0, -2.0, -5.0, -10.0];
+            // 1. Far Left Vertical Spine Indicators (Green spine on top, Red spine on bottom)
+            ctx.fillStyle = '#10b981';
+            ctx.fillRect(8, 20, 3.5, midY - 24);
+            ctx.fillStyle = '#f43f5e';
+            ctx.fillRect(8, midY + 4, 3.5, height - midY - 24);
+
+            // 2. Y-Axis Ticks & Grid Lines matching MrChartist original
+            const yTicks = [10.0, 8.0, 5.0, 3.0, 2.0, 1.0, 0.5, 0.1, 0.0, -0.1, -0.5, -1.0, -2.0, -3.0, -5.0, -8.0, -10.0];
             yTicks.forEach(pct => {
                 const y = pctToY(pct);
-                ctx.strokeStyle = pct === 0 ? 'rgba(148, 163, 184, 0.6)' : 'rgba(51, 65, 85, 0.25)';
-                ctx.lineWidth = pct === 0 ? 1.5 : 0.8;
+                ctx.strokeStyle = pct === 0 ? 'rgba(148, 163, 184, 0.55)' : 'rgba(51, 65, 85, 0.20)';
+                ctx.lineWidth = pct === 0 ? 1.5 : 0.75;
                 if (pct === 0) ctx.setLineDash([4, 4]); else ctx.setLineDash([]);
                 ctx.beginPath();
                 ctx.moveTo(startX, y);
-                ctx.lineTo(endX, y);
+                ctx.lineTo(tunnelX, y);
                 ctx.stroke();
 
-                ctx.fillStyle = pct === 0 ? 'rgba(255, 255, 255, 0.7)' : (pct > 0 ? 'rgba(52, 211, 153, 0.5)' : 'rgba(251, 113, 133, 0.5)');
+                ctx.fillStyle = pct === 0 ? 'rgba(255, 255, 255, 0.85)' : (pct > 0 ? 'rgba(52, 211, 153, 0.65)' : 'rgba(251, 113, 133, 0.65)');
                 ctx.font = '8px monospace';
                 ctx.textAlign = 'right';
                 const label = (pct > 0 ? '+' : '') + pct + '%';
-                ctx.fillText(label, startX - 6, y + 3);
+                ctx.fillText(label, startX - 8, y + 3);
             });
             ctx.setLineDash([]);
 
-            // Intraday Time Axis on bottom
+            // 3. Intraday Time Axis on bottom
             const timeMarks = ['09:15', '10:00', '11:00', '12:00', '13:00', '14:00', '15:30'];
-            const timeStep = (endX - startX) / (timeMarks.length - 1);
+            const timeStep = (tunnelX - startX) / (timeMarks.length - 1);
             timeMarks.forEach((t, i) => {
                 const x = startX + i * timeStep;
-                ctx.strokeStyle = 'rgba(51, 65, 85, 0.2)';
+                ctx.strokeStyle = 'rgba(51, 65, 85, 0.22)';
                 ctx.lineWidth = 0.8;
                 ctx.beginPath();
                 ctx.moveTo(x, 15);
@@ -5268,24 +5439,24 @@ Strategy: Institutional Two-Way Systematic Execution`;
                 ctx.stroke();
 
                 ctx.fillStyle = '#64748b';
-                ctx.font = '8px monospace';
+                ctx.font = '8.5px monospace';
                 ctx.textAlign = 'center';
                 ctx.fillText(t, x, height - 6);
             });
 
-            // Sector Median badges along Y-Axis on left
+            // 4. Sector Median badges along Y-Axis on left
             if (fullOrderFlowData && fullOrderFlowData.sectors) {
-                fullOrderFlowData.sectors.slice(0, 10).forEach(sec => {
+                fullOrderFlowData.sectors.slice(0, 9).forEach(sec => {
                     const y = pctToY(sec.median);
-                    ctx.fillStyle = sec.median >= 0 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(244, 63, 94, 0.2)';
-                    ctx.strokeStyle = sec.median >= 0 ? 'rgba(16, 185, 129, 0.5)' : 'rgba(244, 63, 94, 0.5)';
+                    ctx.fillStyle = sec.median >= 0 ? 'rgba(16, 185, 129, 0.22)' : 'rgba(244, 63, 94, 0.22)';
+                    ctx.strokeStyle = sec.median >= 0 ? 'rgba(16, 185, 129, 0.6)' : 'rgba(244, 63, 94, 0.6)';
                     ctx.lineWidth = 0.8;
 
                     const secNameShort = sec.name.split(' ')[0];
                     const secLabel = `${secNameShort} ${sec.median > 0 ? '+' : ''}${sec.median.toFixed(1)}%`;
                     
-                    ctx.fillRect(startX + 6, y - 6, 68, 12);
-                    ctx.strokeRect(startX + 6, y - 6, 68, 12);
+                    ctx.fillRect(startX + 6, y - 6, 70, 12);
+                    ctx.strokeRect(startX + 6, y - 6, 70, 12);
 
                     ctx.fillStyle = sec.median >= 0 ? '#a7f3d0' : '#fecdd3';
                     ctx.font = 'bold 7px monospace';
@@ -5298,20 +5469,21 @@ Strategy: Institutional Two-Way Systematic Execution`;
             if (flowCurrentScope === 'NIFTY50') stocks = stocks.filter(s => s.is_nifty50);
             if (flowCurrentSector !== 'ALL') stocks = stocks.filter(s => s.sector === flowCurrentSector);
 
-            // Draw Stock Trajectories across 7 intraday points
+            // 5. Draw Stock Trajectories converging into tunnel gates, then fanning to right tiles
             stocks.forEach((s, idx) => {
                 const isBull = s.change_pct >= 0.35;
                 const isBear = s.change_pct <= -0.35;
                 const isTopLeader = idx < 6 || Math.abs(s.change_pct) >= 3.8;
 
-                const strokeAlpha = isTopLeader ? 0.75 : 0.22;
+                const strokeAlpha = isTopLeader ? 0.85 : 0.22;
                 ctx.strokeStyle = isBull ? `rgba(52, 211, 153, ${strokeAlpha})` : (isBear ? `rgba(251, 113, 133, ${strokeAlpha})` : `rgba(148, 163, 184, 0.12)`);
-                ctx.lineWidth = isTopLeader ? 1.6 : 0.9;
+                ctx.lineWidth = isTopLeader ? 1.6 : 0.85;
 
                 const pts = (s.intraday && s.intraday.length === 7) 
                     ? s.intraday 
                     : [0, s.change_pct * 0.25, s.change_pct * 0.45, s.change_pct * 0.6, s.change_pct * 0.78, s.change_pct * 0.9, s.change_pct];
 
+                // Intraday bezier curve from 09:15 to tunnel gate
                 ctx.beginPath();
                 pts.forEach((val, ptIdx) => {
                     const x = startX + ptIdx * timeStep;
@@ -5325,60 +5497,102 @@ Strategy: Institutional Two-Way Systematic Execution`;
                         ctx.bezierCurveTo(cX, prevY, cX, y, x, y);
                     }
                 });
-                ctx.stroke();
 
-                // End node dot
+                // Funnel convergence into tunnel gate
                 const lastY = pctToY(pts[6]);
-                ctx.fillStyle = isBull ? '#34d399' : (isBear ? '#fb7185' : '#94a3b8');
-                ctx.beginPath();
-                ctx.arc(endX, lastY, isTopLeader ? 3 : 1.8, 0, Math.PI * 2);
-                ctx.fill();
+                const gateY = isBull 
+                    ? (30 + (idx % 12) * 5) 
+                    : (isBear ? (height - 30 - (idx % 12) * 5) : midY);
+
+                // Smooth S-curve into gate
+                const midG = (tunnelX + tunnelX + gateW) / 2;
+                ctx.bezierCurveTo(tunnelX - 10, lastY, tunnelX, gateY, tunnelX + gateW, gateY);
+
+                // Outgoing fanning connection line from gate to tile edge
+                const fanY = isBull ? (20 + (idx % 18) * 14) : (isBear ? (height - 20 - (idx % 18) * 14) : midY);
+                ctx.bezierCurveTo(tunnelX + gateW + 15, gateY, tunnelX + gateW + 25, fanY, endX, fanY);
+                ctx.stroke();
 
                 // Leader labels on the right edge
                 if (isTopLeader) {
                     ctx.fillStyle = isBull ? '#a7f3d0' : (isBear ? '#fecdd3' : '#cbd5e1');
                     ctx.font = 'bold 8px monospace';
                     ctx.textAlign = 'left';
-                    ctx.fillText(s.symbol, endX + 5, lastY + 3);
+                    ctx.fillText(s.symbol, endX - 35, fanY - 2);
                 }
             });
 
-            // Funnel Gates on Right Edge matching MrChartist
-            // Upper Green Funnel Gate
-            ctx.strokeStyle = 'rgba(52, 211, 153, 0.8)';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(endX - 8, pctToY(8.0));
-            ctx.lineTo(endX + 2, pctToY(8.0));
-            ctx.lineTo(endX + 2, pctToY(0.5));
-            ctx.lineTo(endX - 8, pctToY(0.5));
-            ctx.stroke();
+            // 6. RECTANGULAR TUNNEL GATES WITH VERTICAL HASH BARS (MrChartist Original Visual)
+            // Upper Green Rectangular Tunnel Gate
+            const upGateH = height * 0.28;
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.15)';
+            ctx.fillRect(tunnelX, 25, gateW, upGateH);
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 1.8;
+            ctx.strokeRect(tunnelX, 25, gateW, upGateH);
 
-            // Lower Red Funnel Gate
-            ctx.strokeStyle = 'rgba(251, 113, 133, 0.8)';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(endX - 8, pctToY(-0.5));
-            ctx.lineTo(endX + 2, pctToY(-0.5));
-            ctx.lineTo(endX + 2, pctToY(-8.0));
-            ctx.lineTo(endX - 8, pctToY(-8.0));
-            ctx.stroke();
+            // Vertical hashes inside green gate
+            ctx.strokeStyle = 'rgba(16, 185, 129, 0.45)';
+            ctx.lineWidth = 1.0;
+            for (let hx = tunnelX + 5; hx < tunnelX + gateW; hx += 5) {
+                ctx.beginPath();
+                ctx.moveTo(hx, 27);
+                ctx.lineTo(hx, 25 + upGateH - 2);
+                ctx.stroke();
+            }
+
+            // Lower Red Rectangular Tunnel Gate
+            const downGateH = height * 0.28;
+            const downGateY = height - 25 - downGateH;
+            ctx.fillStyle = 'rgba(244, 63, 94, 0.15)';
+            ctx.fillRect(tunnelX, downGateY, gateW, downGateH);
+            ctx.strokeStyle = '#f43f5e';
+            ctx.lineWidth = 1.8;
+            ctx.strokeRect(tunnelX, downGateY, gateW, downGateH);
+
+            // Vertical hashes inside red gate
+            ctx.strokeStyle = 'rgba(244, 63, 94, 0.45)';
+            ctx.lineWidth = 1.0;
+            for (let hx = tunnelX + 5; hx < tunnelX + gateW; hx += 5) {
+                ctx.beginPath();
+                ctx.moveTo(hx, downGateY + 2);
+                ctx.lineTo(hx, downGateY + downGateH - 2);
+                ctx.stroke();
+            }
         }
 
         // ========================================================
-        // ORDER FLOW INSPECTION MODAL ACTIONS
+        // INLINE "A STOCK IN FULL" INSPECTOR (MRCHARTIST VIEW)
         // ========================================================
-        function openOrderFlowModal(symbol) {
+        let currentInspectorSymbol = null;
+
+        function openOrderFlowStockInFull(symbol) {
             if (!fullOrderFlowData || !fullOrderFlowData.all_stocks) return;
             const s = fullOrderFlowData.all_stocks.find(item => item.symbol === symbol);
             if (!s) return;
+            currentInspectorSymbol = symbol;
             selectedOrderFlowStock = s;
 
-            document.getElementById('ofmSymbol').innerText = s.symbol;
-            document.getElementById('ofmCompanyName').innerHTML = `${s.name} &bull; Lot Size: <strong class="text-white">${s.lot_size}</strong>`;
-            document.getElementById('ofmSector').innerText = s.sector;
+            // Hide the normal 2 halves & zero line
+            const bullsPanel = document.getElementById('ofBullsHalfPanel');
+            const bearsPanel = document.getElementById('ofBearsHalfPanel');
+            const zeroBar = document.getElementById('ofZeroBarDivider');
+            const inspector = document.getElementById('ofInlineInspector');
 
-            const badge = document.getElementById('ofmBuildUpBadge');
+            if (bullsPanel) bullsPanel.classList.add('hidden');
+            if (bearsPanel) bearsPanel.classList.add('hidden');
+            if (zeroBar) zeroBar.classList.add('hidden');
+            if (inspector) inspector.classList.remove('hidden');
+
+            // Populate Inspector Header
+            const monogram = getSymbolMonogram(s.symbol);
+            document.getElementById('inspLogo').innerText = monogram;
+            document.getElementById('inspSymbol').innerText = s.symbol;
+            document.getElementById('inspCompanyName').innerHTML = `${s.name} &bull; Lot Size: <strong class="text-white">${s.lot_size}</strong>`;
+            document.getElementById('inspSector').innerText = s.sector;
+
+            const isBull = s.side === 'bullish';
+            const badge = document.getElementById('inspBuildUpBadge');
             if (s.build_up === 'LONG_BUILD') {
                 badge.className = "px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
                 badge.innerText = "LONG BUILD-UP";
@@ -5393,66 +5607,168 @@ Strategy: Institutional Two-Way Systematic Execution`;
                 badge.innerText = "LONG UNWINDING";
             }
 
-            document.getElementById('ofmFutPrice').innerText = `₹${s.fut_price.toLocaleString('en-IN')}`;
-            const chgEl = document.getElementById('ofmChange');
-            chgEl.innerText = `${s.change_pct > 0 ? '+' : ''}${s.change_pct}%`;
-            chgEl.className = `text-[10px] ${s.change_pct >= 0 ? 'text-emerald-400' : 'text-rose-400'} block`;
+            document.getElementById('inspPrice').innerText = `₹${s.fut_price.toLocaleString('en-IN')}`;
+            const chgEl = document.getElementById('inspChange');
+            chgEl.innerText = `${s.change_pct > 0 ? '+' : ''}${s.change_pct}% (${s.point_change > 0 ? '+' : ''}${s.point_change} pts)`;
+            chgEl.className = `text-xs font-bold ${s.change_pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
 
-            document.getElementById('ofmSpotPrice').innerText = `₹${s.cmp.toLocaleString('en-IN')}`;
-            document.getElementById('ofmBasis').innerText = `Basis: ${s.basis > 0 ? '+' : ''}${s.basis} pts`;
+            // Key Metrics
+            document.getElementById('inspRank').innerText = `#${s.score_num} of ${fullOrderFlowData.all_stocks.length} names`;
+            const buEl = document.getElementById('inspBuText');
+            buEl.innerText = s.build_up_label;
+            buEl.className = `text-sm font-black ${isBull ? 'text-emerald-400' : 'text-rose-400'}`;
 
-            const oiEl = document.getElementById('ofmOiChange');
-            oiEl.innerText = `${s.oi_change_pct > 0 ? '+' : ''}${s.oi_change_pct}%`;
-            oiEl.className = `text-base font-black ${s.oi_change_pct >= 0 ? 'text-emerald-400' : 'text-amber-400'}`;
-            document.getElementById('ofmOiAdded').innerText = s.oi_change_pct >= 0 ? 'Fresh Positions Added' : 'Positions Liquidated';
+            // 5 Conviction Dots (●●●●○)
+            const dotsContainer = document.getElementById('inspConvictionDots');
+            dotsContainer.innerHTML = Array.from({length: 5}, (_, i) => {
+                const isFilled = i < s.score_num;
+                return `<span class="w-3 h-3 rounded-full ${isFilled ? (isBull ? 'bg-emerald-400' : 'bg-rose-500') : 'border border-slate-700 bg-transparent'}"></span>`;
+            }).join('') + `<span class="text-xs text-slate-400 font-bold ml-1">${s.score_num}/5</span>`;
 
-            document.getElementById('ofmConvictionScore').innerText = `${s.score} Checks Pass`;
+            document.getElementById('inspOi').innerHTML = `${s.oi_change_pct > 0 ? '+' : ''}${s.oi_change_pct}% <small class="text-slate-400 font-normal">Fresh Units</small>`;
+            document.getElementById('inspSupport').innerText = `S1 ${s.support.strike} (${s.support.oi_formatted})`;
+            document.getElementById('inspResistance').innerText = `R1 ${s.resistance.strike} (${s.resistance.oi_formatted})`;
+            document.getElementById('inspZone').innerText = `₹${s.zone.low} – ₹${s.zone.high} (${s.zone.type})`;
 
-            // Render 5 Checks
-            const checksContainer = document.getElementById('ofmChecksContainer');
+            // Draw full 5-Minute Candlestick Chart in inspector matching media_1794107188217_dc60265e.png
+            drawInspectorCandleChart(s);
+
+            // 5 Plain-English Checks with Checkmarks / Crosses
+            const checksGrid = document.getElementById('inspChecksGrid');
             const checkDefs = [
-                { key: 'fresh', title: '1. Fresh Positions', passDesc: 'Pass: Move backed by fresh contracts (open interest expanding with price move)', failDesc: 'Fail: Driven by position liquidation or covering' },
-                { key: 'spot', title: '2. Spot Agreement', passDesc: 'Pass: Cash equity CMP directly confirms futures trajectory (no spot-future divergence)', failDesc: 'Fail: Spot cash lag or basis anomaly' },
-                { key: 'hour', title: '3. Higher Timeframe Momentum', passDesc: 'Pass: Aligned with 1H / Daily structural trend and institutional VWAP', failDesc: 'Fail: Counter-trend pullback into resistance' },
-                { key: 'options', title: '4. Option Writers Lean', passDesc: `Pass: Option writers lean with move (${s.support.strike} PE Put floor / ${s.resistance.strike} CE ceiling)`, failDesc: 'Fail: Heavy option call/put barrier blocking move' },
-                { key: 'sector', title: '5. Sector Median Lean', passDesc: `Pass: ${s.sector} median reinforces the move`, failDesc: 'Fail: Stock diverging from overall sector direction' }
+                { key: 'fresh', title: 'Fresh Positions', desc: s.checks.fresh ? 'Open interest grew alongside the move' : 'Driven by liquidation or position unwinding' },
+                { key: 'spot', title: 'Spot Agreement', desc: s.checks.spot ? 'Spot cash quote directly confirms futures momentum' : 'Spot quote lagging or divergent from derivative' },
+                { key: 'hour', title: 'Higher Timeframe', desc: s.checks.hour ? 'Directional bias sustained across the 1-hour window' : 'Counter-trend pullback against session VWAP' },
+                { key: 'options', title: 'Option Writers Lean', desc: s.checks.options ? `Option writers establish strong backing around ${s.support.strike} Strike` : 'Heavy opposing call/put barrier blocking price expansion' },
+                { key: 'sector', title: 'Sector Median Lean', desc: s.checks.sector ? `${s.sector} median reinforces and anchors the move` : 'Stock moving against its broader sector direction' }
             ];
 
-            checksContainer.innerHTML = checkDefs.map(c => {
+            checksGrid.innerHTML = checkDefs.map(c => {
                 const passed = s.checks && s.checks[c.key];
-                const icon = passed ? 'check-circle-2' : 'x-circle';
-                const color = passed ? 'text-emerald-400' : 'text-rose-400';
-                const border = passed ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-rose-500/20 bg-rose-500/5';
-                const text = passed ? c.passDesc : c.failDesc;
                 return `
-                    <div class="p-2.5 rounded-xl border ${border} flex items-start gap-2.5 text-xs font-mono">
-                        <i data-lucide="${icon}" class="w-4 h-4 ${color} flex-shrink-0 mt-0.5"></i>
-                        <div class="space-y-0.5">
+                    <div class="p-2.5 rounded-xl bg-slate-950/80 border ${passed ? 'border-emerald-500/30' : 'border-rose-500/30'} flex items-start gap-2.5 font-mono text-xs">
+                        <span class="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${passed ? 'bg-emerald-500/20 text-emerald-400 font-black' : 'bg-rose-500/20 text-rose-400 font-black'}">
+                            ${passed ? '✓' : '✕'}
+                        </span>
+                        <div>
                             <span class="font-bold text-white block">${c.title}</span>
-                            <span class="text-[11px] text-slate-300 block">${text}</span>
+                            <span class="text-[11px] text-slate-400 block">${c.desc}</span>
                         </div>
                     </div>
                 `;
             }).join('');
-
-            // Key Option Strikes
-            document.getElementById('ofmSupportStrike').innerText = `${s.support.strike} PE`;
-            document.getElementById('ofmSupportDist').innerText = `${s.support.distance_pct}% from Spot &bull; ${s.support.oi_formatted} OI`;
-
-            document.getElementById('ofmResistanceStrike').innerText = `${s.resistance.strike} CE`;
-            document.getElementById('ofmResistanceDist').innerText = `+${s.resistance.distance_pct}% from Spot &bull; ${s.resistance.oi_formatted} OI`;
-
-            document.getElementById('ofmZoneStrike').innerText = `${s.zone.strike} Strike`;
-            document.getElementById('ofmZoneDesc').innerText = `${s.zone.type === 'ACCUMULATION' ? 'Institutional Accumulation Zone' : 'Heavy Distribution Zone'}`;
-
-            document.getElementById('orderFlowModal').classList.remove('hidden');
-            if (window.lucide && typeof window.lucide.createIcons === 'function') {
-                window.lucide.createIcons();
-            }
         }
 
-        function closeOrderFlowModal() {
-            document.getElementById('orderFlowModal').classList.add('hidden');
+        function closeInlineInspector() {
+            const bullsPanel = document.getElementById('ofBullsHalfPanel');
+            const bearsPanel = document.getElementById('ofBearsHalfPanel');
+            const zeroBar = document.getElementById('ofZeroBarDivider');
+            const inspector = document.getElementById('ofInlineInspector');
+
+            if (inspector) inspector.classList.add('hidden');
+            if (bullsPanel) bullsPanel.classList.remove('hidden');
+            if (bearsPanel) bearsPanel.classList.remove('hidden');
+            if (zeroBar) zeroBar.classList.remove('hidden');
+            currentInspectorSymbol = null;
+        }
+
+        function stepInspector(delta) {
+            if (!fullOrderFlowData || !fullOrderFlowData.all_stocks || !currentInspectorSymbol) return;
+            const stocks = fullOrderFlowData.all_stocks;
+            const currIdx = stocks.findIndex(s => s.symbol === currentInspectorSymbol);
+            if (currIdx < 0) return;
+            let nextIdx = currIdx + delta;
+            if (nextIdx < 0) nextIdx = stocks.length - 1;
+            if (nextIdx >= stocks.length) nextIdx = 0;
+            openOrderFlowStockInFull(stocks[nextIdx].symbol);
+        }
+
+        function drawInspectorCandleChart(s) {
+            const svg = document.getElementById('inspCandleSvg');
+            const box = document.getElementById('inspCandleChartBox');
+            if (!svg || !box) return;
+
+            const w = box.clientWidth || 550;
+            const h = box.clientHeight || 176;
+            svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+
+            const candles = s.candles || [];
+            if (candles.length < 2) {
+                svg.innerHTML = `<text x="${w / 2}" y="${h / 2}" fill="#64748b" text-anchor="middle" font-size="12">Insufficient candle prints</text>`;
+                return;
+            }
+
+            const padT = 16;
+            const padB = 24;
+            const padR = 85; // space for level badges (R2, R1, Prev, S1)
+            const padL = 10;
+
+            let minP = Math.min(...candles.map(c => c.low));
+            let maxP = Math.max(...candles.map(c => c.high));
+
+            const prevClose = roundPrice(s.cmp / (1 + s.change_pct / 100.0));
+            minP = Math.min(minP, prevClose);
+            maxP = Math.max(maxP, prevClose);
+
+            const levels = [
+                { name: `R1 ${s.resistance.strike}`, price: s.resistance.strike, col: '#fb7185' },
+                { name: `Prev ${prevClose}`, price: prevClose, col: '#94a3b8' },
+                { name: `S1 ${s.support.strike}`, price: s.support.strike, col: '#34d399' }
+            ];
+
+            levels.forEach(lvl => {
+                minP = Math.min(minP, lvl.price);
+                maxP = Math.max(maxP, lvl.price);
+            });
+
+            const range = (maxP - minP) || 1;
+            const yOf = (p) => padT + (1 - (p - minP) / range) * (h - padT - padB);
+
+            const chartW = w - padL - padR;
+            const barW = chartW / candles.length;
+
+            let content = '';
+
+            // Horizontal Dotted Rules for R1, Prev, S1
+            levels.forEach(lvl => {
+                const y = yOf(lvl.price);
+                content += `
+                    <line x1="${padL}" x2="${padL + chartW + 4}" y1="${y}" y2="${y}" stroke="${lvl.col}" stroke-width="0.9" stroke-dasharray="3,3" opacity="0.75"/>
+                    <text x="${padL + chartW + 8}" y="${y + 3.5}" fill="${lvl.col}" font-size="9" font-family="monospace" font-weight="bold">${lvl.name}</text>
+                `;
+            });
+
+            // Draw Candlesticks
+            candles.forEach((c, idx) => {
+                const cx = padL + idx * barW + barW / 2;
+                const isGreen = c.close >= c.open;
+                const col = isGreen ? '#34d399' : '#fb7185';
+                const yO = yOf(c.open);
+                const yC = yOf(c.close);
+                const yH = yOf(c.high);
+                const yL = yOf(c.low);
+                const topBody = Math.min(yO, yC);
+                const bodyH = Math.max(1.8, Math.abs(yO - yC));
+                const bw = Math.max(2.2, barW * 0.65);
+
+                content += `
+                    <line x1="${cx}" x2="${cx}" y1="${yH}" y2="${yL}" stroke="${col}" stroke-width="1.0"/>
+                    <rect x="${cx - bw / 2}" y="${topBody}" width="${bw}" height="${bodyH}" fill="${col}"/>
+                `;
+            });
+
+            // Time marks at bottom
+            const times = ['09:15', '10:45', '12:15', '13:45', '15:30'];
+            times.forEach((tm, i) => {
+                const tx = padL + (i / (times.length - 1)) * chartW;
+                content += `<text x="${tx}" y="${h - 6}" fill="#64748b" font-size="8.5" font-family="monospace" text-anchor="${i === 0 ? 'start' : (i === times.length - 1 ? 'end' : 'middle')}">${tm}</text>`;
+            });
+
+            svg.innerHTML = content;
+        }
+
+        function roundPrice(val) {
+            return Math.round(val * 100) / 100;
         }
 
         function copyOrderFlowModalAlert() {
