@@ -35,6 +35,7 @@ ANGEL_PIN = os.getenv("ANGEL_PIN", "2305")
 ANGEL_TOTP_KEY = os.getenv("ANGEL_TOTP_KEY", "47CUKNA5GCAHYNYZVXVXBQBVKE")
 
 CACHE_DIR = os.path.dirname(os.path.abspath(__file__))
+D_DRIVE_CACHE = r"D:\stock_fno_data\scrip_master_cache.json"
 SCRIP_CACHE_PATH = os.path.join(CACHE_DIR, "scrip_master_cache.json")
 NIFTY_BOT_CACHE = r"C:\Users\Vicky\.gemini\antigravity\scratch\nifty_angelone_bot\scrip_master_cache.json"
 
@@ -83,7 +84,14 @@ def load_scrip_master():
     """Loads Angel One Scrip Master for accurate symbol and token mapping."""
     global scrips_cache
     try:
-        # Check local folder first
+        # Check D: drive cache first (117 GB storage)
+        if os.path.exists(D_DRIVE_CACHE) and os.path.getsize(D_DRIVE_CACHE) > 100000:
+            with open(D_DRIVE_CACHE, "r", encoding="utf-8") as f:
+                scrips_cache = json.load(f)
+            logger.info(f"Loaded {len(scrips_cache)} scrip records from D: drive cache ({D_DRIVE_CACHE}).")
+            return True
+
+        # Check local folder next
         if os.path.exists(SCRIP_CACHE_PATH) and os.path.getsize(SCRIP_CACHE_PATH) > 100000:
             with open(SCRIP_CACHE_PATH, "r", encoding="utf-8") as f:
                 scrips_cache = json.load(f)
@@ -98,13 +106,14 @@ def load_scrip_master():
             return True
 
         # Download from Angel One OpenAPI
-        logger.info("Downloading latest Scrip Master from Angel One OpenAPI (~4MB)...")
-        r = requests.get("https://margincalculator.angelbroking.com/OpenAPI_File/files/OpenAPIScripMaster.json", timeout=25)
+        save_target = D_DRIVE_CACHE if os.path.exists(r"D:\stock_fno_data") else SCRIP_CACHE_PATH
+        logger.info("Downloading latest Scrip Master from Angel One OpenAPI...")
+        r = requests.get("https://margincalculator.angelbroking.com/OpenAPI_File/files/OpenAPIScripMaster.json", timeout=30)
         if r.status_code == 200:
             scrips_cache = r.json()
-            with open(SCRIP_CACHE_PATH, "w", encoding="utf-8") as f:
+            with open(save_target, "w", encoding="utf-8") as f:
                 json.dump(scrips_cache, f)
-            logger.info(f"Downloaded and cached {len(scrips_cache)} scrip records.")
+            logger.info(f"Downloaded and cached {len(scrips_cache)} scrip records to {save_target}.")
             return True
     except Exception as e:
         logger.error(f"Error loading scrip master: {e}")

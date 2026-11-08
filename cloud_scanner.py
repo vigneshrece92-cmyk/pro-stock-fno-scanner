@@ -63,22 +63,39 @@ def init_angel_one():
         smart_api = None
         return False
 
+def get_data_dir() -> str:
+    d_dir = r"D:\stock_fno_data"
+    if os.path.exists(d_dir):
+        return d_dir
+    return "."
+
 def load_scrip_master():
     global scrips_cache
-    cache_file = "scrip_master_cache.json"
-    if os.path.exists(cache_file) and os.path.getsize(cache_file) > 100000:
-        with open(cache_file, "r", encoding="utf-8") as f:
-            scrips_cache = json.load(f)
-            logger.info(f"Loaded {len(scrips_cache)} scrip records from local cache.")
-            return True
+    data_dir = get_data_dir()
+    candidates = [
+        os.path.join(data_dir, "scrip_master_cache.json"),
+        r"C:\Users\Vicky\.gemini\antigravity\scratch\nifty_angelone_bot\scrip_master_cache.json",
+        "scrip_master_cache.json"
+    ]
+    for c in candidates:
+        if os.path.exists(c) and os.path.getsize(c) > 100000:
+            try:
+                with open(c, "r", encoding="utf-8") as f:
+                    scrips_cache = json.load(f)
+                logger.info(f"Loaded {len(scrips_cache)} scrip records from cache ({c}).")
+                return True
+            except Exception:
+                pass
+
+    cache_file = os.path.join(data_dir, "scrip_master_cache.json")
     try:
         logger.info("Downloading latest Scrip Master from Angel One OpenAPI...")
-        r = requests.get(SCRIP_MASTER_URL, timeout=25)
+        r = requests.get(SCRIP_MASTER_URL, timeout=30)
         if r.status_code == 200:
             scrips_cache = r.json()
             with open(cache_file, "w", encoding="utf-8") as f:
                 json.dump(scrips_cache, f)
-            logger.info(f"Downloaded and cached {len(scrips_cache)} scrip records.")
+            logger.info(f"Downloaded and cached {len(scrips_cache)} scrip records to {cache_file}.")
             return True
     except Exception as e:
         logger.error(f"Error downloading scrip master: {e}")
@@ -183,7 +200,7 @@ def run_cloud_scan():
     logger.info("Executing Cloud Scan Cycle from live Vercel endpoint...")
     base_url = "https://pro-stock-fno-scanner.vercel.app"
     try:
-        r = requests.get(f"{base_url}/api/scan?t={int(time.time())}", timeout=10)
+        r = requests.get(f"{base_url}/api/scan?t={int(time.time())}", timeout=25)
         if r.status_code != 200:
             logger.error(f"Failed to fetch scanner API: {r.status_code}")
             return
@@ -201,7 +218,7 @@ def run_cloud_scan():
             all_candidates.append(bd)
 
         # Track alerted symbols to prevent duplicate spam in cloud
-        alert_history_file = "dispatched_today.json"
+        alert_history_file = os.path.join(get_data_dir(), "dispatched_today.json")
         dispatched = set()
         today_str = datetime.date.today().isoformat()
         if os.path.exists(alert_history_file):
@@ -349,8 +366,9 @@ def is_market_hours() -> bool:
     return (weekday < 5) and (555 <= ist_min <= 930)
 
 def main():
-    if not is_market_hours():
-        logger.info("Market is currently CLOSED (IST). Scanner standing down until next market session (Mon-Fri 9:15 AM - 3:30 PM IST). Zero alerts sent.")
+    force_scan = "--force" in sys.argv or os.getenv("FORCE_SCAN", "0") == "1"
+    if not force_scan and not is_market_hours():
+        logger.info("Market is currently CLOSED (IST). Scanner standing down until next market session (Mon-Fri 9:15 AM - 3:30 PM IST). Zero alerts sent. Pass --force to run off-market cycle.")
         return
 
     logger.info("Initializing Angel One SmartAPI and Scrip Master...")
@@ -358,12 +376,14 @@ def main():
     load_scrip_master()
 
     start_time = time.time()
-    max_duration_seconds = 50 * 60  # 50 minutes
+    max_duration_seconds = 50 * 60 if not force_scan else 60  # 1 cycle if forced
 
     logger.info("Starting High-Frequency 60-Second Cloud Radar Loop...")
     while time.time() - start_time < max_duration_seconds:
-        if is_market_hours():
+        if force_scan or is_market_hours():
             run_cloud_scan()
+            if force_scan:
+                break
         else:
             logger.info("Market closed during active session. Standing down.")
             break
