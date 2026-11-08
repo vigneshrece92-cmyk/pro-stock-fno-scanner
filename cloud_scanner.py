@@ -209,7 +209,7 @@ def run_cloud_scan():
                 n_sl = round(n_entry * 0.70, 1)
                 n_t1 = round(n_entry * 1.45, 1)
                 n_t2 = round(n_entry * 1.95, 1)
-                n_lot = 25
+                n_lot = 65
                 n_capital = round(n_entry * n_lot)
 
                 n_msg = (
