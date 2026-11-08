@@ -3680,10 +3680,11 @@ HTML_PAGE = """<!DOCTYPE html>
                 const mins = istTime.getMinutes();
                 const secs = istTime.getSeconds();
                 
-                // At 15:15:00 IST sharp, trigger automatic closing auction scan
+                // At 15:15:00 IST sharp, trigger automatic closing auction scan & telegram dispatch
                 if (hrs === 15 && mins === 15 && secs === 0) {
                     scanNow(true);
-                    showToast('🕒 3:15 PM Market Closing Trigger Activated: CAS & BTST Models Refreshed!');
+                    dispatchCasTelegram();
+                    showToast('🕒 3:15 PM Closing Trigger: CAS & BTST Alert Dispatched to Telegram!');
                 }
 
                 if (syncCountdown <= 0) {
@@ -7804,6 +7805,64 @@ async def telegram_trigger_scan_endpoint():
                 pass
                     
         return {"status": "success", "dispatched_count": len(dispatched_list), "dispatched_symbols": dispatched_list}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+@app.get("/api/telegram/trigger-cas")
+async def telegram_trigger_cas_endpoint(force: bool = False):
+    today_str = datetime.date.today().isoformat()
+    if not force and SERVERLESS_DISPATCHED_TODAY.get("cas_dispatched") == today_str:
+        return {"status": "skipped", "message": "CAS alert already dispatched today."}
+
+    if not force and not is_live_market_hours_ist():
+        return {"status": "skipped", "message": "Market is currently closed. Automated signals run Monday-Friday 9:15 AM - 3:30 PM IST."}
+
+    try:
+        nifty_info = get_live_nifty_context() or {}
+        cas = nifty_info.get("cas_prediction", {})
+        pred315 = nifty_info.get("next_day_315_prediction", {})
+        
+        is_bull = (cas.get("verdict") == "CE")
+        v_emoji = "🟢" if is_bull else "🔴"
+        v_title = "CALL (CE) BIASED 🟢" if is_bull else "PUT (PE) BIASED 🔴"
+        
+        cas_msg = (
+            f"🎯 *NIFTY 50 • 3:15 PM CAS & BTST AUTOMATED ALERT*\n"
+            f"━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"• *CAS Settlement Verdict:* {v_emoji} *{v_title}*\n"
+            f"• *Institutional Force:* {cas.get('ce_strength', 50)}% CE vs {cas.get('pe_strength', 50)}% PE\n"
+            f"• *Institutional Score:* {('+' if cas.get('score', 0) > 0 else '')}{cas.get('score', 0)} / 100\n"
+            f"• *Spot CMP:* ₹{nifty_info.get('price')} (L: {nifty_info.get('day_low')} | H: {nifty_info.get('day_high')})\n\n"
+            f"⚡ *RECOMMENDED CONTRACT:* `{cas.get('recommended_contract')}`\n"
+            f"• *Execution Window:* 3:15 PM – 3:20 PM IST\n"
+            f"• *3:15 PM Buy Range:* {pred315.get('entry_range', 'At Market (~₹120-125)')}\n"
+            f"• *Overnight Stop-Loss:* ₹{cas.get('overnight_sl')} (Spot SL: {pred315.get('sl_spot')})\n"
+            f"• *9:16 AM Open Target 1:* ₹{cas.get('opening_target')} (+48%)\n"
+            f"• *9:30 AM Momentum Target 2:* ₹{cas.get('target2', round(float(cas.get('entry_price', 120))*1.96, 1))} (+95% Doubler)\n\n"
+            f"📊 *INSTITUTIONAL DRIVERS:*\n"
+            f"• *Settlement VWAP Spread:* {cas.get('vwap_spread')}\n"
+            f"• *Closing MOC Imbalance:* {cas.get('moc_net_flow')}\n"
+            f"• *Delta / OI Shift:* {cas.get('oi_bias')}\n"
+            f"• *Next-Day Outlook:* {pred315.get('projected_open')}\n\n"
+            f"💡 *TRADE MANAGEMENT:*\n"
+            f"1. Same-Day Exit: If premium surges into 3:25 PM, book 50-70% profit.\n"
+            f"2. BTST / STBT Carry: Hold remaining with SL at cost into 9:16 AM.\n"
+            f"━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"🔗 [Live Terminal](https://pro-stock-fno-scanner.vercel.app)"
+        )
+        
+        tg_url = f"https://api.telegram.org/bot{DEFAULT_TG_TOKEN}/sendMessage"
+        r = requests.post(tg_url, json={"chat_id": str(DEFAULT_TG_CHAT_ID), "text": cas_msg, "parse_mode": "Markdown"}, timeout=8)
+        if r.status_code == 200:
+            SERVERLESS_DISPATCHED_TODAY["cas_dispatched"] = today_str
+            return {
+                "status": "success",
+                "message": "3:15 PM CAS Alert dispatched to Telegram!",
+                "verdict": cas.get("verdict"),
+                "contract": cas.get("recommended_contract")
+            }
+        else:
+            return {"status": "error", "message": f"Telegram API error: {r.text}"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
