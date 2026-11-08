@@ -1725,9 +1725,6 @@ HTML_PAGE = """<!DOCTYPE html>
 
         </div><!-- END view_nifty_pro -->
 
-        <!-- TAB: 🌊 LIVE F&O ORDER FLOW (BULLS OVER BEARS BOARD) -->
-        <div id="view_order_flow" class="tab-view hidden space-y-6">
-
         <!-- TAB: 🌊 LIVE F&O ORDER FLOW (MRCHARTIST SYSTEM) -->
         <div id="view_order_flow" class="tab-view hidden space-y-3 font-sans text-slate-200">
 
@@ -4880,7 +4877,9 @@ Strategy: Institutional Two-Way Systematic Execution`;
                 loadMacroWarView();
             }
 
-            if (window.lucide) lucide.createIcons();
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                window.lucide.createIcons();
+            }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -5204,7 +5203,9 @@ Strategy: Institutional Two-Way Systematic Execution`;
             // 7. Draw the Stream Canvas
             drawOrderFlowCanvas();
 
-            if (window.lucide) lucide.createIcons();
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                window.lucide.createIcons();
+            }
         }
 
         function drawOrderFlowCanvas() {
@@ -5445,7 +5446,9 @@ Strategy: Institutional Two-Way Systematic Execution`;
             document.getElementById('ofmZoneDesc').innerText = `${s.zone.type === 'ACCUMULATION' ? 'Institutional Accumulation Zone' : 'Heavy Distribution Zone'}`;
 
             document.getElementById('orderFlowModal').classList.remove('hidden');
-            if (window.lucide) lucide.createIcons();
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                window.lucide.createIcons();
+            }
         }
 
         function closeOrderFlowModal() {
