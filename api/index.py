@@ -7857,6 +7857,23 @@ async def scan_endpoint():
     except Exception as e:
         return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
 
+@app.get("/api/debug/angel")
+async def debug_angel_endpoint():
+    try:
+        from api.market_data import angel_client, SMARTAPI_AVAILABLE, ANGEL_API_KEY, ANGEL_CLIENT_CODE
+        login_res = angel_client.login(force=True)
+        return {
+            "status": "success",
+            "smartapi_available": SMARTAPI_AVAILABLE,
+            "api_key_set": bool(ANGEL_API_KEY),
+            "client_code": ANGEL_CLIENT_CODE,
+            "is_authenticated": angel_client.is_authenticated,
+            "login_result": login_res,
+            "rate_limited": angel_client.is_rate_limited()
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
 @app.get("/api/news/market")
 async def market_news_endpoint():
     try:
