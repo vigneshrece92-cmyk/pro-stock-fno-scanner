@@ -4220,30 +4220,40 @@ HTML_PAGE = """<!DOCTYPE html>
 
         async function dispatchCasTelegram() {
             const cas = (niftyContext && niftyContext.cas_prediction) ? niftyContext.cas_prediction : {
-                verdict: 'CE', recommended_contract: 'NIFTY 25050 CE', entry_price: 125.0, overnight_sl: 85.0, opening_target: 195.0
+                verdict: 'CE', score: 86, recommended_contract: 'NIFTY 25050 CE', entry_price: 125.0, overnight_sl: 85.0, opening_target: 195.0, vwap_spread: '+37.85 pts', moc_net_flow: '+₹620 Cr'
             };
             const lines = [
                 '🎯 *NIFTY CAS (CLOSING AUCTION SESSION) VERDICT*',
                 '━━━━━━━━━━━━━━━━━━━━━━━━━━',
-                '• *CAS Verdict:* ' + cas.verdict + ' (CALL BIASED)',
-                '• *Institutional Score:* +86 / 100',
+                '• *CAS Verdict:* ' + cas.verdict + ' (' + (cas.verdict === 'CE' ? 'CALL BIASED' : 'PUT BIASED') + ')',
+                '• *Institutional Score:* ' + (cas.score > 0 ? '+' : '') + cas.score + ' / 100',
                 '• *Recommended Contract:* ' + cas.recommended_contract,
-                '• *3:20 PM Entry:* ₹' + cas.entry_price,
+                '• *3:15-3:25 PM Entry:* ₹' + cas.entry_price,
                 '• *Overnight Stop-Loss:* ₹' + cas.overnight_sl,
                 '• *9:16 AM Opening Target:* ₹' + cas.opening_target,
-                '• *Confluence:* Settlement VWAP (+37.8 pts) + MOC Inflow (+₹620 Cr)',
+                '• *Confluence:* Settlement VWAP (' + (cas.vwap_spread || '+37.8 pts') + ') + MOC Flow (' + (cas.moc_net_flow || '+₹620 Cr') + ')',
                 '━━━━━━━━━━━━━━━━━━━━━━━━━━',
                 '🔗 [Live Terminal](https://pro-stock-fno-scanner.vercel.app)'
             ];
+            const text = lines.join('\n');
             try {
-                await fetch('/api/telegram/send', {
+                const res = await fetch('/api/telegram/send', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ message: lines.join('\\n') })
+                    body: JSON.stringify({ message: text })
                 });
-                showToast('🚀 Dispatched CAS Verdict Alert to Telegram Channel!');
+                const json = await res.json();
+                if (json.status === 'success') {
+                    showToast('🚀 CAS ' + cas.verdict + ' Verdict Dispatched to Telegram!');
+                } else {
+                    document.getElementById('telegramPreviewText').value = text;
+                    document.getElementById('telegramShareBtn').href = "https://t.me/share/url?url=" + encodeURIComponent("https://pro-stock-fno-scanner.vercel.app") + "&text=" + encodeURIComponent(text);
+                    document.getElementById('telegramModal').classList.remove('hidden');
+                }
             } catch (e) {
-                showToast('Failed to dispatch to Telegram.');
+                document.getElementById('telegramPreviewText').value = text;
+                document.getElementById('telegramShareBtn').href = "https://t.me/share/url?url=" + encodeURIComponent("https://pro-stock-fno-scanner.vercel.app") + "&text=" + encodeURIComponent(text);
+                document.getElementById('telegramModal').classList.remove('hidden');
             }
         }
 
