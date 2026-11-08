@@ -3696,6 +3696,21 @@ HTML_PAGE = """<!DOCTYPE html>
                 if (label) {
                     label.innerText = 'LIVE • Sync ' + syncCountdown + 's';
                 }
+
+                // Check for 3:15 PM IST auto-trigger
+                const now = new Date();
+                const istOffset = 5.5 * 60 * 60 * 1000;
+                const istTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + istOffset);
+                const hrs = istTime.getHours();
+                const mins = istTime.getMinutes();
+                const secs = istTime.getSeconds();
+                
+                // At 15:15:00 IST sharp, trigger automatic closing auction scan
+                if (hrs === 15 && mins === 15 && secs === 0) {
+                    scanNow(true);
+                    showToast('🕒 3:15 PM Market Closing Trigger Activated: CAS & BTST Models Refreshed!');
+                }
+
                 if (syncCountdown <= 0) {
                     syncCountdown = 60;
                     scanNow(true);
@@ -3717,6 +3732,10 @@ HTML_PAGE = """<!DOCTYPE html>
                 if (json.nifty) {
                     niftyContext = json.nifty;
                     renderNiftyBar(json.nifty);
+                    // Automatic zero-intervention update for CAS & BTST models
+                    if (currentActiveTab === 'nifty_pro') {
+                        renderNiftyProTab(niftyContext);
+                    }
                 }
                 if (json.market_news) {
                     renderMarketNews(json.market_news);
@@ -7720,6 +7739,39 @@ async def telegram_trigger_scan_endpoint():
                 if r.status_code == 200:
                     dispatched_list.append(sym)
                     SERVERLESS_DISPATCHED_TODAY["symbols"].add(sym)
+
+        # Automated 3:15 PM - 3:25 PM IST CAS & BTST Signal Dispatch
+        # ist_min 915 to 925 corresponds to 15:15 to 15:25 IST
+        if 915 <= ist_min <= 928 and SERVERLESS_DISPATCHED_TODAY.get("cas_dispatched") != today_str:
+            try:
+                nifty_info = get_live_nifty_context() or {}
+                cas = nifty_info.get("cas_prediction", {})
+                pred315 = nifty_info.get("next_day_315_prediction", {})
+                if cas and pred315:
+                    v_title = "CALL (CE) BIASED 🟢" if cas.get("verdict") == "CE" else "PUT (PE) BIASED 🔴"
+                    cas_msg = (
+                        f"🎯 *NIFTY 3:15 PM CAS & BTST AUTOMATED SIGNAL*\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                        f"• *CAS Verdict:* {v_title}\n"
+                        f"• *Institutional Score:* {cas.get('score')} / 100\n"
+                        f"• *BTST Projected Open:* {pred315.get('projected_open')}\n"
+                        f"• *Expected Open Range:* {pred315.get('projected_range')}\n"
+                        f"• *Recommended Contract:* {cas.get('recommended_contract')}\n"
+                        f"• *3:15-3:22 PM Entry:* ₹{cas.get('entry_price')}\n"
+                        f"• *Overnight Stop-Loss:* ₹{cas.get('overnight_sl')}\n"
+                        f"• *9:16 AM Open Target:* ₹{cas.get('opening_target')}\n"
+                        f"• *Settlement VWAP Bias:* {cas.get('vwap_spread')}\n"
+                        f"• *Closing MOC Flow:* {cas.get('moc_net_flow')}\n"
+                        f"━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                        f"🔗 [Live Terminal](https://pro-stock-fno-scanner.vercel.app)"
+                    )
+                    tg_url = f"https://api.telegram.org/bot{DEFAULT_TG_TOKEN}/sendMessage"
+                    r = requests.post(tg_url, json={"chat_id": str(DEFAULT_TG_CHAT_ID), "text": cas_msg, "parse_mode": "Markdown"}, timeout=7)
+                    if r.status_code == 200:
+                        SERVERLESS_DISPATCHED_TODAY["cas_dispatched"] = today_str
+                        dispatched_list.append("CAS_315_BTST_SIGNAL")
+            except Exception as e:
+                pass
                     
         return {"status": "success", "dispatched_count": len(dispatched_list), "dispatched_symbols": dispatched_list}
     except Exception as e:
