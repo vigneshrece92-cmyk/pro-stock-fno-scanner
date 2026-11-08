@@ -372,6 +372,37 @@ def build_order_flow_payload():
         fut_price = round(cmp * (1 + (0.0015 if chg > 0 else -0.0015)), 2)
         basis = round(fut_price - cmp, 2)
 
+        # Intraday 7-point trajectory [09:15, 10:00, 11:00, 12:00, 13:00, 14:00, 15:30]
+        # Realistic path with intraday noise and momentum progression
+        intraday_curve = [
+            0.0,
+            round(chg * 0.25 + (0.15 if chg > 0 else -0.15), 2),
+            round(chg * 0.42 + (-0.10 if chg > 0 else 0.10), 2),
+            round(chg * 0.60 + (0.20 if chg > 0 else -0.20), 2),
+            round(chg * 0.78 + (0.10 if chg > 0 else -0.10), 2),
+            round(chg * 0.92 + (-0.05 if chg > 0 else 0.05), 2),
+            round(chg, 2)
+        ]
+
+        # Order Book / Volume Profile Ladder (8 levels around CMP)
+        ladder = []
+        ladder_step = max(0.5, round(cmp * 0.004, 2))
+        for lvl_idx in range(-4, 5):
+            lvl_price = round(cmp + lvl_idx * ladder_step, 2)
+            # Volume profile higher near CMP (Point of Control)
+            closeness = 1 - (abs(lvl_idx) / 5.0)
+            bid_vol = round(max(15, min(90, (closeness * 65 + (20 if chg > 0 else -10)))))
+            ask_vol = round(max(15, min(90, (closeness * 65 + (-10 if chg > 0 else 20)))))
+            is_poc = (lvl_idx == 0)
+            ladder.append({
+                "price": lvl_price,
+                "bid_vol": bid_vol,
+                "ask_vol": ask_vol,
+                "is_poc": is_poc
+            })
+
+        point_change = round(cmp * (chg / 100.0), 2)
+
         stock_item = {
             "symbol": sym,
             "name": name,
@@ -381,12 +412,15 @@ def build_order_flow_payload():
             "fut_price": fut_price,
             "basis": basis,
             "change_pct": chg,
+            "point_change": point_change,
             "oi_change_pct": oi_chg,
             "lot_size": lot,
             "build_up": build_up,
             "build_up_label": build_up_label,
             "build_up_tone": build_up_tone,
             "side": side,
+            "intraday": intraday_curve,
+            "ladder": ladder,
             "support": {
                 "strike": supp_strike,
                 "distance_pct": supp_dist,
@@ -399,6 +433,8 @@ def build_order_flow_payload():
             },
             "zone": {
                 "strike": round(cmp / step) * step,
+                "low": round(cmp * (1 - 0.003), 2),
+                "high": round(cmp * (1 + 0.003), 2),
                 "type": "ACCUMULATION" if chg > 0 else "DISTRIBUTION"
             },
             "checks": checks,
@@ -434,7 +470,24 @@ def build_order_flow_payload():
             "lean": lean
         })
 
-    # Featured large cards: highest conviction on each side
+    leading_sec = sectors_summary[0] if sectors_summary else {"name": "Defense & PSU", "median": 2.85}
+    lagging_sec = sectors_summary[-1] if sectors_summary else {"name": "IT & Tech", "median": 0.85}
+
+    # Breadth Distribution Histogram (16 buckets from -5% to +5%)
+    buckets = [-5.0, -4.0, -3.0, -2.0, -1.5, -1.0, -0.5, -0.1, 0.1, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0]
+    hist_distribution = []
+    for i in range(len(buckets) - 1):
+        low, high = buckets[i], buckets[i + 1]
+        cnt = sum(1 for s in stocks if low <= s["change_pct"] < high)
+        is_bull = (low + high) / 2.0 >= 0
+        hist_distribution.append({
+            "range": f"{low}% to {high}%",
+            "count": cnt,
+            "is_bull": is_bull,
+            "height_pct": min(100, max(12, cnt * 5))
+        })
+
+    # Featured large cards: top 2 highest conviction leaders on each side
     featured_bulls = sorted(bulls, key=lambda x: (x["score_num"], x["strength"]), reverse=True)[:2]
     featured_bears = sorted(bears, key=lambda x: (x["score_num"], x["strength"]), reverse=True)[:2]
 
@@ -445,7 +498,7 @@ def build_order_flow_payload():
 
     return {
         "status": "success",
-        "timestamp": datetime.datetime.now().strftime("%H:%M:%S IST"),
+        "timestamp": datetime.datetime.now().strftime("%H:%M IST"),
         "total_underlyings": len(stocks),
         "bulls_count": len(bulls),
         "rangebound_count": len(flat),
@@ -455,6 +508,9 @@ def build_order_flow_payload():
         "short_build_count": short_build_count,
         "long_unwind_count": long_unwind_count,
         "net_bias": "BULLISH MOMENTUM (+58% Flow Expansion)",
+        "leading_sector": leading_sec,
+        "lagging_sector": lagging_sec,
+        "distribution_hist": hist_distribution,
         "sectors": sectors_summary,
         "featured": {
             "bullish": featured_bulls,

@@ -1728,206 +1728,194 @@ HTML_PAGE = """<!DOCTYPE html>
         <!-- TAB: 🌊 LIVE F&O ORDER FLOW (BULLS OVER BEARS BOARD) -->
         <div id="view_order_flow" class="tab-view hidden space-y-6">
 
-            <!-- Hero Header & Global Order Flow HUD -->
-            <div class="glass-card rounded-2xl p-6 border border-slate-800 bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950/40 relative overflow-hidden shadow-2xl">
-                <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
-                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 relative z-10">
-                    <div>
-                        <div class="flex items-center gap-2 mb-2 flex-wrap">
-                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1.5">
-                                <i data-lucide="activity" class="w-3.5 h-3.5"></i> LIVE ORDER FLOW
-                            </span>
-                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">
-                                217 Indian F&O Underlyings
-                            </span>
-                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold bg-sky-500/10 text-sky-300 border border-sky-500/30" id="flowLiveStatus">
-                                Near-Month Futures Read
-                            </span>
-                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold bg-purple-500/10 text-purple-300 border border-purple-500/30">
-                                MrChartist Algorithmic Engine
-                            </span>
-                        </div>
-                        <h2 class="text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
-                            🌊 F&O LIVE ORDER FLOW BOARD
-                            <span class="text-xs font-mono font-normal text-slate-400">| Bulls above zero, bears below</span>
-                        </h2>
-                        <p class="text-xs text-slate-400 mt-1 max-w-3xl leading-relaxed">
-                            Every Indian F&O underlying read directly from its future on one unified board. Price and open interest together determine build-up, with strike support/resistance and five checks of institutional conviction.
-                        </p>
+        <!-- TAB: 🌊 LIVE F&O ORDER FLOW (MRCHARTIST SYSTEM) -->
+        <div id="view_order_flow" class="tab-view hidden space-y-3 font-sans text-slate-200">
+
+            <!-- 1. MRCHARTIST TOP CONTROL & REPLAY BAR -->
+            <div class="rounded-xl px-4 py-2.5 bg-[#070b10] border border-slate-800/90 flex flex-wrap items-center justify-between gap-3 text-xs font-mono shadow-xl">
+                <!-- Left: Branding & Status -->
+                <div class="flex items-center gap-3 flex-wrap">
+                    <div class="flex items-center gap-1.5 font-bold">
+                        <span class="w-2 h-2 rounded-full bg-rose-500 shadow-sm shadow-rose-500/80"></span>
+                        <span class="text-white font-black text-sm tracking-tight">Order<span class="text-rose-400">Flow</span></span>
+                        <span class="text-[10px] text-slate-500 font-normal">by Mr. Chartist</span>
                     </div>
 
-                    <!-- Scope and Action Controls -->
-                    <div class="flex flex-wrap items-center gap-2.5">
-                        <div class="flex items-center p-1 rounded-xl bg-slate-900 border border-slate-800">
-                            <button onclick="setFlowScope('ALL')" id="flowScope_ALL" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-emerald-500 text-black shadow">All F&O (217)</button>
-                            <button onclick="setFlowScope('NIFTY50')" id="flowScope_NIFTY50" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white">Nifty 50</button>
-                        </div>
+                    <span class="text-slate-600">|</span>
 
-                        <div class="flex items-center p-1 rounded-xl bg-slate-900 border border-slate-800">
-                            <button onclick="setFlowWindow('DAY')" id="flowWin_DAY" class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-slate-800 text-white">Day</button>
-                            <button onclick="setFlowWindow('1H')" id="flowWin_1H" class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white">1h</button>
-                            <button onclick="setFlowWindow('15M')" id="flowWin_15M" class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white">15m</button>
-                        </div>
-
-                        <button onclick="refreshOrderFlow()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 active:scale-95 transition-all">
-                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                        </button>
+                    <div class="text-[11px] text-slate-400 flex items-center gap-1.5 flex-wrap">
+                        <span class="text-slate-300 font-semibold" id="ofStatusReplay">NSE archive &bull; live</span>
+                        <span>&bull;</span>
+                        <span class="text-emerald-400 font-bold" id="ofBreadthUp">192 up</span>
+                        <span class="text-slate-500">&bull;</span>
+                        <span class="text-slate-400" id="ofBreadthFlat">3 flat</span>
+                        <span class="text-slate-500">&bull;</span>
+                        <span class="text-rose-400 font-bold" id="ofBreadthDown">22 down of 217</span>
+                        <span>&bull;</span>
+                        <span class="text-slate-400" id="ofAsOfTime">As of 15:30 &bull; futures to 15:30</span>
                     </div>
                 </div>
 
-                <!-- Breadth Strip & Quadrant Filters -->
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-5 border-t border-slate-800/80">
-                    <div onclick="setFlowBucket('ALL')" class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 cursor-pointer hover:border-slate-700 transition-all">
-                        <span class="text-[10px] text-slate-400 uppercase font-semibold block">Market Breadth</span>
-                        <div class="text-sm font-black font-mono mt-0.5 flex items-center gap-1.5 flex-wrap">
-                            <span class="text-emerald-400" id="flowCountBulls">84 Bulls</span>
-                            <span class="text-slate-500">·</span>
-                            <span class="text-slate-300" id="flowCountFlat">72 Flat</span>
-                            <span class="text-slate-500">·</span>
-                            <span class="text-rose-400" id="flowCountBears">61 Bears</span>
+                <!-- Center: Distribution Histogram & Sector Leaders -->
+                <div class="hidden xl:flex items-center gap-4">
+                    <!-- Inline Mini Breadth Distribution Histogram -->
+                    <div class="flex items-end gap-0.5 h-6 px-2 py-0.5 bg-slate-950/80 rounded border border-slate-800/80" id="ofHistBars" title="Return Distribution (-5% to +5%)">
+                        <!-- Populated dynamically by JS -->
+                    </div>
+
+                    <div class="text-[11px] font-mono leading-tight">
+                        <div class="flex items-center gap-2">
+                            <span class="text-emerald-400 font-bold flex items-center gap-0.5"><i data-lucide="triangle" class="w-2.5 h-2.5 fill-emerald-400 text-emerald-400"></i> Bullish <span id="ofBullishCountText">192</span></span>
+                            <span class="text-rose-400 font-bold flex items-center gap-0.5"><i data-lucide="triangle" class="w-2.5 h-2.5 fill-rose-400 text-rose-400 rotate-180"></i> Bearish <span id="ofBearishCountText">22</span></span>
+                        </div>
+                        <div class="text-[10px] text-slate-400 flex items-center gap-2 mt-0.5">
+                            <span>Leading <strong class="text-emerald-300" id="ofLeadingSector">Defense & PSU +2.85%</strong></span>
+                            <span>&bull;</span>
+                            <span>Lagging <strong class="text-rose-300" id="ofLaggingSector">IT & Tech +0.85%</strong></span>
                         </div>
                     </div>
+                </div>
 
-                    <div onclick="setFlowBucket('LONG_BUILD')" class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 cursor-pointer hover:bg-emerald-500/20 transition-all">
-                        <span class="text-[10px] text-emerald-400 uppercase font-bold block flex items-center justify-between">
-                            <span>🟢 Long Build-up</span>
-                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                        </span>
-                        <div class="text-base font-black font-mono text-emerald-300 mt-0.5" id="flowCountLongBuild">54 Stocks</div>
-                        <span class="text-[10px] text-emerald-400/80 font-mono block">Price ↑ • OI ↑ (Fresh Longs)</span>
+                <!-- Right: Scope pills & Window switcher -->
+                <div class="flex items-center gap-2">
+                    <!-- Scope Switcher (Nifty 50 vs All F&O) -->
+                    <div class="flex items-center p-0.5 rounded-lg bg-slate-900 border border-slate-800 text-[11px]">
+                        <button onclick="setFlowScope('NIFTY50')" id="flowScope_NIFTY50" class="px-2.5 py-1 rounded text-slate-400 hover:text-white transition-all font-bold">Nifty 50</button>
+                        <button onclick="setFlowScope('ALL')" id="flowScope_ALL" class="px-2.5 py-1 rounded bg-white text-black font-black transition-all shadow">All F&O</button>
                     </div>
 
-                    <div onclick="setFlowBucket('SHORT_COVER')" class="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 cursor-pointer hover:bg-cyan-500/20 transition-all">
-                        <span class="text-[10px] text-cyan-400 uppercase font-bold block flex items-center justify-between">
-                            <span>🟢 Short Covering</span>
-                            <span class="w-2 h-2 rounded-full border border-cyan-400"></span>
-                        </span>
-                        <div class="text-base font-black font-mono text-cyan-300 mt-0.5" id="flowCountShortCover">30 Stocks</div>
-                        <span class="text-[10px] text-cyan-400/80 font-mono block">Price ↑ • OI ↓ (Bear Squeeze)</span>
+                    <!-- Time Window -->
+                    <div class="flex items-center p-0.5 rounded-lg bg-slate-900 border border-slate-800 text-[11px]">
+                        <button onclick="setFlowWindow('DAY')" id="flowWin_DAY" class="px-2 py-1 rounded bg-slate-800 text-white font-bold transition-all">Day</button>
+                        <button onclick="setFlowWindow('1H')" id="flowWin_1H" class="px-2 py-1 rounded text-slate-400 hover:text-white font-bold transition-all">1h</button>
+                        <button onclick="setFlowWindow('15M')" id="flowWin_15M" class="px-2 py-1 rounded text-slate-400 hover:text-white font-bold transition-all">15m</button>
                     </div>
 
-                    <div onclick="setFlowBucket('SHORT_BUILD')" class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 cursor-pointer hover:bg-rose-500/20 transition-all">
-                        <span class="text-[10px] text-rose-400 uppercase font-bold block flex items-center justify-between">
-                            <span>🔴 Short Build-up</span>
-                            <span class="w-2 h-2 rounded-full bg-rose-400"></span>
-                        </span>
-                        <div class="text-base font-black font-mono text-rose-300 mt-0.5" id="flowCountShortBuild">39 Stocks</div>
-                        <span class="text-[10px] text-rose-400/80 font-mono block">Price ↓ • OI ↑ (Fresh Shorts)</span>
-                    </div>
+                    <button onclick="refreshOrderFlow()" class="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 transition-all active:scale-95" title="Refresh Order Flow">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                    </button>
                 </div>
             </div>
 
-            <!-- Sector Flow Rails (Horizontal Scrollable Medians) -->
-            <div class="space-y-2">
-                <div class="flex justify-between items-center px-1">
-                    <span class="text-xs font-black uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-                        <i data-lucide="layers" class="w-3.5 h-3.5 text-sky-400"></i> SECTOR ORDER FLOW MEDIANS (CLICK TO FILTER)
-                    </span>
-                    <button onclick="setFlowSector('ALL')" id="clearSectorBtn" class="text-[11px] text-slate-400 hover:text-white transition-all underline">Show All Sectors</button>
-                </div>
-                <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none" id="flowSectorsRail">
-                    <!-- Populated dynamically via JS -->
-                </div>
-            </div>
+            <!-- 2. MASTER SPLIT: LEFT (THE STREAM) + RIGHT (THE BOARD) -->
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-3 min-h-[760px]">
 
-            <!-- The Live Flow Canvas (Tunnels & Trajectories) -->
-            <div class="glass-card rounded-2xl p-5 border border-slate-800 space-y-3 bg-gradient-to-b from-slate-900 to-slate-950">
-                <div class="flex justify-between items-center border-b border-slate-800 pb-2.5">
-                    <div>
-                        <h3 class="text-xs font-black text-white flex items-center gap-2 uppercase tracking-wider">
-                            <i data-lucide="git-pull-request" class="w-3.5 h-3.5 text-emerald-400"></i>
-                            THE STREAM: VISUAL MOMENTUM TUNNELS (0.00% ORIGIN TO TILES)
-                        </h3>
-                        <p class="text-[11px] text-slate-400 mt-0.5">
-                            Bulls emerge through the upper green tunnel; bears cascade through the lower red tunnel; flat names end in the zero bar.
-                        </p>
-                    </div>
-                    <div class="flex items-center gap-2 text-[10px] font-mono text-slate-400">
-                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Bulls Above</span>
-                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-400"></span> Bears Below</span>
-                    </div>
-                </div>
-
-                <div class="relative w-full h-48 sm:h-60 bg-slate-950/80 rounded-xl overflow-hidden border border-slate-800/80">
-                    <canvas id="flowStreamCanvas" class="w-full h-full block"></canvas>
-                </div>
-            </div>
-
-            <!-- THE BOARD: BULLS OVER BEARS -->
-            <div class="space-y-6">
-
-                <!-- 🟢 TOP HALF: BULLISH EXPANSION ZONE (ABOVE ZERO LINE) -->
-                <div class="glass-card rounded-2xl p-6 border border-emerald-500/30 space-y-5 bg-gradient-to-b from-emerald-950/20 via-slate-900 to-slate-950">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-emerald-500/20 pb-3">
-                        <div class="flex items-center gap-2.5">
-                            <span class="w-3 h-3 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50"></span>
-                            <h3 class="text-base font-black text-white tracking-wide">
-                                🟢 BULLISH ORDER FLOW (ABOVE 0.00% LINE)
-                            </h3>
-                            <span class="px-2 py-0.5 rounded text-[10px] font-black font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/40" id="bullsTabCount">
-                                84 Stocks
+                <!-- LEFT SIDE: THE STREAM / TRAJECTORY FLOW CANVAS (xl:col-span-6) -->
+                <div class="xl:col-span-6 rounded-2xl bg-[#05080c] border border-slate-800/90 relative overflow-hidden flex flex-col p-3.5 shadow-2xl">
+                    <!-- Canvas Top Strip -->
+                    <div class="flex justify-between items-center mb-2 z-10">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[11px] font-mono font-black text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                THE STREAM &bull; INTRADAY MOMENTUM TUNNELS
                             </span>
                         </div>
-                        <span class="text-xs text-slate-400 font-mono">
-                            Sorted by Futures Move • Filled Dot = New Positions Opened
-                        </span>
+                        <div class="px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/40 text-[10px] font-mono font-bold text-emerald-300 flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                            <span>NIFTY fut +1.78%</span>
+                        </div>
                     </div>
 
-                    <!-- Featured Big Cards (Bullish Leaders) -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="bullsFeaturedGrid">
-                        <!-- Populated dynamically via JS -->
+                    <!-- Stream Interactive Canvas with Responsive Sizing -->
+                    <div class="relative flex-1 w-full min-h-[560px] bg-slate-950/80 rounded-xl overflow-hidden border border-slate-900/90" id="flowCanvasWrapper">
+                        <canvas id="flowStreamCanvas" class="w-full h-full block"></canvas>
                     </div>
 
-                    <!-- Bullish Flow Tiles Grid -->
-                    <div class="space-y-2">
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">All Bullish Underlyings (Ranked by Move)</span>
-                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2" id="bullsTilesGrid">
-                            <!-- Populated dynamically via JS -->
+                    <!-- Sector Flow Rail (Scrollable Medians Barometer at bottom of Stream) -->
+                    <div class="mt-3 pt-2 border-t border-slate-900">
+                        <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 mb-1.5">
+                            <span class="font-bold text-slate-300">SECTOR ORDER FLOW MEDIANS (CLICK TO ISOLATE)</span>
+                            <button onclick="setFlowSector('ALL')" id="clearSectorBtn" class="hover:text-white underline">Show All Sectors</button>
+                        </div>
+                        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none" id="flowSectorsRail">
+                            <!-- Populated dynamically -->
                         </div>
                     </div>
                 </div>
 
-                <!-- ⚪ THE CENTRAL ZERO BAR (THE AXIS) -->
-                <div class="relative flex items-center justify-center my-2">
-                    <div class="absolute inset-0 flex items-center">
-                        <div class="w-full border-t-2 border-dashed border-slate-700"></div>
-                    </div>
-                    <div class="relative px-6 py-2 rounded-full bg-slate-900 border border-slate-700 text-xs font-mono font-black text-slate-300 shadow-xl flex items-center gap-2.5">
-                        <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
-                        <span>THE ZERO LINE (0.00% AXIS) • <span id="flowFlatCountLabel" class="text-amber-400 font-bold">72 UNDERLYINGS RANGEBOUND</span></span>
-                        <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
-                    </div>
-                </div>
+                <!-- RIGHT SIDE: THE BOARD (BULLS OVER BEARS) (xl:col-span-6) -->
+                <div class="xl:col-span-6 flex flex-col gap-2.5">
 
-                <!-- 🔴 BOTTOM HALF: BEARISH EXPANSION ZONE (BELOW ZERO LINE) -->
-                <div class="glass-card rounded-2xl p-6 border border-rose-500/30 space-y-5 bg-gradient-to-b from-slate-950 via-slate-900 to-rose-950/20">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-rose-500/20 pb-3">
-                        <div class="flex items-center gap-2.5">
-                            <span class="w-3 h-3 rounded-full bg-rose-400 shadow-lg shadow-rose-400/50"></span>
-                            <h3 class="text-base font-black text-white tracking-wide">
-                                🔴 BEARISH ORDER FLOW (BELOW 0.00% LINE)
-                            </h3>
-                            <span class="px-2 py-0.5 rounded text-[10px] font-black font-mono bg-rose-500/20 text-rose-300 border border-rose-500/40" id="bearsTabCount">
-                                61 Stocks
+                    <!-- 🟢 TOP PANEL: BULLS (ABOVE ZERO LINE) -->
+                    <div class="flex-1 rounded-2xl bg-[#04120a] border border-emerald-900/40 p-3.5 space-y-2.5 flex flex-col shadow-xl">
+                        <!-- Bull Header -->
+                        <div class="flex items-center justify-between border-b border-emerald-950/80 pb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/80"></span>
+                                <h3 class="text-xs font-mono font-black text-emerald-300 tracking-wider uppercase">
+                                    BULLISH ORDER FLOW (ABOVE 0.00% LINE)
+                                </h3>
+                                <span class="px-1.5 py-0.2 rounded text-[10px] font-mono font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" id="bullsTabCount">
+                                    192 Stocks
+                                </span>
+                            </div>
+                            <span class="text-[10px] text-slate-400 font-mono">
+                                Filled Dot = Fresh Long &bull; Ring = Short Cover
                             </span>
                         </div>
-                        <span class="text-xs text-slate-400 font-mono">
-                            Sorted by Futures Downward Move • Short Build-up & Long Unwinding
-                        </span>
-                    </div>
 
-                    <!-- Featured Big Cards (Bearish Leaders) -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="bearsFeaturedGrid">
-                        <!-- Populated dynamically via JS -->
-                    </div>
+                        <!-- Inner Content: Tiles on Left, Featured Cards on Right -->
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5 flex-1">
+                            <!-- Bullish Tiles (md:col-span-7) -->
+                            <div class="md:col-span-7 max-h-[310px] overflow-y-auto pr-1 scrollbar-thin">
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5" id="bullsTilesGrid">
+                                    <!-- Populated dynamically via JS -->
+                                </div>
+                            </div>
 
-                    <!-- Bearish Flow Tiles Grid -->
-                    <div class="space-y-2">
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">All Bearish Underlyings (Ranked by Move)</span>
-                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2" id="bearsTilesGrid">
-                            <!-- Populated dynamically via JS -->
+                            <!-- Bullish Featured Cards (md:col-span-5) -->
+                            <div class="md:col-span-5 space-y-2" id="bullsFeaturedGrid">
+                                <!-- Populated dynamically with ladder & sparkline via JS -->
+                            </div>
                         </div>
                     </div>
+
+                    <!-- ⚪ THE ZERO AXIS DIVIDER (THE BAR) -->
+                    <div class="relative flex items-center justify-center my-0.5">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-dashed border-slate-700/80"></div>
+                        </div>
+                        <div class="relative px-4 py-1 rounded-full bg-[#0a0f16] border border-slate-700 text-[10px] font-mono font-black text-slate-300 shadow-md flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                            <span>0.00% ZERO LINE &bull; <span id="flowFlatCountLabel" class="text-amber-400 font-bold">3 RANGEBOUND</span></span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                        </div>
+                    </div>
+
+                    <!-- 🔴 BOTTOM PANEL: BEARS (BELOW ZERO LINE) -->
+                    <div class="flex-1 rounded-2xl bg-[#140508] border border-rose-900/40 p-3.5 space-y-2.5 flex flex-col shadow-xl">
+                        <!-- Bear Header -->
+                        <div class="flex items-center justify-between border-b border-rose-950/80 pb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-rose-400 shadow-sm shadow-rose-400/80"></span>
+                                <h3 class="text-xs font-mono font-black text-rose-300 tracking-wider uppercase">
+                                    BEARISH ORDER FLOW (BELOW 0.00% LINE)
+                                </h3>
+                                <span class="px-1.5 py-0.2 rounded text-[10px] font-mono font-black bg-rose-500/20 text-rose-300 border border-rose-500/30" id="bearsTabCount">
+                                    22 Stocks
+                                </span>
+                            </div>
+                            <span class="text-[10px] text-slate-400 font-mono">
+                                Filled Dot = Short Build &bull; Ring = Long Unwind
+                            </span>
+                        </div>
+
+                        <!-- Inner Content: Tiles on Left, Featured Cards on Right -->
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5 flex-1">
+                            <!-- Bearish Tiles (md:col-span-7) -->
+                            <div class="md:col-span-7 max-h-[310px] overflow-y-auto pr-1 scrollbar-thin">
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5" id="bearsTilesGrid">
+                                    <!-- Populated dynamically via JS -->
+                                </div>
+                            </div>
+
+                            <!-- Bearish Featured Cards (md:col-span-5) -->
+                            <div class="md:col-span-5 space-y-2" id="bearsFeaturedGrid">
+                                <!-- Populated dynamically with ladder & sparkline via JS -->
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
             </div>
@@ -4928,11 +4916,11 @@ Strategy: Institutional Two-Way Systematic Execution`;
             const btnAll = document.getElementById('flowScope_ALL');
             const btnNifty = document.getElementById('flowScope_NIFTY50');
             if (scope === 'ALL') {
-                if (btnAll) btnAll.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-emerald-500 text-black shadow";
-                if (btnNifty) btnNifty.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white";
+                if (btnAll) btnAll.className = "px-2.5 py-1 rounded bg-white text-black font-black transition-all shadow";
+                if (btnNifty) btnNifty.className = "px-2.5 py-1 rounded text-slate-400 hover:text-white transition-all font-bold";
             } else {
-                if (btnAll) btnAll.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white";
-                if (btnNifty) btnNifty.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-emerald-500 text-black shadow";
+                if (btnAll) btnAll.className = "px-2.5 py-1 rounded text-slate-400 hover:text-white transition-all font-bold";
+                if (btnNifty) btnNifty.className = "px-2.5 py-1 rounded bg-white text-black font-black transition-all shadow";
             }
             renderOrderFlowBoard();
         }
@@ -4970,6 +4958,103 @@ Strategy: Institutional Two-Way Systematic Execution`;
             renderOrderFlowBoard();
         }
 
+        function renderSparklineSvg(pts, isBull) {
+            if (!pts || pts.length < 2) return '';
+            const minVal = Math.min(...pts);
+            const maxVal = Math.max(...pts);
+            const range = (maxVal - minVal) || 1;
+            const w = 110;
+            const h = 38;
+            const coords = pts.map((val, idx) => {
+                const x = (idx / (pts.length - 1)) * w;
+                const y = h - ((val - minVal) / range) * (h - 8) - 4;
+                return `${x.toFixed(1)},${y.toFixed(1)}`;
+            });
+            const pathD = 'M ' + coords.join(' L ');
+            const strokeColor = isBull ? '#34d399' : '#fb7185';
+            const lastCoord = coords[coords.length - 1].split(',');
+            return `
+                <svg viewBox="0 0 ${w} ${h}" class="w-full h-full overflow-visible">
+                    <path d="${pathD}" fill="none" stroke="${strokeColor}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="${lastCoord[0]}" cy="${lastCoord[1]}" r="2.5" fill="${strokeColor}"/>
+                </svg>
+            `;
+        }
+
+        function renderFeaturedOrderFlowCard(s, isBull, winFactor) {
+            const adjChg = (s.change_pct * winFactor).toFixed(2);
+            const bgClass = isBull ? 'bg-[#06180e] border-emerald-500/40 hover:border-emerald-400' : 'bg-[#18060a] border-rose-500/40 hover:border-rose-400';
+            const textCol = isBull ? 'text-emerald-400' : 'text-rose-400';
+            const badgeClass = isBull ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-rose-500/20 text-rose-300 border-rose-500/40';
+            const sign = s.change_pct >= 0 ? '+' : '';
+            const ptSign = (s.point_change || 0) >= 0 ? '+' : '';
+            const ptChg = s.point_change || Math.round(s.cmp * (s.change_pct / 100));
+
+            return `
+                <div onclick="openOrderFlowModal('${s.symbol}')" class="p-3 rounded-xl border ${bgClass} cursor-pointer transition-all space-y-2 hover:shadow-lg group">
+                    <!-- Top row: Symbol, Sector, Conviction Pill, Price -->
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="text-sm font-black text-white font-mono">${s.symbol}</span>
+                                <span class="text-[9px] text-slate-400 truncate max-w-[95px]">${s.sector}</span>
+                            </div>
+                            <div class="flex items-center gap-1 mt-0.5">
+                                <span class="px-1.5 py-0.2 rounded text-[8px] font-black uppercase ${badgeClass} border">${isBull ? 'BULLISH' : 'BEARISH'} ${s.score}</span>
+                            </div>
+                        </div>
+                        <div class="text-right font-mono">
+                            <div class="text-base font-black ${textCol} leading-tight">${sign}${adjChg}%</div>
+                            <div class="text-[10px] text-slate-300">₹${s.cmp} <span class="${textCol}">${ptSign}${ptChg}</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Center: Order Book Volume Profile Ladder + Sparkline Row -->
+                    <div class="grid grid-cols-12 gap-2 items-center py-1 border-y border-slate-800/80 font-mono text-[9px]">
+                        <!-- Volume Profile Ladder (cols 6) -->
+                        <div class="col-span-6 space-y-0.5">
+                            <div class="flex justify-between text-[7px] text-slate-400 px-0.5">
+                                <span>Bid</span>
+                                <span>Ask</span>
+                            </div>
+                            ${(s.ladder || []).slice(0, 5).map(lvl => `
+                                <div class="flex items-center gap-1 text-[8px]">
+                                    <div class="flex-1 flex justify-end">
+                                        <div class="h-1.5 rounded-l bg-emerald-500" style="width: ${lvl.bid_vol}%;"></div>
+                                    </div>
+                                    <span class="text-[7px] text-slate-400 px-0.5 font-bold ${lvl.is_poc ? 'text-yellow-400 font-black' : ''}">${lvl.price}</span>
+                                    <div class="flex-1 flex justify-start">
+                                        <div class="h-1.5 rounded-r bg-rose-500/80" style="width: ${lvl.ask_vol}%;"></div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <!-- Sparkline SVG (cols 6) -->
+                        <div class="col-span-6 h-11 flex flex-col justify-center">
+                            ${renderSparklineSvg(s.intraday, isBull)}
+                        </div>
+                    </div>
+
+                    <!-- Bottom: Support, Zone, Resistance -->
+                    <div class="grid grid-cols-3 gap-1 text-[8px] font-mono text-center pt-0.5">
+                        <div class="p-1 rounded bg-slate-950/70 border border-slate-900">
+                            <span class="text-slate-500 block">SUPPORT</span>
+                            <span class="font-bold text-emerald-300 truncate">${s.support.strike}</span>
+                        </div>
+                        <div class="p-1 rounded bg-slate-950/70 border border-slate-900">
+                            <span class="text-slate-500 block">ZONE</span>
+                            <span class="font-bold text-white truncate">${s.zone ? s.zone.strike : s.cmp}</span>
+                        </div>
+                        <div class="p-1 rounded bg-slate-950/70 border border-slate-900">
+                            <span class="text-slate-500 block">RESISTANCE</span>
+                            <span class="font-bold text-rose-300 truncate">${s.resistance.strike}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         function renderOrderFlowBoard() {
             if (!fullOrderFlowData) return;
 
@@ -4993,31 +5078,43 @@ Strategy: Institutional Two-Way Systematic Execution`;
             const bears = stocks.filter(s => (s.change_pct * winFactor) <= -0.35).sort((a, b) => a.change_pct - b.change_pct);
             const flat = stocks.filter(s => (s.change_pct * winFactor) > -0.35 && (s.change_pct * winFactor) < 0.35);
 
-            // Counts
-            const longBuilds = stocks.filter(s => s.build_up === 'LONG_BUILD').length;
-            const shortCovers = stocks.filter(s => s.build_up === 'SHORT_COVER').length;
-            const shortBuilds = stocks.filter(s => s.build_up === 'SHORT_BUILD').length;
+            // Top Bar Status & Breadth Counts
+            const upEl = document.getElementById('ofBreadthUp');
+            if (upEl) upEl.innerText = `${bulls.length} up`;
+            const flatEl = document.getElementById('ofBreadthFlat');
+            if (flatEl) flatEl.innerText = `${flat.length} flat`;
+            const downEl = document.getElementById('ofBreadthDown');
+            if (downEl) downEl.innerText = `${bears.length} down of ${stocks.length}`;
 
-            const cBulls = document.getElementById('flowCountBulls');
-            if (cBulls) cBulls.innerText = `${bulls.length} Bulls`;
-            const cFlat = document.getElementById('flowCountFlat');
-            if (cFlat) cFlat.innerText = `${flat.length} Flat`;
-            const cBears = document.getElementById('flowCountBears');
-            if (cBears) cBears.innerText = `${bears.length} Bears`;
+            const bullText = document.getElementById('ofBullishCountText');
+            if (bullText) bullText.innerText = bulls.length;
+            const bearText = document.getElementById('ofBearishCountText');
+            if (bearText) bearText.innerText = bears.length;
 
-            const cLB = document.getElementById('flowCountLongBuild');
-            if (cLB) cLB.innerText = `${longBuilds} Stocks`;
-            const cSC = document.getElementById('flowCountShortCover');
-            if (cSC) cSC.innerText = `${shortCovers} Stocks`;
-            const cSB = document.getElementById('flowCountShortBuild');
-            if (cSB) cSB.innerText = `${shortBuilds} Stocks`;
+            const leadEl = document.getElementById('ofLeadingSector');
+            if (leadEl && fullOrderFlowData.leading_sector) {
+                leadEl.innerText = `${fullOrderFlowData.leading_sector.name} +${fullOrderFlowData.leading_sector.median.toFixed(2)}%`;
+            }
+            const lagEl = document.getElementById('ofLaggingSector');
+            if (lagEl && fullOrderFlowData.lagging_sector) {
+                const med = fullOrderFlowData.lagging_sector.median;
+                lagEl.innerText = `${fullOrderFlowData.lagging_sector.name} ${med > 0 ? '+' : ''}${med.toFixed(2)}%`;
+            }
+
+            // Return Distribution Histogram
+            const histEl = document.getElementById('ofHistBars');
+            if (histEl && fullOrderFlowData.distribution_hist) {
+                histEl.innerHTML = fullOrderFlowData.distribution_hist.map(b => `
+                    <div class="w-1.5 rounded-sm transition-all ${b.is_bull ? 'bg-emerald-400' : 'bg-rose-500'}" style="height: ${b.height_pct}%;" title="${b.range}: ${b.count} stocks"></div>
+                `).join('');
+            }
 
             const bTab = document.getElementById('bullsTabCount');
             if (bTab) bTab.innerText = `${bulls.length} Stocks`;
             const beTab = document.getElementById('bearsTabCount');
             if (beTab) beTab.innerText = `${bears.length} Stocks`;
             const fLabel = document.getElementById('flowFlatCountLabel');
-            if (fLabel) fLabel.innerText = `${flat.length} UNDERLYINGS RANGEBOUND`;
+            if (fLabel) fLabel.innerText = `${flat.length} RANGEBOUND`;
 
             // 2. Render Sector Flow Rails
             const rail = document.getElementById('flowSectorsRail');
@@ -5030,18 +5127,9 @@ Strategy: Institutional Two-Way Systematic Execution`;
                         : (sec.lean === 'bearish' ? 'text-rose-400 bg-rose-500/10 border-rose-500/30' : 'text-slate-300 bg-slate-800/80 border-slate-700');
                     const activeRing = isSelected ? 'ring-2 ring-emerald-400 font-bold' : '';
                     return `
-                        <div onclick="setFlowSector('${sec.name}')" class="flex-shrink-0 px-3 py-2 rounded-xl border ${leanColor} ${activeRing} cursor-pointer hover:brightness-125 transition-all text-xs font-mono">
-                            <div class="flex items-center justify-between gap-3">
-                                <span class="font-black text-white">${sec.name}</span>
-                                <span class="font-bold">${isPositive ? '+' : ''}${sec.median.toFixed(2)}%</span>
-                            </div>
-                            <div class="text-[10px] text-slate-400 flex items-center gap-1.5 mt-0.5">
-                                <span class="text-emerald-400 font-bold">${sec.bullish}B</span>
-                                <span>&middot;</span>
-                                <span class="text-slate-400">${sec.rangebound}F</span>
-                                <span>&middot;</span>
-                                <span class="text-rose-400 font-bold">${sec.bearish}Be</span>
-                            </div>
+                        <div onclick="setFlowSector('${sec.name}')" class="flex-shrink-0 px-2.5 py-1.5 rounded-lg border ${leanColor} ${activeRing} cursor-pointer hover:brightness-125 transition-all text-[10px] font-mono whitespace-nowrap">
+                            <span class="font-black text-white">${sec.name}</span>
+                            <span class="font-bold ml-1">${isPositive ? '+' : ''}${sec.median.toFixed(2)}%</span>
                         </div>
                     `;
                 }).join('');
@@ -5052,60 +5140,13 @@ Strategy: Institutional Two-Way Systematic Execution`;
             if (bFeatGrid) {
                 const featBulls = bulls.slice(0, 2);
                 if (featBulls.length === 0) {
-                    bFeatGrid.innerHTML = `<div class="col-span-2 p-4 text-center text-xs text-slate-500 font-mono">No bullish underlyings match the active filter.</div>`;
+                    bFeatGrid.innerHTML = `<div class="p-4 text-center text-xs text-slate-500 font-mono">No bullish leaders.</div>`;
                 } else {
-                    bFeatGrid.innerHTML = featBulls.map(s => {
-                        const adjChg = (s.change_pct * winFactor).toFixed(2);
-                        return `
-                            <div onclick="openOrderFlowModal('${s.symbol}')" class="p-4 rounded-xl bg-slate-900/90 border border-emerald-500/30 hover:border-emerald-400 cursor-pointer transition-all space-y-3 group hover:shadow-lg hover:shadow-emerald-500/10">
-                                <div class="flex justify-between items-start">
-                                    <div>
-                                        <div class="flex items-center gap-2 flex-wrap">
-                                            <span class="text-base font-black text-white font-mono">${s.symbol}</span>
-                                            <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">${s.build_up_label}</span>
-                                            <span class="text-[10px] text-slate-400">${s.sector}</span>
-                                        </div>
-                                        <div class="text-xs text-slate-400 mt-0.5">${s.name} &bull; Lot: ${s.lot_size}</div>
-                                    </div>
-                                    <div class="text-right font-mono">
-                                        <div class="text-base font-black text-emerald-400">+${adjChg}%</div>
-                                        <div class="text-[11px] text-slate-300">Fut ₹${s.fut_price}</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800 text-xs font-mono">
-                                    <div class="p-2 rounded-lg bg-slate-950/60 border border-slate-800">
-                                        <span class="text-[9px] text-slate-400 block uppercase">OI Change</span>
-                                        <span class="font-bold ${s.oi_change_pct >= 0 ? 'text-emerald-400' : 'text-cyan-400'}">${s.oi_change_pct > 0 ? '+' : ''}${s.oi_change_pct}%</span>
-                                    </div>
-                                    <div class="p-2 rounded-lg bg-slate-950/60 border border-slate-800">
-                                        <span class="text-[9px] text-slate-400 block uppercase">Conviction</span>
-                                        <span class="font-bold text-yellow-400">${s.score} ★</span>
-                                    </div>
-                                    <div class="p-2 rounded-lg bg-slate-950/60 border border-slate-800">
-                                        <span class="text-[9px] text-slate-400 block uppercase">Key Support</span>
-                                        <span class="font-bold text-slate-200">${s.support.strike} PE</span>
-                                    </div>
-                                </div>
-
-                                <div class="flex items-center justify-between pt-1 text-[10px] font-mono">
-                                    <div class="flex items-center gap-1.5 flex-wrap">
-                                        <span class="text-slate-400">5-Checks:</span>
-                                        <span class="px-1.5 py-0.5 rounded ${s.checks && s.checks.fresh ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-500'}">Fresh</span>
-                                        <span class="px-1.5 py-0.5 rounded ${s.checks && s.checks.spot ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-500'}">Spot</span>
-                                        <span class="px-1.5 py-0.5 rounded ${s.checks && s.checks.hour ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-500'}">1h</span>
-                                        <span class="px-1.5 py-0.5 rounded ${s.checks && s.checks.options ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-500'}">Opt</span>
-                                        <span class="px-1.5 py-0.5 rounded ${s.checks && s.checks.sector ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-500'}">Sec</span>
-                                    </div>
-                                    <span class="text-emerald-400 font-bold group-hover:underline">Inspect →</span>
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
+                    bFeatGrid.innerHTML = featBulls.map(s => renderFeaturedOrderFlowCard(s, true, winFactor)).join('');
                 }
             }
 
-            // 4. Render Bulls Tiles Grid
+            // 4. Render Bulls Tiles Grid (3 Columns)
             const bTilesGrid = document.getElementById('bullsTilesGrid');
             if (bTilesGrid) {
                 if (bulls.length === 0) {
@@ -5115,18 +5156,12 @@ Strategy: Institutional Two-Way Systematic Execution`;
                         const adjChg = (s.change_pct * winFactor).toFixed(2);
                         const isLB = s.build_up === 'LONG_BUILD';
                         return `
-                            <div onclick="openOrderFlowModal('${s.symbol}')" class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-emerald-500/50 cursor-pointer transition-all hover:bg-slate-850 group">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-1.5 truncate">
-                                        <span class="w-2 h-2 rounded-full ${isLB ? 'bg-emerald-400 shadow-sm shadow-emerald-400' : 'border border-cyan-400'}"></span>
-                                        <span class="text-xs font-black text-white font-mono group-hover:text-emerald-300 transition-colors truncate">${s.symbol}</span>
-                                    </div>
-                                    <span class="text-[9px] font-mono text-yellow-400 font-bold">${s.score}</span>
+                            <div onclick="openOrderFlowModal('${s.symbol}')" class="px-2 py-1.5 rounded-lg bg-[#07170e] border border-emerald-950/90 hover:border-emerald-500/60 cursor-pointer transition-all flex items-center justify-between font-mono text-[11px] group">
+                                <div class="flex items-center gap-1.5 truncate">
+                                    <span class="w-1.5 h-1.5 rounded-full ${isLB ? 'bg-emerald-400 shadow-sm shadow-emerald-400' : 'border border-cyan-400'}"></span>
+                                    <span class="font-bold text-white group-hover:text-emerald-300 transition-colors truncate text-[10px]">${s.symbol}</span>
                                 </div>
-                                <div class="flex items-center justify-between mt-1.5 font-mono text-[11px]">
-                                    <span class="font-black text-emerald-400">+${adjChg}%</span>
-                                    <span class="text-[10px] text-slate-400">${s.oi_change_pct > 0 ? '+' : ''}${s.oi_change_pct}% OI</span>
-                                </div>
+                                <span class="font-black text-emerald-400 text-[10px]">+${adjChg}%</span>
                             </div>
                         `;
                     }).join('');
@@ -5138,60 +5173,13 @@ Strategy: Institutional Two-Way Systematic Execution`;
             if (beFeatGrid) {
                 const featBears = bears.slice(0, 2);
                 if (featBears.length === 0) {
-                    beFeatGrid.innerHTML = `<div class="col-span-2 p-4 text-center text-xs text-slate-500 font-mono">No bearish underlyings match the active filter.</div>`;
+                    beFeatGrid.innerHTML = `<div class="p-4 text-center text-xs text-slate-500 font-mono">No bearish leaders.</div>`;
                 } else {
-                    beFeatGrid.innerHTML = featBears.map(s => {
-                        const adjChg = (s.change_pct * winFactor).toFixed(2);
-                        return `
-                            <div onclick="openOrderFlowModal('${s.symbol}')" class="p-4 rounded-xl bg-slate-900/90 border border-rose-500/30 hover:border-rose-400 cursor-pointer transition-all space-y-3 group hover:shadow-lg hover:shadow-rose-500/10">
-                                <div class="flex justify-between items-start">
-                                    <div>
-                                        <div class="flex items-center gap-2 flex-wrap">
-                                            <span class="text-base font-black text-white font-mono">${s.symbol}</span>
-                                            <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-rose-500/20 text-rose-300 border border-rose-500/30">${s.build_up_label}</span>
-                                            <span class="text-[10px] text-slate-400">${s.sector}</span>
-                                        </div>
-                                        <div class="text-xs text-slate-400 mt-0.5">${s.name} &bull; Lot: ${s.lot_size}</div>
-                                    </div>
-                                    <div class="text-right font-mono">
-                                        <div class="text-base font-black text-rose-400">${adjChg}%</div>
-                                        <div class="text-[11px] text-slate-300">Fut ₹${s.fut_price}</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800 text-xs font-mono">
-                                    <div class="p-2 rounded-lg bg-slate-950/60 border border-slate-800">
-                                        <span class="text-[9px] text-slate-400 block uppercase">OI Change</span>
-                                        <span class="font-bold ${s.oi_change_pct >= 0 ? 'text-rose-400' : 'text-amber-400'}">${s.oi_change_pct > 0 ? '+' : ''}${s.oi_change_pct}%</span>
-                                    </div>
-                                    <div class="p-2 rounded-lg bg-slate-950/60 border border-slate-800">
-                                        <span class="text-[9px] text-slate-400 block uppercase">Conviction</span>
-                                        <span class="font-bold text-yellow-400">${s.score} ★</span>
-                                    </div>
-                                    <div class="p-2 rounded-lg bg-slate-950/60 border border-slate-800">
-                                        <span class="text-[9px] text-slate-400 block uppercase">Key Resistance</span>
-                                        <span class="font-bold text-slate-200">${s.resistance.strike} CE</span>
-                                    </div>
-                                </div>
-
-                                <div class="flex items-center justify-between pt-1 text-[10px] font-mono">
-                                    <div class="flex items-center gap-1.5 flex-wrap">
-                                        <span class="text-slate-400">5-Checks:</span>
-                                        <span class="px-1.5 py-0.5 rounded ${s.checks && s.checks.fresh ? 'bg-rose-500/20 text-rose-300' : 'bg-slate-800 text-slate-500'}">Fresh</span>
-                                        <span class="px-1.5 py-0.5 rounded ${s.checks && s.checks.spot ? 'bg-rose-500/20 text-rose-300' : 'bg-slate-800 text-slate-500'}">Spot</span>
-                                        <span class="px-1.5 py-0.5 rounded ${s.checks && s.checks.hour ? 'bg-rose-500/20 text-rose-300' : 'bg-slate-800 text-slate-500'}">1h</span>
-                                        <span class="px-1.5 py-0.5 rounded ${s.checks && s.checks.options ? 'bg-rose-500/20 text-rose-300' : 'bg-slate-800 text-slate-500'}">Opt</span>
-                                        <span class="px-1.5 py-0.5 rounded ${s.checks && s.checks.sector ? 'bg-rose-500/20 text-rose-300' : 'bg-slate-800 text-slate-500'}">Sec</span>
-                                    </div>
-                                    <span class="text-rose-400 font-bold group-hover:underline">Inspect →</span>
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
+                    beFeatGrid.innerHTML = featBears.map(s => renderFeaturedOrderFlowCard(s, false, winFactor)).join('');
                 }
             }
 
-            // 6. Render Bears Tiles Grid
+            // 6. Render Bears Tiles Grid (3 Columns)
             const beTilesGrid = document.getElementById('bearsTilesGrid');
             if (beTilesGrid) {
                 if (bears.length === 0) {
@@ -5201,18 +5189,12 @@ Strategy: Institutional Two-Way Systematic Execution`;
                         const adjChg = (s.change_pct * winFactor).toFixed(2);
                         const isSB = s.build_up === 'SHORT_BUILD';
                         return `
-                            <div onclick="openOrderFlowModal('${s.symbol}')" class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-rose-500/50 cursor-pointer transition-all hover:bg-slate-850 group">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-1.5 truncate">
-                                        <span class="w-2 h-2 rounded-full ${isSB ? 'bg-rose-400 shadow-sm shadow-rose-400' : 'border border-amber-400'}"></span>
-                                        <span class="text-xs font-black text-white font-mono group-hover:text-rose-300 transition-colors truncate">${s.symbol}</span>
-                                    </div>
-                                    <span class="text-[9px] font-mono text-yellow-400 font-bold">${s.score}</span>
+                            <div onclick="openOrderFlowModal('${s.symbol}')" class="px-2 py-1.5 rounded-lg bg-[#19070a] border border-rose-950/90 hover:border-rose-500/60 cursor-pointer transition-all flex items-center justify-between font-mono text-[11px] group">
+                                <div class="flex items-center gap-1.5 truncate">
+                                    <span class="w-1.5 h-1.5 rounded-full ${isSB ? 'bg-rose-400 shadow-sm shadow-rose-400' : 'border border-amber-400'}"></span>
+                                    <span class="font-bold text-white group-hover:text-rose-300 transition-colors truncate text-[10px]">${s.symbol}</span>
                                 </div>
-                                <div class="flex items-center justify-between mt-1.5 font-mono text-[11px]">
-                                    <span class="font-black text-rose-400">${adjChg}%</span>
-                                    <span class="text-[10px] text-slate-400">${s.oi_change_pct > 0 ? '+' : ''}${s.oi_change_pct}% OI</span>
-                                </div>
+                                <span class="font-black text-rose-400 text-[10px]">${adjChg}%</span>
                             </div>
                         `;
                     }).join('');
@@ -5228,9 +5210,10 @@ Strategy: Institutional Two-Way Systematic Execution`;
         function drawOrderFlowCanvas() {
             const canvas = document.getElementById('flowStreamCanvas');
             if (!canvas) return;
-            const rect = canvas.getBoundingClientRect();
-            const width = rect.width || canvas.clientWidth || 800;
-            const height = rect.height || canvas.clientHeight || 200;
+            const wrapper = document.getElementById('flowCanvasWrapper') || canvas.parentElement;
+            const width = wrapper ? wrapper.clientWidth : 700;
+            const height = wrapper ? wrapper.clientHeight : 560;
+
             canvas.width = width * window.devicePixelRatio;
             canvas.height = height * window.devicePixelRatio;
             const ctx = canvas.getContext('2d');
@@ -5239,97 +5222,146 @@ Strategy: Institutional Two-Way Systematic Execution`;
             ctx.clearRect(0, 0, width, height);
 
             const midY = height / 2;
-            const startX = 60;
-            const endX = width - 40;
+            const startX = 75;
+            const endX = width - 45;
 
-            // Background grid lines
-            ctx.strokeStyle = 'rgba(51, 65, 85, 0.25)';
-            ctx.lineWidth = 1;
-            [-0.03, -0.02, -0.01, 0, 0.01, 0.02, 0.03].forEach(pct => {
-                const y = midY - (pct / 0.04) * (height * 0.42);
+            // Quasi-logarithmic mapper for Y-axis percentage
+            function pctToY(pct) {
+                const sign = pct >= 0 ? 1 : -1;
+                const absPct = Math.abs(pct);
+                const norm = Math.log10(1 + absPct * 1.5) / Math.log10(1 + 10.0 * 1.5);
+                const maxOffset = height * 0.44;
+                return midY - (sign * norm * maxOffset);
+            }
+
+            // Y-Axis Ticks matching MrChartist original
+            const yTicks = [10.0, 5.0, 2.0, 1.0, 0.5, 0.1, 0.0, -0.1, -0.5, -1.0, -2.0, -5.0, -10.0];
+            yTicks.forEach(pct => {
+                const y = pctToY(pct);
+                ctx.strokeStyle = pct === 0 ? 'rgba(148, 163, 184, 0.6)' : 'rgba(51, 65, 85, 0.25)';
+                ctx.lineWidth = pct === 0 ? 1.5 : 0.8;
+                if (pct === 0) ctx.setLineDash([4, 4]); else ctx.setLineDash([]);
                 ctx.beginPath();
                 ctx.moveTo(startX, y);
                 ctx.lineTo(endX, y);
                 ctx.stroke();
 
-                ctx.fillStyle = pct === 0 ? 'rgba(255, 255, 255, 0.5)' : (pct > 0 ? 'rgba(52, 211, 153, 0.4)' : 'rgba(251, 113, 133, 0.4)');
-                ctx.font = '9px monospace';
+                ctx.fillStyle = pct === 0 ? 'rgba(255, 255, 255, 0.7)' : (pct > 0 ? 'rgba(52, 211, 153, 0.5)' : 'rgba(251, 113, 133, 0.5)');
+                ctx.font = '8px monospace';
                 ctx.textAlign = 'right';
-                ctx.fillText((pct > 0 ? '+' : '') + (pct * 100).toFixed(1) + '%', startX - 8, y + 3);
+                const label = (pct > 0 ? '+' : '') + pct + '%';
+                ctx.fillText(label, startX - 6, y + 3);
+            });
+            ctx.setLineDash([]);
+
+            // Intraday Time Axis on bottom
+            const timeMarks = ['09:15', '10:00', '11:00', '12:00', '13:00', '14:00', '15:30'];
+            const timeStep = (endX - startX) / (timeMarks.length - 1);
+            timeMarks.forEach((t, i) => {
+                const x = startX + i * timeStep;
+                ctx.strokeStyle = 'rgba(51, 65, 85, 0.2)';
+                ctx.lineWidth = 0.8;
+                ctx.beginPath();
+                ctx.moveTo(x, 15);
+                ctx.lineTo(x, height - 20);
+                ctx.stroke();
+
+                ctx.fillStyle = '#64748b';
+                ctx.font = '8px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(t, x, height - 6);
             });
 
-            // The Zero Axis (The Bar)
-            ctx.strokeStyle = 'rgba(148, 163, 184, 0.8)';
-            ctx.setLineDash([4, 4]);
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.moveTo(startX, midY);
-            ctx.lineTo(endX, midY);
-            ctx.stroke();
-            ctx.setLineDash([]);
+            // Sector Median badges along Y-Axis on left
+            if (fullOrderFlowData && fullOrderFlowData.sectors) {
+                fullOrderFlowData.sectors.slice(0, 10).forEach(sec => {
+                    const y = pctToY(sec.median);
+                    ctx.fillStyle = sec.median >= 0 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(244, 63, 94, 0.2)';
+                    ctx.strokeStyle = sec.median >= 0 ? 'rgba(16, 185, 129, 0.5)' : 'rgba(244, 63, 94, 0.5)';
+                    ctx.lineWidth = 0.8;
+
+                    const secNameShort = sec.name.split(' ')[0];
+                    const secLabel = `${secNameShort} ${sec.median > 0 ? '+' : ''}${sec.median.toFixed(1)}%`;
+                    
+                    ctx.fillRect(startX + 6, y - 6, 68, 12);
+                    ctx.strokeRect(startX + 6, y - 6, 68, 12);
+
+                    ctx.fillStyle = sec.median >= 0 ? '#a7f3d0' : '#fecdd3';
+                    ctx.font = 'bold 7px monospace';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(secLabel, startX + 9, y + 2.5);
+                });
+            }
 
             let stocks = (fullOrderFlowData && fullOrderFlowData.all_stocks) ? fullOrderFlowData.all_stocks : [];
             if (flowCurrentScope === 'NIFTY50') stocks = stocks.filter(s => s.is_nifty50);
             if (flowCurrentSector !== 'ALL') stocks = stocks.filter(s => s.sector === flowCurrentSector);
 
-            // Upper Green Tunnel
-            const upperGrad = ctx.createLinearGradient(startX, midY, endX, midY - height * 0.4);
-            upperGrad.addColorStop(0, 'rgba(16, 185, 129, 0.02)');
-            upperGrad.addColorStop(1, 'rgba(16, 185, 129, 0.16)');
-            ctx.fillStyle = upperGrad;
-            ctx.beginPath();
-            ctx.moveTo(startX, midY);
-            ctx.bezierCurveTo(startX + (endX - startX) * 0.4, midY, startX + (endX - startX) * 0.7, midY - height * 0.44, endX, midY - height * 0.42);
-            ctx.lineTo(endX, midY);
-            ctx.closePath();
-            ctx.fill();
+            // Draw Stock Trajectories across 7 intraday points
+            stocks.forEach((s, idx) => {
+                const isBull = s.change_pct >= 0.35;
+                const isBear = s.change_pct <= -0.35;
+                const isTopLeader = idx < 6 || Math.abs(s.change_pct) >= 3.8;
 
-            // Lower Red Tunnel
-            const lowerGrad = ctx.createLinearGradient(startX, midY, endX, midY + height * 0.4);
-            lowerGrad.addColorStop(0, 'rgba(244, 63, 94, 0.02)');
-            lowerGrad.addColorStop(1, 'rgba(244, 63, 94, 0.16)');
-            ctx.fillStyle = lowerGrad;
-            ctx.beginPath();
-            ctx.moveTo(startX, midY);
-            ctx.bezierCurveTo(startX + (endX - startX) * 0.4, midY, startX + (endX - startX) * 0.7, midY + height * 0.44, endX, midY + height * 0.42);
-            ctx.lineTo(endX, midY);
-            ctx.closePath();
-            ctx.fill();
+                const strokeAlpha = isTopLeader ? 0.75 : 0.22;
+                ctx.strokeStyle = isBull ? `rgba(52, 211, 153, ${strokeAlpha})` : (isBear ? `rgba(251, 113, 133, ${strokeAlpha})` : `rgba(148, 163, 184, 0.12)`);
+                ctx.lineWidth = isTopLeader ? 1.6 : 0.9;
 
-            // Draw stock trajectories
-            stocks.slice(0, 65).forEach((s, idx) => {
-                const pct = Math.max(-0.042, Math.min(0.042, (s.change_pct / 100)));
-                const targetY = midY - (pct / 0.04) * (height * 0.42);
-                const rankRatio = (idx % 18) / 18;
-                const xPos = startX + 50 + rankRatio * (endX - startX - 70);
+                const pts = (s.intraday && s.intraday.length === 7) 
+                    ? s.intraday 
+                    : [0, s.change_pct * 0.25, s.change_pct * 0.45, s.change_pct * 0.6, s.change_pct * 0.78, s.change_pct * 0.9, s.change_pct];
 
-                const isBull = pct >= 0.0035;
-                const isBear = pct <= -0.0035;
-                ctx.strokeStyle = isBull ? 'rgba(52, 211, 153, 0.22)' : (isBear ? 'rgba(251, 113, 133, 0.22)' : 'rgba(148, 163, 184, 0.12)');
-                ctx.lineWidth = 1;
                 ctx.beginPath();
-                ctx.moveTo(startX, midY);
-                ctx.quadraticCurveTo(startX + (xPos - startX) * 0.4, midY, xPos, targetY);
+                pts.forEach((val, ptIdx) => {
+                    const x = startX + ptIdx * timeStep;
+                    const y = pctToY(val);
+                    if (ptIdx === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        const prevX = startX + (ptIdx - 1) * timeStep;
+                        const prevY = pctToY(pts[ptIdx - 1]);
+                        const cX = (prevX + x) / 2;
+                        ctx.bezierCurveTo(cX, prevY, cX, y, x, y);
+                    }
+                });
                 ctx.stroke();
 
-                const dotRadius = s.score_num >= 4 ? 3.5 : 2.5;
+                // End node dot
+                const lastY = pctToY(pts[6]);
                 ctx.fillStyle = isBull ? '#34d399' : (isBear ? '#fb7185' : '#94a3b8');
                 ctx.beginPath();
-                ctx.arc(xPos, targetY, dotRadius, 0, Math.PI * 2);
+                ctx.arc(endX, lastY, isTopLeader ? 3 : 1.8, 0, Math.PI * 2);
                 ctx.fill();
 
-                if (idx < 6 || Math.abs(s.change_pct) >= 2.6) {
+                // Leader labels on the right edge
+                if (isTopLeader) {
                     ctx.fillStyle = isBull ? '#a7f3d0' : (isBear ? '#fecdd3' : '#cbd5e1');
-                    ctx.font = 'bold 9px monospace';
+                    ctx.font = 'bold 8px monospace';
                     ctx.textAlign = 'left';
-                    ctx.fillText(s.symbol, xPos + 5, targetY + 3);
+                    ctx.fillText(s.symbol, endX + 5, lastY + 3);
                 }
             });
 
-            ctx.fillStyle = '#64748b';
-            ctx.font = 'bold 9px monospace';
-            ctx.textAlign = 'left';
-            ctx.fillText('0.00% ZERO LINE', startX + 10, midY - 6);
+            // Funnel Gates on Right Edge matching MrChartist
+            // Upper Green Funnel Gate
+            ctx.strokeStyle = 'rgba(52, 211, 153, 0.8)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(endX - 8, pctToY(8.0));
+            ctx.lineTo(endX + 2, pctToY(8.0));
+            ctx.lineTo(endX + 2, pctToY(0.5));
+            ctx.lineTo(endX - 8, pctToY(0.5));
+            ctx.stroke();
+
+            // Lower Red Funnel Gate
+            ctx.strokeStyle = 'rgba(251, 113, 133, 0.8)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(endX - 8, pctToY(-0.5));
+            ctx.lineTo(endX + 2, pctToY(-0.5));
+            ctx.lineTo(endX + 2, pctToY(-8.0));
+            ctx.lineTo(endX - 8, pctToY(-8.0));
+            ctx.stroke();
         }
 
         // ========================================================
@@ -6214,6 +6246,9 @@ Strategy: Institutional Two-Way Systematic Execution`;
                     updateStats();
                     applyFilters();
                 }
+                if (fullOrderFlowData) {
+                    renderOrderFlowBoard();
+                }
             } catch (err) {
                 console.error('Instant hydration error:', err);
             }
@@ -6590,12 +6625,20 @@ async def home():
             }
         nifty_json = json.dumps(nifty, ensure_ascii=True)
 
+        try:
+            of_payload = build_order_flow_payload()
+            of_json = json.dumps(of_payload, ensure_ascii=True)
+        except Exception:
+            of_json = "null"
+
         rendered_html = HTML_PAGE.replace(
             "let allBreakouts = [];", f"let allBreakouts = {bo_json};"
         ).replace(
             "let allBreakdowns = [];", f"let allBreakdowns = {bd_json};"
         ).replace(
             "let niftyContext = null;", f"let niftyContext = {nifty_json};"
+        ).replace(
+            "        let fullOrderFlowData = null;", f"        let fullOrderFlowData = {of_json};"
         )
         return HTMLResponse(content=rendered_html)
     except Exception as e:
