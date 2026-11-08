@@ -192,7 +192,7 @@ class AngelOneClient:
                 }
                 payload = {"clientcode": self.client_code, "password": self.pin, "totp": totp}
                 res = requests.post(
-                    "https://apiconnect.angelbroking.com/rest/auth/angelbroking/user/v1/loginByPassword",
+                    "https://apiconnect.angelone.in/rest/auth/angelbroking/user/v1/loginByPassword",
                     headers=headers, json=payload, timeout=8
                 )
                 data = res.json()
@@ -242,9 +242,10 @@ class AngelOneClient:
                     "X-MACAddress": "fe80::1",
                     "X-PrivateKey": self.api_key
                 }
+                batch_body = {"mode": mode, "exchangeTokens": payload}
                 r = requests.post(
-                    "https://apiconnect.angelbroking.com/rest/secure/angelbroking/market/v1/quote",
-                    headers=headers, json=payload, timeout=6
+                    "https://apiconnect.angelone.in/rest/secure/angelbroking/market/v1/quote",
+                    headers=headers, json=batch_body, timeout=8
                 )
                 res = r.json()
 
@@ -326,7 +327,7 @@ class AngelOneClient:
                 }
                 payload = {"exchange": exchange, "tradingsymbol": symbol, "symboltoken": str(token)}
                 r = requests.post(
-                    "https://apiconnect.angelbroking.com/rest/secure/angelbroking/market/v1/quote",
+                    "https://apiconnect.angelone.in/rest/secure/angelbroking/market/v1/quote",
                     headers=headers, json=payload, timeout=5
                 )
                 res = r.json()
