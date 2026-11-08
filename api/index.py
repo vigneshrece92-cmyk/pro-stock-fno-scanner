@@ -1043,6 +1043,7 @@ HTML_PAGE = """<!DOCTYPE html>
                         <div>
                             <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                                 NIFTY 50 INDEX <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                <span id="niftySourceBadge" class="text-[9px] px-1.5 py-0.5 rounded font-extrabold bg-emerald-950/80 text-emerald-300 border border-emerald-700/50">⚡ ANGEL ONE LIVE</span>
                             </div>
                             <div class="flex items-baseline gap-2">
                                 <span class="text-2xl font-black mono text-white" id="niftyPrice">₹25,030.35</span>
@@ -3659,16 +3660,16 @@ HTML_PAGE = """<!DOCTYPE html>
         }
 
         let autoSyncTimer = null;
-        let syncCountdown = 60;
+        let syncCountdown = 12;
 
         function startAutoSync() {
             if (autoSyncTimer) clearInterval(autoSyncTimer);
-            syncCountdown = 60;
+            syncCountdown = 12;
             autoSyncTimer = setInterval(() => {
                 syncCountdown--;
                 const label = document.getElementById('autoSyncLabel');
                 if (label) {
-                    label.innerText = 'LIVE • Sync ' + syncCountdown + 's';
+                    label.innerText = '⚡ LIVE • ' + syncCountdown + 's';
                 }
 
                 // Check for 3:15 PM IST auto-trigger
@@ -3686,14 +3687,14 @@ HTML_PAGE = """<!DOCTYPE html>
                 }
 
                 if (syncCountdown <= 0) {
-                    syncCountdown = 60;
+                    syncCountdown = 12;
                     scanNow(true);
                 }
             }, 1000);
         }
 
         async function scanNow(isSilent = false) {
-            syncCountdown = 60;
+            syncCountdown = 12;
             const icon = document.getElementById('scanIcon');
             const btn = document.getElementById('scanBtn');
             if (!isSilent) {
@@ -3738,22 +3739,45 @@ HTML_PAGE = """<!DOCTYPE html>
 
         function renderNiftyBar(nifty) {
             if (!nifty) return;
-            document.getElementById('niftyPrice').innerText = '₹' + Number(nifty.price).toLocaleString('en-IN');
+            const priceEl = document.getElementById('niftyPrice');
+            const formattedPrice = '₹' + Number(nifty.price).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            if (priceEl) {
+                if (priceEl.innerText !== formattedPrice && priceEl.innerText !== '') {
+                    priceEl.classList.add('text-cyan-300', 'scale-105');
+                    setTimeout(() => priceEl.classList.remove('text-cyan-300', 'scale-105'), 700);
+                }
+                priceEl.innerText = formattedPrice;
+            }
             const chgSign = nifty.change >= 0 ? '+' : '';
             const chgEl = document.getElementById('niftyChange');
-            chgEl.innerText = `${chgSign}${nifty.change} (${chgSign}${nifty.pct_change}%)`;
-            if (nifty.change >= 0) {
-                chgEl.className = 'text-xs font-black mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
-            } else {
-                chgEl.className = 'text-xs font-black mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30';
+            if (chgEl) {
+                chgEl.innerText = `${chgSign}${nifty.change} (${chgSign}${nifty.pct_change}%)`;
+                if (nifty.change >= 0) {
+                    chgEl.className = 'text-xs font-black mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+                } else {
+                    chgEl.className = 'text-xs font-black mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30';
+                }
             }
-            document.getElementById('niftyEma').innerText = '₹' + Number(nifty.ema20).toLocaleString('en-IN');
-            document.getElementById('niftyRange').innerText = `L: ${Number(nifty.day_low).toLocaleString('en-IN')} | H: ${Number(nifty.day_high).toLocaleString('en-IN')}`;
-            document.getElementById('niftyVix').innerText = nifty.vix;
+            const emaEl = document.getElementById('niftyEma');
+            if (emaEl) emaEl.innerText = '₹' + Number(nifty.ema20).toLocaleString('en-IN');
+            const rangeEl = document.getElementById('niftyRange');
+            if (rangeEl) rangeEl.innerText = `L: ${Number(nifty.day_low).toLocaleString('en-IN')} | H: ${Number(nifty.day_high).toLocaleString('en-IN')}`;
+            const vixEl = document.getElementById('niftyVix');
+            if (vixEl) vixEl.innerText = nifty.vix;
             
-            document.getElementById('niftyStanceText').innerText = nifty.stance;
+            const srcEl = document.getElementById('niftySourceBadge');
+            if (srcEl && nifty.data_source) {
+                const isAngel = nifty.data_source.includes('Angel');
+                srcEl.innerText = isAngel ? '⚡ ANGEL ONE LIVE' : 'FALLBACK: YAHOO';
+                srcEl.className = isAngel 
+                    ? 'text-[9px] px-1.5 py-0.5 rounded font-extrabold bg-emerald-950/80 text-emerald-300 border border-emerald-700/50' 
+                    : 'text-[9px] px-1.5 py-0.5 rounded font-extrabold bg-amber-950/80 text-amber-300 border border-amber-700/50';
+            }
+
+            const stanceEl = document.getElementById('niftyStanceText');
+            if (stanceEl) stanceEl.innerText = nifty.stance;
             const badge = document.getElementById('niftyStanceBadge');
-            badge.className = `px-3.5 py-2 rounded-xl text-xs font-black border flex items-center gap-2 ${nifty.stance_badge}`;
+            if (badge) badge.className = `px-3.5 py-2 rounded-xl text-xs font-black border flex items-center gap-2 ${nifty.stance_badge}`;
 
             renderNiftySniperCard(nifty);
             renderNiftyProTab(nifty);
@@ -7541,7 +7565,14 @@ async def home():
         ).replace(
             "        let fullOrderFlowData = null;", f"        let fullOrderFlowData = {of_json};"
         )
-        return HTMLResponse(content=rendered_html)
+        return HTMLResponse(
+            content=rendered_html,
+            headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+                "Pragma": "no-cache",
+                "Expires": "0"
+            }
+        )
     except Exception as e:
         return HTMLResponse(content=HTML_PAGE)
 
@@ -7853,7 +7884,14 @@ async def scan_endpoint():
             "count_breakdowns": len(VERIFIED_BREAKDOWN_DATA),
             "timestamp": datetime.datetime.now().isoformat()
         }
-        return JSONResponse(content=payload)
+        return JSONResponse(
+            content=payload,
+            headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+                "Pragma": "no-cache",
+                "Expires": "0"
+            }
+        )
     except Exception as e:
         return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
 

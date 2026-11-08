@@ -327,7 +327,7 @@ class AngelOneClient:
                 }
                 payload = {"exchange": exchange, "tradingsymbol": symbol, "symboltoken": str(token)}
                 r = requests.post(
-                    "https://apiconnect.angelone.in/rest/secure/angelbroking/market/v1/quote",
+                    "https://apiconnect.angelone.in/rest/secure/angelbroking/order/v1/getLtpData",
                     headers=headers, json=payload, timeout=5
                 )
                 res = r.json()
