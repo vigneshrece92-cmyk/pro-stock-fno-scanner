@@ -90,18 +90,40 @@ def get_live_angel_quote(sym: str, option_type: str = "CE") -> Optional[Dict]:
         return None
 
     try:
-        eq_matches = [s for s in scrips_cache if s.get("symbol") == f"{sym}-EQ" and s.get("exch_seg") == "NSE"]
-        if not eq_matches:
-            return None
-        
-        eq_token = eq_matches[0]["token"]
-        spot_res = smart_api.ltpData("NSE", f"{sym}-EQ", eq_token)
-        spot_ltp = spot_res.get("data", {}).get("ltp", 0.0) if spot_res.get("status") else 0.0
+        # Enforce rate-limit safe spacing (max ~2.5 req/s)
+        time.sleep(0.40)
+
+        # 1. Spot Token Resolution (handles Indices & Equities)
+        if sym == "NIFTY":
+            eq_token = "99926000"
+            eq_symbol = "Nifty 50"
+            target_inst = "OPTIDX"
+        elif sym == "BANKNIFTY":
+            eq_token = "99926009"
+            eq_symbol = "Nifty Bank"
+            target_inst = "OPTIDX"
+        else:
+            eq_matches = [s for s in scrips_cache if s.get("symbol") == f"{sym}-EQ" and s.get("exch_seg") == "NSE"]
+            if not eq_matches:
+                return None
+            eq_token = eq_matches[0]["token"]
+            eq_symbol = f"{sym}-EQ"
+            target_inst = "OPTSTK"
+
+        spot_res = smart_api.ltpData("NSE", eq_symbol, eq_token)
+        if spot_res and not spot_res.get("status"):
+            msg = str(spot_res.get("message") or "")
+            if "exceeding access rate" in msg or spot_res.get("errorcode") in ("AB8050", "AB8051"):
+                logger.warning(f"Rate limit detected for {sym}: {msg}. Backing off 2.5s...")
+                time.sleep(2.5)
+
+        spot_ltp = spot_res.get("data", {}).get("ltp", 0.0) if spot_res and spot_res.get("status") else 0.0
 
         if spot_ltp <= 0:
             return None
 
-        pool = [s for s in scrips_cache if s.get("name") == sym and s.get("exch_seg") == "NFO" and s.get("instrumenttype") == "OPTSTK"]
+        # 2. Options Resolution
+        pool = [s for s in scrips_cache if s.get("name") == sym and s.get("exch_seg") == "NFO" and s.get("instrumenttype") == target_inst]
         if not pool:
             return {"spot_ltp": spot_ltp}
 
@@ -134,8 +156,16 @@ def get_live_angel_quote(sym: str, option_type: str = "CE") -> Optional[Dict]:
         opt_token = best_contract["token"]
         opt_symbol = best_contract["symbol"]
 
+        # Enforce rate-limit safe spacing for option quote call
+        time.sleep(0.40)
         opt_res = smart_api.ltpData("NFO", opt_symbol, opt_token)
-        opt_ltp = opt_res.get("data", {}).get("ltp", 0.0) if opt_res.get("status") else 0.0
+        if opt_res and not opt_res.get("status"):
+            msg = str(opt_res.get("message") or "")
+            if "exceeding access rate" in msg or opt_res.get("errorcode") in ("AB8050", "AB8051"):
+                logger.warning(f"Rate limit detected for option {opt_symbol}: {msg}. Backing off 2.5s...")
+                time.sleep(2.5)
+
+        opt_ltp = opt_res.get("data", {}).get("ltp", 0.0) if opt_res and opt_res.get("status") else 0.0
 
         return {
             "spot_ltp": spot_ltp,

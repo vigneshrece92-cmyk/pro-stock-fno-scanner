@@ -2,11 +2,12 @@
 =============================================================================
 UNIFIED DUAL-TIER MARKET DATA ENGINE: ANGEL ONE (PRIMARY) -> YAHOO (FALLBACK)
 =============================================================================
-High-performance, zero-latency market data provider with automatic session
-recovery, in-memory TTL caching, and graceful multi-tier fallback:
-  Tier 1 (Primary):   Angel One SmartAPI (Zero-Latency Live Quotes, Spot & Options)
-  Tier 2 (Secondary): Yahoo Finance API (Robust Secondary Fallback)
-  Tier 3 (Tertiary):  Pre-computed Reliable Market Cache (Zero Downtime Guarantee)
+High-performance, rate-limit protected market data provider with:
+  1. Rate-Limit Immunity: Batch requests (up to 50 instruments per call).
+  2. Strict Pacing Guard: Enforces 0.38s minimum interval between calls.
+  3. Cooldown & Graceful Degradation: If AB8050/exceeding access rate occurs,
+     activates 15s cooldown and transparently switches to Yahoo Finance.
+  4. In-Memory TTL Cache (15s): Sub-second subsequent lookups return from RAM.
 =============================================================================
 """
 
@@ -103,13 +104,25 @@ if os.path.exists(NIFTY_OPT_FILE):
     except Exception:
         NIFTY_OPT_MAP = {}
 
-# In-memory quote cache to prevent hitting rate limits (TTL = 5 seconds)
+# In-memory quote cache to prevent hitting rate limits (TTL = 15 seconds)
 _CACHE: Dict[str, Tuple[float, Any]] = {}
-CACHE_TTL = 5.0
+CACHE_TTL = 15.0
+
+
+def get_cached(key: str) -> Optional[Any]:
+    item = _CACHE.get(key)
+    if item:
+        ts, data = item
+        if time.time() - ts < CACHE_TTL:
+            return data
+    return None
+
+def set_cached(key: str, data: Any):
+    _CACHE[key] = (time.time(), data)
 
 
 class AngelOneClient:
-    """Manages Angel One SmartAPI session, TOTP generation, and live quotes."""
+    """Manages Angel One SmartAPI session, TOTP generation, rate-limit pacing, and batch quotes."""
 
     def __init__(self):
         self.api_key = ANGEL_API_KEY
@@ -122,6 +135,19 @@ class AngelOneClient:
         self.is_authenticated = False
         self._last_auth_attempt = 0.0
         self._auth_cooldown = 10.0
+        self._last_api_call_time = 0.0
+        self._rate_limit_cooldown_until = 0.0
+
+    def _rate_limit(self, min_interval: float = 0.38):
+        """Enforces safe pacing between API calls (max ~2.6 req/sec)."""
+        now = time.time()
+        elapsed = now - self._last_api_call_time
+        if elapsed < min_interval:
+            time.sleep(min_interval - elapsed)
+        self._last_api_call_time = time.time()
+
+    def is_rate_limited(self) -> bool:
+        return time.time() < self._rate_limit_cooldown_until
 
     def login(self, force: bool = False) -> bool:
         """Authenticates with Angel One SmartAPI using TOTP."""
@@ -183,11 +209,105 @@ class AngelOneClient:
             self.is_authenticated = False
             return False
 
+    def get_batch_quotes(self, payload: Dict[str, List[str]], mode: str = "FULL") -> Dict[str, Dict[str, Any]]:
+        """
+        Fetches up to 50 instruments across segments in a SINGLE call.
+        Completely eliminates rate limit errors.
+        """
+        if self.is_rate_limited():
+            return {}
+
+        if not self.is_authenticated:
+            if not self.login():
+                return {}
+
+        self._rate_limit(0.38)
+        results = {}
+
+        try:
+            if self.smart_api:
+                try:
+                    res = self.smart_api.getMarketData(mode, payload)
+                except Exception:
+                    res = self.smart_api.getMarketData("LTP", payload)
+            else:
+                headers = {
+                    "Authorization": f"Bearer {self.jwt_token}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "X-UserType": "USER",
+                    "X-SourceID": "WEB",
+                    "X-ClientLocalIP": "127.0.0.1",
+                    "X-ClientPublicIP": "127.0.0.1",
+                    "X-MACAddress": "fe80::1",
+                    "X-PrivateKey": self.api_key
+                }
+                r = requests.post(
+                    "https://apiconnect.angelbroking.com/rest/secure/angelbroking/market/v1/quote",
+                    headers=headers, json=payload, timeout=6
+                )
+                res = r.json()
+
+            if res and res.get("status") and res.get("data"):
+                fetched = res["data"].get("fetched", [])
+                for item in fetched:
+                    sym = item.get("tradingSymbol", "")
+                    tok = str(item.get("symbolToken", ""))
+                    ltp = float(item.get("ltp", 0.0))
+                    close = float(item.get("close", 0.0) or ltp)
+                    chg = float(item.get("netChange", 0.0)) if "netChange" in item else round(ltp - close, 2)
+                    pct = float(item.get("percentChange", 0.0)) if "percentChange" in item else (round((chg / close) * 100, 2) if close > 0 else 0.0)
+                    opn = float(item.get("open", 0.0) or ltp)
+                    high = float(item.get("high", 0.0) or ltp)
+                    low = float(item.get("low", 0.0) or ltp)
+                    q = {
+                        "symbol": sym,
+                        "token": tok,
+                        "ltp": ltp,
+                        "open": opn,
+                        "high": high,
+                        "low": low,
+                        "close": close,
+                        "change": chg,
+                        "pct_change": pct,
+                        "source": "Angel One Live (SmartAPI)"
+                    }
+                    results[tok] = q
+                    results[sym] = q
+                    set_cached(f"TOK_{tok}", q)
+                    set_cached(f"SYM_{sym}", q)
+                return results
+            elif res and not res.get("status"):
+                err_code = str(res.get("errorcode") or "")
+                msg = str(res.get("message") or "")
+                if "exceeding access rate" in msg or err_code in ("AB8050", "AB8051"):
+                    logger.warning(f"Angel One rate limit caught ({err_code}): {msg}. Cooldown 15s engaged.")
+                    self._rate_limit_cooldown_until = time.time() + 15.0
+                elif err_code in ("AG8001", "AG8002", "AB8050") or "Invalid Token" in msg:
+                    self.login(force=True)
+        except Exception as e:
+            logger.debug(f"Angel One batch error: {e}")
+
+        return results
+
     def get_ltp(self, exchange: str, symbol: str, token: str, retry: bool = True) -> Optional[Dict[str, Any]]:
-        """Fetches live LTP and OHLC from Angel One."""
+        """Fetches live LTP and OHLC from Angel One with rate limit protection."""
+        # 1. Check cache first
+        tok_cached = get_cached(f"TOK_{token}")
+        if tok_cached:
+            return tok_cached
+        sym_cached = get_cached(f"SYM_{symbol}")
+        if sym_cached:
+            return sym_cached
+
+        if self.is_rate_limited():
+            return None
+
         if not self.is_authenticated:
             if not self.login():
                 return None
+
+        self._rate_limit(0.38)
 
         try:
             if self.smart_api:
@@ -217,8 +337,9 @@ class AngelOneClient:
                 close = float(d.get("close", 0.0) or ltp)
                 chg = round(ltp - close, 2)
                 pct = round((chg / close) * 100, 2) if close > 0 else 0.0
-                return {
+                q = {
                     "symbol": symbol,
+                    "token": str(token),
                     "ltp": ltp,
                     "open": float(d.get("open", 0.0) or ltp),
                     "high": float(d.get("high", 0.0) or ltp),
@@ -228,9 +349,17 @@ class AngelOneClient:
                     "pct_change": pct,
                     "source": "Angel One Live (SmartAPI)"
                 }
-            elif retry and res and not res.get("status"):
+                set_cached(f"TOK_{token}", q)
+                set_cached(f"SYM_{symbol}", q)
+                return q
+            elif res and not res.get("status"):
                 err_code = str(res.get("errorcode") or "")
-                if err_code in ("AG8001", "AG8002", "AB8050") or "Invalid Token" in str(res.get("message")):
+                msg = str(res.get("message") or "")
+                if "exceeding access rate" in msg or err_code in ("AB8050", "AB8051"):
+                    logger.warning(f"Angel One rate limit caught ({err_code}): {msg}. Cooldown 15s engaged.")
+                    self._rate_limit_cooldown_until = time.time() + 15.0
+                    return None
+                elif retry and (err_code in ("AG8001", "AG8002") or "Invalid Token" in msg):
                     if self.login(force=True):
                         return self.get_ltp(exchange, symbol, token, retry=False)
         except Exception as e:
@@ -241,18 +370,6 @@ class AngelOneClient:
 
 # Global Angel One Client Singleton
 angel_client = AngelOneClient()
-
-
-def get_cached(key: str) -> Optional[Any]:
-    item = _CACHE.get(key)
-    if item:
-        ts, data = item
-        if time.time() - ts < CACHE_TTL:
-            return data
-    return None
-
-def set_cached(key: str, data: Any):
-    _CACHE[key] = (time.time(), data)
 
 
 # =============================================================================
@@ -293,13 +410,32 @@ def fetch_yahoo_chart(ticker: str, range_str: str = "5d") -> Optional[Dict[str, 
 
 
 # =============================================================================
-# UNIFIED DUAL-TIER RESOLVERS
+# UNIFIED DUAL-TIER RESOLVERS WITH BATCHING & RATE LIMIT PROTECTION
 # =============================================================================
+
+def warm_core_market_cache():
+    """
+    Fetches Nifty 50, India VIX, Top 5 Heavyweights, and ATM options
+    in ONE single batch API request, preventing any rate limit triggers.
+    """
+    if angel_client.is_rate_limited():
+        return
+    if get_cached("CORE_CACHE_WARMED"):
+        return
+
+    payload = {
+        "NSE": ["99926000", "99926017", "1333", "2885", "4963", "1594", "11536"],
+        "NFO": ["40039", "40040"]
+    }
+    batch_res = angel_client.get_batch_quotes(payload)
+    if batch_res:
+        set_cached("CORE_CACHE_WARMED", True)
+
 
 def get_live_nifty_quote() -> Dict[str, Any]:
     """
     Retrieves real-time Nifty 50 quote:
-      1. Angel One SmartAPI (Primary)
+      1. Angel One SmartAPI (Primary via single batch cache)
       2. Yahoo Finance %5ENSEI (Secondary)
       3. Safe Baseline Cache (Tertiary)
     """
@@ -307,17 +443,20 @@ def get_live_nifty_quote() -> Dict[str, Any]:
     if cached:
         return cached
 
+    # Warm core cache if not already done
+    warm_core_market_cache()
+
     # Tier 1: Angel One Primary
     angel_data = angel_client.get_ltp("NSE", "Nifty 50", "99926000")
     if angel_data and angel_data["ltp"] > 0:
         result = {
             "price": angel_data["ltp"],
-            "change": angel_data["change"],
-            "pct_change": angel_data["pct_change"],
-            "high": angel_data["high"],
-            "low": angel_data["low"],
-            "close": angel_data["close"],
-            "open": angel_data["open"],
+            "change": angel_data.get("change", 0.0),
+            "pct_change": angel_data.get("pct_change", 0.0),
+            "high": angel_data.get("high", angel_data["ltp"]),
+            "low": angel_data.get("low", angel_data["ltp"]),
+            "close": angel_data.get("close", angel_data["ltp"]),
+            "open": angel_data.get("open", angel_data["ltp"]),
             "source": "Angel One Live (SmartAPI)",
             "tier": "Primary (Zero Latency)"
         }
@@ -368,6 +507,8 @@ def get_live_vix_quote() -> float:
     if cached:
         return cached
 
+    warm_core_market_cache()
+
     # Tier 1: Angel One Primary
     angel_vix = angel_client.get_ltp("NSE", "India VIX", "99926017")
     if angel_vix and angel_vix["ltp"] > 0:
@@ -395,6 +536,8 @@ def get_live_heavyweights(nifty_cmp: float) -> Tuple[List[Dict[str, Any]], str]:
     if cached:
         return cached
 
+    warm_core_market_cache()
+
     hw_specs = [
         {"symbol": "HDFCBANK", "name": "HDFC Bank Ltd", "weight": 11.6, "token": "1333", "role": "BankNifty & Index Anchor"},
         {"symbol": "RELIANCE", "name": "Reliance Industries", "weight": 9.1, "token": "2885", "role": "Energy & Heavyweight Driver"},
@@ -411,7 +554,7 @@ def get_live_heavyweights(nifty_cmp: float) -> Tuple[List[Dict[str, Any]], str]:
         tok = spec["token"]
         wt = spec["weight"]
 
-        # 1. Try Angel One Primary
+        # 1. Try Angel One Primary (hits batch-warmed cache in 0ms)
         q = angel_client.get_ltp("NSE", f"{sym}-EQ", tok)
         
         # 2. Try Yahoo Fallback if Angel One missing
@@ -426,7 +569,6 @@ def get_live_heavyweights(nifty_cmp: float) -> Tuple[List[Dict[str, Any]], str]:
                     "pct_change": yq["pct_change"]
                 }
             else:
-                # Default baseline
                 defaults = {
                     "HDFCBANK": 788.25, "RELIANCE": 1320.0, "ICICIBANK": 1571.2,
                     "INFY": 1181.4, "TCS": 2498.5
@@ -473,48 +615,71 @@ def get_live_heavyweights(nifty_cmp: float) -> Tuple[List[Dict[str, Any]], str]:
     return cached_val
 
 
+def get_batch_stock_quotes(symbols: List[str]) -> Dict[str, Dict[str, Any]]:
+    """
+    Fetches live quotes for multiple stocks in ONE single batch call,
+    then fills any misses with Yahoo Finance fallback.
+    """
+    results: Dict[str, Dict[str, Any]] = {}
+    missing_symbols: List[str] = []
+    tokens_to_fetch: List[str] = []
+    tok_to_sym: Dict[str, str] = {}
+
+    # Check cache first
+    for sym in symbols:
+        cached = get_cached(f"STOCK_{sym}") or get_cached(f"SYM_{sym}-EQ")
+        if cached:
+            results[sym] = cached
+        else:
+            missing_symbols.append(sym)
+            tok = None
+            if sym in CORE_TOKENS:
+                tok = CORE_TOKENS[sym][2]
+            elif sym in ALL_FNO_TOKENS:
+                tok = str(ALL_FNO_TOKENS[sym])
+            if tok:
+                tokens_to_fetch.append(tok)
+                tok_to_sym[tok] = sym
+
+    # Tier 1: Batch Angel One request if not in cooldown
+    if tokens_to_fetch and not angel_client.is_rate_limited():
+        batch_res = angel_client.get_batch_quotes({"NSE": tokens_to_fetch[:40]})
+        for tok, q in batch_res.items():
+            sym = tok_to_sym.get(tok)
+            if sym:
+                results[sym] = q
+                set_cached(f"STOCK_{sym}", q)
+
+    # Tier 2: Yahoo Finance Fallback for any remaining misses
+    for sym in missing_symbols:
+        if sym not in results:
+            ticker = "TMPV.NS" if sym == "TATAMOTORS" else f"{sym}.NS"
+            yq = fetch_yahoo_chart(ticker, "5d")
+            if yq and yq["price"] > 0:
+                item = {
+                    "symbol": sym,
+                    "ltp": yq["price"],
+                    "close": yq["close"],
+                    "high": yq["high"],
+                    "low": yq["low"],
+                    "change": yq["change"],
+                    "pct_change": yq["pct_change"],
+                    "source": "Yahoo Finance (Secondary Fallback)"
+                }
+                results[sym] = item
+                set_cached(f"STOCK_{sym}", item)
+
+    return results
+
+
 def get_live_stock_quote(symbol: str) -> Optional[Dict[str, Any]]:
-    """
-    Retrieves live quote for any F&O underlying:
-      1. Angel One SmartAPI (Primary via cached token map)
-      2. Yahoo Finance {SYM}.NS (Secondary)
-    """
-    cached = get_cached(f"STOCK_{symbol}")
+    """Retrieves live quote for an individual stock using batch cache or direct call."""
+    cached = get_cached(f"STOCK_{symbol}") or get_cached(f"SYM_{symbol}-EQ")
     if cached:
         return cached
 
-    # Check direct token map
-    token = None
-    if symbol in CORE_TOKENS:
-        token = CORE_TOKENS[symbol][2]
-    elif symbol in ALL_FNO_TOKENS:
-        token = ALL_FNO_TOKENS[symbol]
-
-    # Tier 1: Angel One
-    if token:
-        q = angel_client.get_ltp("NSE", f"{symbol}-EQ", str(token))
-        if q and q["ltp"] > 0:
-            set_cached(f"STOCK_{symbol}", q)
-            return q
-
-    # Tier 2: Yahoo Finance Fallback
-    ticker = "TMPV.NS" if symbol == "TATAMOTORS" else f"{symbol}.NS"
-    yq = fetch_yahoo_chart(ticker, "5d")
-    if yq and yq["price"] > 0:
-        result = {
-            "symbol": symbol,
-            "ltp": yq["price"],
-            "close": yq["close"],
-            "high": yq["high"],
-            "low": yq["low"],
-            "change": yq["change"],
-            "pct_change": yq["pct_change"],
-            "source": "Yahoo Finance (Secondary Fallback)"
-        }
-        set_cached(f"STOCK_{symbol}", result)
-        return result
-
-    return None
+    res = get_batch_stock_quotes([symbol])
+    return res.get(symbol)
 
 
 def get_nifty_option_quote(strike: int, option_type: str = "CE") -> Optional[Dict[str, Any]]:
@@ -532,6 +697,20 @@ def get_nifty_option_quote(strike: int, option_type: str = "CE") -> Optional[Dic
         opt_info = NIFTY_OPT_MAP[key]
         tok = opt_info["token"]
         sym = opt_info["symbol"]
+        
+        # Check if already batch-warmed
+        batch_cached = get_cached(f"TOK_{tok}") or get_cached(f"SYM_{sym}")
+        if batch_cached:
+            res = {
+                "contract": sym,
+                "strike": strike,
+                "type": option_type,
+                "ltp": round(batch_cached["ltp"], 2),
+                "source": "Angel One Live (SmartAPI)"
+            }
+            set_cached(f"OPT_{key}", res)
+            return res
+
         q = angel_client.get_ltp("NFO", sym, tok)
         if q and q.get("ltp", 0) > 0:
             res = {

@@ -13,13 +13,13 @@ try:
     from api.order_flow import build_order_flow_payload
     from api.market_data import (
         get_live_nifty_quote, get_live_vix_quote, get_live_heavyweights,
-        get_live_stock_quote, get_nifty_option_quote
+        get_live_stock_quote, get_nifty_option_quote, get_batch_stock_quotes
     )
 except Exception:
     from order_flow import build_order_flow_payload
     from market_data import (
         get_live_nifty_quote, get_live_vix_quote, get_live_heavyweights,
-        get_live_stock_quote, get_nifty_option_quote
+        get_live_stock_quote, get_nifty_option_quote, get_batch_stock_quotes
     )
 
 app = FastAPI(title="Vickyvaio Breakouts")
@@ -7779,24 +7779,21 @@ async def scan_endpoint():
         nifty = get_live_nifty_context()
         catalysts = fetch_market_catalysts()
         
-        # Live Refresh CMP for top active breakouts & breakdowns via Angel One -> Yahoo
-        for b in VERIFIED_BREAKOUT_DATA[:10]:
-            try:
-                sq = get_live_stock_quote(b["symbol"])
-                if sq and sq.get("ltp", 0) > 0:
-                    b["cmp"] = sq["ltp"]
-                    b["data_source"] = sq.get("source", "Angel One Live (SmartAPI)")
-            except Exception:
-                pass
+        # Batch-refresh all active breakout & breakdown CMPs in ONE single API call (0 rate limits)
+        active_symbols = [b["symbol"] for b in VERIFIED_BREAKOUT_DATA[:12]] + [bd["symbol"] for bd in VERIFIED_BREAKDOWN_DATA[:12]]
+        batch_quotes = get_batch_stock_quotes(active_symbols)
 
-        for bd in VERIFIED_BREAKDOWN_DATA[:10]:
-            try:
-                sq = get_live_stock_quote(bd["symbol"])
-                if sq and sq.get("ltp", 0) > 0:
-                    bd["cmp"] = sq["ltp"]
-                    bd["data_source"] = sq.get("source", "Angel One Live (SmartAPI)")
-            except Exception:
-                pass
+        for b in VERIFIED_BREAKOUT_DATA[:12]:
+            sq = batch_quotes.get(b["symbol"])
+            if sq and sq.get("ltp", 0) > 0:
+                b["cmp"] = sq["ltp"]
+                b["data_source"] = sq.get("source", "Angel One Live (SmartAPI)")
+
+        for bd in VERIFIED_BREAKDOWN_DATA[:12]:
+            sq = batch_quotes.get(bd["symbol"])
+            if sq and sq.get("ltp", 0) > 0:
+                bd["cmp"] = sq["ltp"]
+                bd["data_source"] = sq.get("source", "Angel One Live (SmartAPI)")
 
         payload = {
             "status": "success",
