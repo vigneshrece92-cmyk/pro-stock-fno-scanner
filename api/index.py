@@ -904,8 +904,67 @@ HTML_PAGE = """<!DOCTYPE html>
             </div>
         </div>
 
-        
-        <!-- Institutional Two-Way Market Mode Switcher -->
+        <!-- NIFTY 50 LIVE SNIPER RADAR CARD -->
+        <div id="niftySniperCard" class="relative overflow-hidden rounded-2xl border border-sky-500/40 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 p-4 shadow-2xl backdrop-blur-md">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                
+                <!-- Left: Sniper Status & Contract -->
+                <div class="flex items-center gap-3.5">
+                    <div class="w-12 h-12 rounded-2xl bg-sky-500/20 border border-sky-500/40 flex items-center justify-center text-sky-400 shrink-0 shadow-lg shadow-sky-500/20">
+                        <i data-lucide="crosshair" class="w-6 h-6 animate-pulse"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-xs font-black uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
+                                🎯 NIFTY 50 SNIPER ENTRY
+                            </span>
+                            <span id="niftySniperBadge" class="px-2.5 py-0.5 rounded-md text-[10px] font-black border bg-emerald-500/20 text-emerald-300 border-emerald-500/40">
+                                🟢 BUY CALL ACTIVE (MOMENTUM EXPANSION)
+                            </span>
+                        </div>
+                        <div class="text-lg font-black text-white flex items-center gap-2 mt-0.5">
+                            <span id="niftySniperContract">NIFTY 25050 CE</span>
+                            <span class="text-xs font-bold text-slate-400 font-mono">(Spot: ₹<span id="niftySniperSpot">25,030.35</span>)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Middle: Key Strike Parameters (Entry, SL, Targets) -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 w-full lg:w-auto font-mono text-center">
+                    <div class="bg-slate-950 p-2.5 rounded-xl border border-sky-500/30">
+                        <div class="text-[10px] text-sky-300 font-bold uppercase">⚡ BUY LIMIT</div>
+                        <div class="text-base font-black text-sky-400" id="niftySniperEntry">₹125.0</div>
+                    </div>
+                    <div class="bg-slate-950 p-2.5 rounded-xl border border-rose-500/30">
+                        <div class="text-[10px] text-rose-300 font-bold uppercase">🛡️ SL (-30%)</div>
+                        <div class="text-base font-black text-rose-400" id="niftySniperSl">₹87.5</div>
+                    </div>
+                    <div class="bg-slate-950 p-2.5 rounded-xl border border-emerald-500/30">
+                        <div class="text-[10px] text-emerald-300 font-bold uppercase">🎯 TARGET 1 (+45%)</div>
+                        <div class="text-base font-black text-emerald-400" id="niftySniperT1">₹181.5</div>
+                    </div>
+                    <div class="bg-slate-950 p-2.5 rounded-xl border border-amber-500/30">
+                        <div class="text-[10px] text-amber-300 font-bold uppercase">🚀 TARGET 2 (+95%)</div>
+                        <div class="text-base font-black text-amber-300" id="niftySniperT2">₹244.0</div>
+                    </div>
+                </div>
+
+                <!-- Right: Capital, Lot & Actions -->
+                <div class="flex items-center gap-2 w-full lg:w-auto justify-between lg:justify-end border-t lg:border-t-0 pt-3 lg:pt-0 border-slate-800">
+                    <div class="text-right text-xs font-mono hidden sm:block pr-2">
+                        <div class="text-[10px] text-slate-400">Lot: <span class="text-white font-bold" id="niftySniperLot">25</span> | Capital</div>
+                        <div class="text-slate-200 font-black" id="niftySniperMargin">₹3,125</div>
+                    </div>
+                    <button onclick="copyNiftySniperAlert()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs flex items-center gap-1.5 transition-all active:scale-95 border border-slate-700">
+                        <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Order
+                    </button>
+                    <button onclick="dispatchNiftySniperTelegram()" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-black text-xs flex items-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-sky-500/20">
+                        <i data-lucide="send" class="w-3.5 h-3.5"></i> Push Alert
+                    </button>
+                </div>
+
+            </div>
+        </div>
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900/90 p-2.5 rounded-2xl border border-slate-800 shadow-xl">
             <div class="flex items-center gap-2 w-full sm:w-auto">
                 <button onclick="setMarketMode('BULLISH')" id="modeBullishBtn" class="flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 bg-emerald-500 text-black shadow-lg shadow-emerald-500/20 active:scale-95">
@@ -2479,6 +2538,112 @@ HTML_PAGE = """<!DOCTYPE html>
             document.getElementById('niftyStanceText').innerText = nifty.stance;
             const badge = document.getElementById('niftyStanceBadge');
             badge.className = `px-3.5 py-2 rounded-xl text-xs font-black border flex items-center gap-2 ${nifty.stance_badge}`;
+
+            renderNiftySniperCard(nifty);
+        }
+
+        function renderNiftySniperCard(nifty) {
+            if (!nifty) return;
+            const price = Number(nifty.price) || 25030.35;
+            const step = 50;
+            const atm = Math.round(price / step) * step;
+            const ema20 = Number(nifty.ema20) || 23393.14;
+            const isBull = price >= ema20;
+
+            const contractType = isBull ? 'CE' : 'PE';
+            const contract = 'NIFTY ' + atm + ' ' + contractType;
+            const entry = Math.round(price * 0.0050 * 10) / 10;
+            const sl = Math.round(entry * 0.70 * 10) / 10;
+            const t1 = Math.round(entry * 1.45 * 10) / 10;
+            const t2 = Math.round(entry * 1.95 * 10) / 10;
+            const lot = 25;
+            const margin = Math.round(entry * lot);
+
+            const contractEl = document.getElementById('niftySniperContract');
+            if (contractEl) contractEl.innerText = contract;
+            const spotEl = document.getElementById('niftySniperSpot');
+            if (spotEl) spotEl.innerText = Number(price).toLocaleString('en-IN');
+            const entryEl = document.getElementById('niftySniperEntry');
+            if (entryEl) entryEl.innerText = '₹' + entry.toFixed(1);
+            const slEl = document.getElementById('niftySniperSl');
+            if (slEl) slEl.innerText = '₹' + sl.toFixed(1);
+            const t1El = document.getElementById('niftySniperT1');
+            if (t1El) t1El.innerText = '₹' + t1.toFixed(1);
+            const t2El = document.getElementById('niftySniperT2');
+            if (t2El) t2El.innerText = '₹' + t2.toFixed(1);
+            const marginEl = document.getElementById('niftySniperMargin');
+            if (marginEl) marginEl.innerText = '₹' + margin.toLocaleString('en-IN');
+
+            const badgeEl = document.getElementById('niftySniperBadge');
+            if (badgeEl) {
+                if (isBull) {
+                    badgeEl.className = 'px-2.5 py-0.5 rounded-md text-[10px] font-black border bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
+                    badgeEl.innerText = '🟢 BUY CALL ACTIVE (MOMENTUM EXPANSION)';
+                } else {
+                    badgeEl.className = 'px-2.5 py-0.5 rounded-md text-[10px] font-black border bg-rose-500/20 text-rose-300 border-rose-500/40';
+                    badgeEl.innerText = '🩸 BUY PUT ACTIVE (BREAKDOWN EXPANSION)';
+                }
+            }
+        }
+
+        function copyNiftySniperAlert() {
+            const contract = document.getElementById('niftySniperContract') ? document.getElementById('niftySniperContract').innerText : 'NIFTY 25050 CE';
+            const entry = document.getElementById('niftySniperEntry') ? document.getElementById('niftySniperEntry').innerText : '₹125.0';
+            const sl = document.getElementById('niftySniperSl') ? document.getElementById('niftySniperSl').innerText : '₹87.5';
+            const t1 = document.getElementById('niftySniperT1') ? document.getElementById('niftySniperT1').innerText : '₹181.5';
+            const t2 = document.getElementById('niftySniperT2') ? document.getElementById('niftySniperT2').innerText : '₹244.0';
+            const margin = document.getElementById('niftySniperMargin') ? document.getElementById('niftySniperMargin').innerText : '₹3,125';
+            
+            const lines = [
+                '🎯 *NIFTY 50 SNIPER TRADE ALERT*',
+                '━━━━━━━━━━━━━━━━━━━',
+                '• *Contract:* ' + contract,
+                '• *Buy Limit Entry:* ' + entry,
+                '• *Stop-Loss (-30%):* ' + sl,
+                '• *Target 1 (+45%):* ' + t1,
+                '• *Target 2 (+95%):* ' + t2,
+                '• *Lot Size:* 25 | *Capital:* ' + margin,
+                '• *Strategy:* 20 EMA + Camarilla Multi-Confluence',
+                '━━━━━━━━━━━━━━━━━━━',
+                '🔗 [Live Terminal](https://pro-stock-fno-scanner.vercel.app)'
+            ];
+            const text = lines.join('\\n');
+            navigator.clipboard.writeText(text);
+            showToast('⚡ Copied ' + contract + ' Sniper Order to Clipboard!');
+        }
+
+        async function dispatchNiftySniperTelegram() {
+            const contract = document.getElementById('niftySniperContract') ? document.getElementById('niftySniperContract').innerText : 'NIFTY 25050 CE';
+            const entry = document.getElementById('niftySniperEntry') ? document.getElementById('niftySniperEntry').innerText : '₹125.0';
+            const sl = document.getElementById('niftySniperSl') ? document.getElementById('niftySniperSl').innerText : '₹87.5';
+            const t1 = document.getElementById('niftySniperT1') ? document.getElementById('niftySniperT1').innerText : '₹181.5';
+            const t2 = document.getElementById('niftySniperT2') ? document.getElementById('niftySniperT2').innerText : '₹244.0';
+            const margin = document.getElementById('niftySniperMargin') ? document.getElementById('niftySniperMargin').innerText : '₹3,125';
+            
+            const lines = [
+                '🎯 *NIFTY 50 INSTITUTIONAL SNIPER ALERT*',
+                '━━━━━━━━━━━━━━━━━━━',
+                '• *Contract:* ' + contract,
+                '• *Buy Limit Entry:* ' + entry,
+                '• *Stop-Loss (-30%):* ' + sl,
+                '• *Target 1 (+45%):* ' + t1,
+                '• *Target 2 (+95% Doubler):* ' + t2,
+                '• *Lot Size:* 25 | *Capital:* ' + margin,
+                '• *Strategy:* 20 EMA + Camarilla Multi-Confluence',
+                '━━━━━━━━━━━━━━━━━━━',
+                '🔗 [Live Terminal](https://pro-stock-fno-scanner.vercel.app)'
+            ];
+            const text = lines.join('\\n');
+            try {
+                await fetch('/api/telegram/send', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ message: text })
+                });
+                showToast('⚡ Dispatched ' + contract + ' Sniper Alert to Telegram!');
+            } catch (e) {
+                showToast('Failed to dispatch alert.');
+            }
         }
 
         

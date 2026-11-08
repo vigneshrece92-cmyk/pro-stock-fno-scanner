@@ -186,7 +186,47 @@ def run_cloud_scan():
         nifty_info = data.get("nifty", {})
         nifty_change = nifty_info.get("change_pct", 0.0)
         nifty_cmp = nifty_info.get("cmp", 24500)
-        nifty_trend = "BULLISH 🟢" if nifty_change > 0.15 else ("BEARISH 🔴" if nifty_change < -0.15 else "NEUTRAL / CHOPPY ⚪")
+        # Check NIFTY Index Sniper Setup
+        if "NIFTY" not in dispatched:
+            n_price = nifty_info.get("cmp", nifty_info.get("price", 25030.35))
+            n_change = nifty_info.get("change_pct", nifty_info.get("pct_change", 0.0))
+            n_ema = nifty_info.get("ema20", 23393.14)
+            is_nifty_bull = (n_price >= n_ema) and (n_change >= 0.15)
+            is_nifty_bear = (n_price < n_ema) and (n_change <= -0.15)
+
+            if is_nifty_bull or is_nifty_bear:
+                n_atm = round(n_price / 50) * 50
+                n_type = "CE" if is_nifty_bull else "PE"
+                n_emoji = "🎯" if is_nifty_bull else "🩸"
+                n_contract = f"NIFTY {n_atm} {n_type}"
+
+                n_angel = get_live_angel_quote("NIFTY", option_type=n_type)
+                if n_angel and n_angel.get("opt_ltp", 0) > 0:
+                    n_entry = round(n_angel["opt_ltp"], 1)
+                else:
+                    n_entry = round(n_price * 0.0050, 1)
+
+                n_sl = round(n_entry * 0.70, 1)
+                n_t1 = round(n_entry * 1.45, 1)
+                n_t2 = round(n_entry * 1.95, 1)
+                n_lot = 25
+                n_capital = round(n_entry * n_lot)
+
+                n_msg = (
+                    f"{n_emoji} *{n_contract}* (NIFTY SNIPER)\n"
+                    f"━━━━━━━━━━━━━━━━━━━\n"
+                    f"• *Buy Limit:* ₹{n_entry}\n"
+                    f"• *Stop-Loss:* ₹{n_sl} (-30%)\n"
+                    f"• *Target 1:* ₹{n_t1} (+45%)\n"
+                    f"• *Target 2:* ₹{n_t2} (+95% Doubler)\n"
+                    f"• *Lot:* {n_lot} | *Capital:* ₹{n_capital:,}\n"
+                    f"• *Setup:* 20 EMA + Camarilla Confluence\n"
+                    f"━━━━━━━━━━━━━━━━━━━\n"
+                    f"🔗 [Terminal](https://pro-stock-fno-scanner.vercel.app)"
+                )
+                logger.info(f"Dispatching NIFTY Sniper Alert to Telegram: {n_contract}")
+                send_telegram_alert(n_msg)
+                dispatched.add("NIFTY")
 
         dispatched_count = 0
         for item in all_candidates:
