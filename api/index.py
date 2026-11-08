@@ -1797,8 +1797,8 @@ HTML_PAGE = """<!DOCTYPE html>
             <!-- 2. MASTER SPLIT: LEFT (THE STREAM) + RIGHT (THE BOARD) -->
             <div class="grid grid-cols-1 xl:grid-cols-12 gap-3 min-h-[760px]">
 
-                <!-- LEFT SIDE: THE STREAM / TRAJECTORY FLOW CANVAS (xl:col-span-6) -->
-                <div class="xl:col-span-6 rounded-2xl bg-[#05080c] border border-slate-800/90 relative overflow-hidden flex flex-col p-3.5 shadow-2xl">
+                <!-- LEFT SIDE: THE STREAM / TRAJECTORY FLOW CANVAS (xl:col-span-5) -->
+                <div class="xl:col-span-5 rounded-2xl bg-[#05080c] border border-slate-800/90 relative overflow-hidden flex flex-col p-3.5 shadow-2xl">
                     <!-- Canvas Top Strip -->
                     <div class="flex justify-between items-center mb-2 z-10">
                         <div class="flex items-center gap-2">
@@ -1830,8 +1830,8 @@ HTML_PAGE = """<!DOCTYPE html>
                     </div>
                 </div>
 
-                <!-- RIGHT SIDE: THE BOARD (BULLS OVER BEARS) (xl:col-span-6) -->
-                <div class="xl:col-span-6 flex flex-col gap-2.5 relative" id="ofBoardRightSide">
+                <!-- RIGHT SIDE: THE BOARD (BULLS OVER BEARS) (xl:col-span-7) -->
+                <div class="xl:col-span-7 flex flex-col gap-2.5 relative" id="ofBoardRightSide">
 
                     <!-- INLINE IN-PLACE STOCK INSPECTOR ("A Stock in Full") - Hidden by default, replaces/overlays board on tile click -->
                     <div id="ofInlineInspector" class="hidden rounded-2xl bg-[#080d14] border border-slate-700/80 p-5 space-y-4 shadow-2xl flex-col">
@@ -5300,7 +5300,7 @@ Strategy: Institutional Two-Way Systematic Execution`;
                 }
             }
 
-            // 4. Render Bulls Tiles Grid (3 Columns with Avatar Monograms & Build-up Dot)
+            // 4. Render Bulls Tiles Grid (3 Columns with Avatar Monograms & Build-up Dot, 2-line layout)
             const bTilesGrid = document.getElementById('bullsTilesGrid');
             if (bTilesGrid) {
                 if (bulls.length === 0) {
@@ -5311,14 +5311,19 @@ Strategy: Institutional Two-Way Systematic Execution`;
                         const isLB = s.build_up === 'LONG_BUILD';
                         const monogram = getSymbolMonogram(s.symbol);
                         return `
-                            <div onclick="openOrderFlowStockInFull('${s.symbol}')" class="px-2 py-1.5 rounded-lg bg-[#07170e] border border-emerald-950/90 hover:border-emerald-400/80 hover:bg-[#0b2416] cursor-pointer transition-all flex items-center justify-between font-mono text-[11px] group shadow-sm">
-                                <div class="flex items-center gap-1.5 truncate">
-                                    <span class="w-5 h-5 rounded bg-black/60 border border-slate-700/80 text-[8.5px] font-bold text-white flex items-center justify-center flex-shrink-0">${monogram}</span>
-                                    <span class="font-bold text-white group-hover:text-emerald-300 transition-colors truncate text-[10px]">${s.symbol}</span>
+                            <div onclick="openOrderFlowStockInFull('${s.symbol}')" class="px-2 py-1.5 rounded-lg bg-[#07170e] border border-emerald-950/90 hover:border-emerald-400/80 hover:bg-[#0c2417] cursor-pointer transition-all flex flex-col justify-center gap-0.5 font-mono group shadow-sm min-h-[42px] overflow-hidden">
+                                <!-- Line 1: Avatar Monogram + Full Symbol Name -->
+                                <div class="flex items-center gap-1.5 min-w-0">
+                                    <span class="w-4 h-4 rounded bg-black/70 border border-slate-700/80 text-[7.5px] font-black text-slate-300 flex items-center justify-center flex-shrink-0 leading-none">${monogram}</span>
+                                    <span class="font-bold text-white group-hover:text-emerald-300 transition-colors text-[10.5px] leading-tight truncate tracking-tight">${s.symbol}</span>
                                 </div>
-                                <div class="flex items-center gap-1.5 flex-shrink-0">
-                                    <span class="font-black text-emerald-400 text-[10px]">+${adjChg}%</span>
-                                    <span class="w-1.5 h-1.5 rounded-full ${isLB ? 'bg-emerald-400 shadow-sm shadow-emerald-400' : 'border border-cyan-400'}"></span>
+                                <!-- Line 2: Percentage Change + Buildup Indicator Dot -->
+                                <div class="flex items-center justify-between min-w-0 pl-0.5 text-[9.5px] leading-tight">
+                                    <span class="font-black text-emerald-400 leading-none">+${adjChg}%</span>
+                                    <div class="flex items-center gap-1 flex-shrink-0">
+                                        <span class="text-[7.5px] text-slate-500 font-bold uppercase">${isLB ? 'LB' : 'SC'}</span>
+                                        <span class="w-1.5 h-1.5 rounded-full ${isLB ? 'bg-emerald-400 shadow-[0_0_4px_rgba(52,211,153,0.8)]' : 'border border-cyan-400'}"></span>
+                                    </div>
                                 </div>
                             </div>
                         `;
@@ -5337,7 +5342,7 @@ Strategy: Institutional Two-Way Systematic Execution`;
                 }
             }
 
-            // 6. Render Bears Tiles Grid (3 Columns with Avatar Monograms & Build-up Dot)
+            // 6. Render Bears Tiles Grid (3 Columns with Avatar Monograms & Build-up Dot, 2-line layout)
             const beTilesGrid = document.getElementById('bearsTilesGrid');
             if (beTilesGrid) {
                 if (bears.length === 0) {
@@ -5348,14 +5353,19 @@ Strategy: Institutional Two-Way Systematic Execution`;
                         const isSB = s.build_up === 'SHORT_BUILD';
                         const monogram = getSymbolMonogram(s.symbol);
                         return `
-                            <div onclick="openOrderFlowStockInFull('${s.symbol}')" class="px-2 py-1.5 rounded-lg bg-[#19070a] border border-rose-950/90 hover:border-rose-400/80 hover:bg-[#260b10] cursor-pointer transition-all flex items-center justify-between font-mono text-[11px] group shadow-sm">
-                                <div class="flex items-center gap-1.5 truncate">
-                                    <span class="w-5 h-5 rounded bg-black/60 border border-slate-700/80 text-[8.5px] font-bold text-white flex items-center justify-center flex-shrink-0">${monogram}</span>
-                                    <span class="font-bold text-white group-hover:text-rose-300 transition-colors truncate text-[10px]">${s.symbol}</span>
+                            <div onclick="openOrderFlowStockInFull('${s.symbol}')" class="px-2 py-1.5 rounded-lg bg-[#180609] border border-rose-950/90 hover:border-rose-400/80 hover:bg-[#270b11] cursor-pointer transition-all flex flex-col justify-center gap-0.5 font-mono group shadow-sm min-h-[42px] overflow-hidden">
+                                <!-- Line 1: Avatar Monogram + Full Symbol Name -->
+                                <div class="flex items-center gap-1.5 min-w-0">
+                                    <span class="w-4 h-4 rounded bg-black/70 border border-slate-700/80 text-[7.5px] font-black text-slate-300 flex items-center justify-center flex-shrink-0 leading-none">${monogram}</span>
+                                    <span class="font-bold text-white group-hover:text-rose-300 transition-colors text-[10.5px] leading-tight truncate tracking-tight">${s.symbol}</span>
                                 </div>
-                                <div class="flex items-center gap-1.5 flex-shrink-0">
-                                    <span class="font-black text-rose-400 text-[10px]">${adjChg}%</span>
-                                    <span class="w-1.5 h-1.5 rounded-full ${isSB ? 'bg-rose-400 shadow-sm shadow-rose-400' : 'border border-amber-400'}"></span>
+                                <!-- Line 2: Percentage Change + Buildup Indicator Dot -->
+                                <div class="flex items-center justify-between min-w-0 pl-0.5 text-[9.5px] leading-tight">
+                                    <span class="font-black text-rose-400 leading-none">${adjChg}%</span>
+                                    <div class="flex items-center gap-1 flex-shrink-0">
+                                        <span class="text-[7.5px] text-slate-500 font-bold uppercase">${isSB ? 'SB' : 'LU'}</span>
+                                        <span class="w-1.5 h-1.5 rounded-full ${isSB ? 'bg-rose-400 shadow-[0_0_4px_rgba(251,113,133,0.8)]' : 'border border-amber-400'}"></span>
+                                    </div>
                                 </div>
                             </div>
                         `;
