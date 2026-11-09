@@ -295,6 +295,7 @@ def build_nifty_advanced_intelligence(price, chg, pct, ema20, day_high, day_low,
         "cas_prediction": cas_prediction,
         "next_day_315_prediction": next_day_315,
         "predictions": predictions,
+        "option_quote": option_quote,
         "data_source": data_source,
         "provider_tier": "Tier 1: Angel One SmartAPI (Primary)" if "Angel" in data_source else "Tier 2: Yahoo Finance (Secondary Fallback)"
     }
@@ -3563,8 +3564,10 @@ HTML_PAGE = """<!DOCTYPE html>
                             </div>
                         </div>
                         <div class="text-right">
-                            <div class="text-xs text-slate-400 uppercase">Live Spot CMP</div>
-                            <div class="text-2xl font-black mono ${isBull ? 'text-emerald-400' : 'text-rose-400'}">₹${item.cmp}</div>
+                            <div class="text-[10px] font-bold text-emerald-400 font-mono uppercase flex items-center justify-end gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> Live Spot CMP
+                            </div>
+                            <div id="cmp_${item.symbol}" class="text-2xl font-black mono ${isBull ? 'text-emerald-400' : 'text-rose-400'} transition-all">₹${item.cmp}</div>
                         </div>
                     </div>
 
@@ -3612,7 +3615,7 @@ HTML_PAGE = """<!DOCTYPE html>
                             <div class="space-y-1.5 mono text-xs">
                                 <div class="flex justify-between items-center"><span class="text-slate-400">Strike:</span> <span class="font-extrabold text-amber-300">${item.option_trade.strike}</span></div>
                                 <div class="flex justify-between items-center"><span class="text-slate-400">Angel One Symbol:</span> <span class="font-mono text-cyan-300 font-bold bg-cyan-950/70 hover:bg-cyan-900 px-1.5 py-0.5 rounded border border-cyan-800/50 text-[11px] select-all cursor-pointer transition-all active:scale-95" onclick="navigator.clipboard.writeText('${item.option_trade.contract}'); alert('Copied Angel One Contract: ${item.option_trade.contract}'); event.stopPropagation();" title="Click to copy Angel One trading symbol">${item.option_trade.contract} <i data-lucide="copy" class="inline w-3 h-3 ml-0.5 text-cyan-400"></i></span></div>
-                                <div class="flex justify-between items-center"><span class="text-slate-400">Live Premium:</span> <span class="font-bold text-emerald-400">₹${item.option_trade.entry} <span class="text-[10px] text-emerald-500 font-normal">● Live</span></span></div>
+                                <div class="flex justify-between items-center"><span class="text-slate-400">Live Premium:</span> <span class="font-bold text-emerald-400 font-mono">₹<span id="prem_${item.symbol}">${item.option_trade.entry}</span> <span class="text-[10px] text-emerald-300 font-bold bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-500/40">⚡ Live</span></span></div>
                                 <div class="flex justify-between"><span class="text-slate-400">Option SL (-30%):</span> <span class="font-bold text-rose-400">₹${item.option_trade.sl}</span></div>
                                 <div class="flex justify-between"><span class="text-slate-400">Target 1 (+45%):</span> <span class="font-bold text-emerald-400">₹${item.option_trade.tgt1} (+₹${Number(item.option_trade.profit_tgt1).toLocaleString('en-IN')})</span></div>
                                 <div class="flex justify-between"><span class="text-slate-400">Target 2 (+95% Doubler):</span> <span class="font-bold text-emerald-400">₹${item.option_trade.tgt2} (+₹${Number(item.option_trade.profit_tgt2).toLocaleString('en-IN')})</span></div>
@@ -3660,16 +3663,17 @@ HTML_PAGE = """<!DOCTYPE html>
         }
 
         let autoSyncTimer = null;
-        let syncCountdown = 12;
+        let syncCountdown = 8;
+        let isScanRunning = false;
 
         function startAutoSync() {
             if (autoSyncTimer) clearInterval(autoSyncTimer);
-            syncCountdown = 12;
+            syncCountdown = 8;
             autoSyncTimer = setInterval(() => {
                 syncCountdown--;
                 const label = document.getElementById('autoSyncLabel');
                 if (label) {
-                    label.innerText = '⚡ LIVE • ' + syncCountdown + 's';
+                    label.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 ${syncCountdown <= 2 ? 'animate-ping' : 'animate-pulse'}"></span> LIVE • ${syncCountdown}s`;
                 }
 
                 // Check for 3:15 PM IST auto-trigger
@@ -3688,22 +3692,29 @@ HTML_PAGE = """<!DOCTYPE html>
                 }
 
                 if (syncCountdown <= 0) {
-                    syncCountdown = 12;
+                    syncCountdown = 8;
                     scanNow(true);
                 }
             }, 1000);
         }
 
         async function scanNow(isSilent = false) {
-            syncCountdown = 12;
+            if (isScanRunning) return;
+            isScanRunning = true;
+            syncCountdown = 8;
             const icon = document.getElementById('scanIcon');
             const btn = document.getElementById('scanBtn');
             if (!isSilent) {
                 if (icon) icon.classList.add('animate-spin');
                 if (btn) btn.disabled = true;
             }
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 7500);
+
             try {
-                const res = await fetch('/api/scan?t=' + Date.now());
+                const res = await fetch('/api/scan?t=' + Date.now(), { signal: controller.signal });
+                clearTimeout(timeoutId);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const json = await res.json();
                 if (json.nifty) {
                     niftyContext = json.nifty;
@@ -3727,9 +3738,17 @@ HTML_PAGE = """<!DOCTYPE html>
                 updateStats();
                 applyFilters();
                 checkAndDispatchAutoTelegramAlerts();
+
+                const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                const syncEl = document.getElementById('syncTime');
+                if (syncEl) syncEl.innerText = `${timeStr} IST`;
+                if (!isSilent) showToast(`⚡ Angel One Live Sync Complete • ${timeStr}`);
             } catch (e) {
                 console.log('Error fetching scan:', e);
+                if (!isSilent) showToast('⚠️ Live price sync retrying in 3s...');
             } finally {
+                clearTimeout(timeoutId);
+                isScanRunning = false;
                 if (!isSilent) {
                     if (icon) icon.classList.remove('animate-spin');
                     if (btn) btn.disabled = false;
@@ -3737,6 +3756,16 @@ HTML_PAGE = """<!DOCTYPE html>
                 updateTime();
             }
         }
+
+        // Auto-refresh instantly when user returns to this browser tab
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                scanNow(true);
+            }
+        });
+        window.addEventListener('focus', () => {
+            scanNow(true);
+        });
 
         function renderNiftyBar(nifty) {
             if (!nifty) return;
@@ -3792,19 +3821,22 @@ HTML_PAGE = """<!DOCTYPE html>
             const ema20 = Number(nifty.ema20) || 23393.14;
             const isBull = price >= ema20;
 
+            const cas = nifty.cas_prediction || {};
+            const optQ = nifty.option_quote || {};
+
             const contractType = isBull ? 'CE' : 'PE';
-            const contract = 'NIFTY ' + atm + ' ' + contractType;
-            const entry = Math.round(price * 0.0050 * 10) / 10;
-            const sl = Math.round(entry * 0.70 * 10) / 10;
-            const t1 = Math.round(entry * 1.45 * 10) / 10;
-            const t2 = Math.round(entry * 1.95 * 10) / 10;
+            const contract = optQ.contract || cas.recommended_contract || ('NIFTY ' + atm + ' ' + contractType);
+            const entry = (optQ && Number(optQ.ltp) > 0) ? Number(optQ.ltp) : ((cas && Number(cas.entry_price) > 0) ? Number(cas.entry_price) : Math.round(price * 0.0050 * 10) / 10);
+            const sl = (cas && Number(cas.overnight_sl) > 0) ? Number(cas.overnight_sl) : Math.round(entry * 0.70 * 10) / 10;
+            const t1 = (cas && Number(cas.opening_target) > 0) ? Number(cas.opening_target) : Math.round(entry * 1.45 * 10) / 10;
+            const t2 = (cas && Number(cas.target2) > 0) ? Number(cas.target2) : Math.round(entry * 1.95 * 10) / 10;
             const lot = 65;
             const margin = Math.round(entry * lot);
 
             const contractEl = document.getElementById('niftySniperContract');
             if (contractEl) contractEl.innerText = contract;
             const spotEl = document.getElementById('niftySniperSpot');
-            if (spotEl) spotEl.innerText = Number(price).toLocaleString('en-IN');
+            if (spotEl) spotEl.innerText = Number(price).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             const entryEl = document.getElementById('niftySniperEntry');
             if (entryEl) entryEl.innerText = '₹' + entry.toFixed(1);
             const slEl = document.getElementById('niftySniperSl');
@@ -3823,7 +3855,7 @@ HTML_PAGE = """<!DOCTYPE html>
                     badgeEl.innerText = '🟢 BUY CALL ACTIVE (MOMENTUM EXPANSION)';
                 } else {
                     badgeEl.className = 'px-2.5 py-0.5 rounded-md text-[10px] font-black border bg-rose-500/20 text-rose-300 border-rose-500/40';
-                    badgeEl.innerText = '🩸 BUY PUT ACTIVE (BREAKDOWN EXPANSION)';
+                    badgeEl.innerText = '🔴 BUY PUT ACTIVE (BEARISH DISTRIBUTION)';
                 }
             }
         }
@@ -7534,9 +7566,70 @@ Strategy: Institutional Two-Way Systematic Execution`;
 </html>
 """
 
+def refresh_top_fno_quotes(items_limit: int = 15):
+    """
+    Batch-refreshes live CMPs and Option Premiums directly from Angel One OpenAPI
+    for top active breakout and breakdown candidates in ONE single request.
+    """
+    active_items = VERIFIED_BREAKOUT_DATA[:items_limit] + VERIFIED_BREAKDOWN_DATA[:items_limit]
+    nse_tokens = [str(item["eq_token"]) for item in active_items if "eq_token" in item]
+    nfo_tokens = [str(item["option_trade"]["token"]) for item in active_items if "token" in item.get("option_trade", {})]
+    
+    batch_payload = {}
+    if nse_tokens:
+        batch_payload["NSE"] = nse_tokens[:25]
+    if nfo_tokens:
+        batch_payload["NFO"] = nfo_tokens[:25]
+        
+    angel_quotes = {}
+    if batch_payload:
+        try:
+            from api.market_data import angel_client
+            angel_quotes = angel_client.get_batch_quotes(batch_payload)
+        except Exception:
+            try:
+                from market_data import angel_client
+                angel_quotes = angel_client.get_batch_quotes(batch_payload)
+            except Exception:
+                pass
+
+    if angel_quotes:
+        for item in active_items:
+            eq_tok = str(item.get("eq_token", ""))
+            if eq_tok and eq_tok in angel_quotes:
+                sq = angel_quotes[eq_tok]
+                if sq.get("ltp", 0) > 0:
+                    item["cmp"] = sq["ltp"]
+                    item["data_source"] = sq.get("source", "Angel One Live (SmartAPI)")
+                    st = item.get("stock_trade", {})
+                    st["entry"] = sq["ltp"]
+
+            opt = item.get("option_trade")
+            if opt:
+                opt_tok = str(opt.get("token", ""))
+                oq = angel_quotes.get(opt_tok) if opt_tok else None
+                if not oq and opt.get("contract"):
+                    oq = angel_quotes.get(opt["contract"])
+                if oq and oq.get("ltp", 0) > 0:
+                    live_entry = oq["ltp"]
+                    opt["entry"] = live_entry
+                    opt["sl"] = round(live_entry * 0.70, 2)
+                    opt["tgt1"] = round(live_entry * 1.45, 2)
+                    opt["tgt2"] = round(live_entry * 1.95, 2)
+                    lot = opt.get("lot_size", 100)
+                    opt["margin_required"] = round(live_entry * lot, 2)
+                    opt["profit_tgt1"] = round((opt["tgt1"] - live_entry) * lot, 2)
+                    opt["profit_tgt2"] = round((opt["tgt2"] - live_entry) * lot, 2)
+                    opt["source"] = oq.get("source", "Angel One Live (SmartAPI)")
+
 @app.get("/", response_class=HTMLResponse)
 async def home():
     try:
+        try:
+            refresh_top_fno_quotes(15)
+        except Exception as e:
+            logger.debug(f"Pre-refreshing quotes in home error: {e}")
+
         bo_json = json.dumps(VERIFIED_BREAKOUT_DATA, ensure_ascii=True)
         bd_json = json.dumps(VERIFIED_BREAKDOWN_DATA, ensure_ascii=True)
         try:
@@ -7872,64 +7965,11 @@ async def scan_endpoint():
         nifty = get_live_nifty_context()
         catalysts = fetch_market_catalysts()
         
-        # Batch-refresh all active breakout & breakdown CMPs AND Option Premiums in ONE single API call (0 rate limits)
-        active_items = VERIFIED_BREAKOUT_DATA[:12] + VERIFIED_BREAKDOWN_DATA[:12]
-        nse_tokens = [item["eq_token"] for item in active_items if "eq_token" in item]
-        nfo_tokens = [item["option_trade"]["token"] for item in active_items if "token" in item.get("option_trade", {})]
-        
-        batch_payload = {}
-        if nse_tokens:
-            batch_payload["NSE"] = nse_tokens[:25]
-        if nfo_tokens:
-            batch_payload["NFO"] = nfo_tokens[:25]
-            
-        angel_quotes = {}
-        if batch_payload:
-            try:
-                from api.market_data import angel_client
-                angel_quotes = angel_client.get_batch_quotes(batch_payload)
-            except Exception:
-                try:
-                    from market_data import angel_client
-                    angel_quotes = angel_client.get_batch_quotes(batch_payload)
-                except Exception:
-                    pass
-
-        for item in active_items:
-            eq_tok = item.get("eq_token")
-            if eq_tok and eq_tok in angel_quotes:
-                sq = angel_quotes[eq_tok]
-                if sq.get("ltp", 0) > 0:
-                    item["cmp"] = sq["ltp"]
-                    item["data_source"] = sq.get("source", "Angel One Live (SmartAPI)")
-
-            opt = item.get("option_trade")
-            if opt:
-                opt_tok = opt.get("token")
-                oq = angel_quotes.get(opt_tok) if opt_tok else None
-                if not oq and opt.get("contract"):
-                    oq = angel_quotes.get(opt["contract"])
-                if oq and oq.get("ltp", 0) > 0:
-                    live_entry = oq["ltp"]
-                    opt["entry"] = live_entry
-                    opt["sl"] = round(live_entry * 0.70, 2)
-                    opt["tgt1"] = round(live_entry * 1.45, 2)
-                    opt["tgt2"] = round(live_entry * 1.95, 2)
-                    lot = opt.get("lot_size", 100)
-                    opt["margin_required"] = round(live_entry * lot, 2)
-                    opt["profit_tgt1"] = round((opt["tgt1"] - live_entry) * lot, 2)
-                    opt["profit_tgt2"] = round((opt["tgt2"] - live_entry) * lot, 2)
-                    opt["source"] = oq.get("source", "Angel One Live (SmartAPI)")
-
-        missing_symbols = [b["symbol"] for b in active_items if "data_source" not in b]
-        if missing_symbols:
-            fb_quotes = get_batch_stock_quotes(missing_symbols)
-            for item in active_items:
-                if item["symbol"] in fb_quotes:
-                    sq = fb_quotes[item["symbol"]]
-                    if sq and sq.get("ltp", 0) > 0:
-                        item["cmp"] = sq["ltp"]
-                        item["data_source"] = sq.get("source", "Yahoo Finance (Secondary Fallback)")
+        # Batch-refresh all active breakout & breakdown CMPs AND Option Premiums directly from Angel One
+        try:
+            refresh_top_fno_quotes(20)
+        except Exception as e:
+            logger.debug(f"Error refreshing batch quotes in scan: {e}")
 
         payload = {
             "status": "success",
