@@ -4263,11 +4263,74 @@ HTML_PAGE = """<!DOCTYPE html>
         }
 
         function simulate315Prediction() {
-            showToast('⚡ Running 3:15 PM Closing Auction & Overnight Derivative Algorithm...');
-            setTimeout(() => {
-                renderNiftyProTab(niftyContext);
-                showToast('🎯 3:15 PM Algorithm Confirmed: 78% Gap-Up Probability • CAS CE Biased!');
-            }, 400);
+            showToast('⚡ Simulating 3:15 PM Closing Auction & Overnight BTST/STBT Engine...');
+            const spot = (niftyContext && Number(niftyContext.price)) ? Number(niftyContext.price) : 24930.5;
+            const chg = (niftyContext && typeof niftyContext.change !== 'undefined') ? Number(niftyContext.change) : -68.4;
+            const isBull = chg >= 0;
+            const atm = Math.round(spot / 50) * 50;
+
+            // Roll forward to tomorrow's active contract (not today's expiring 09-Nov)
+            const targetExpiry = "12-NOV-2026";
+            const verdict = isBull ? "CE" : "PE";
+            const contract = `NIFTY12NOV26${atm}${verdict}`;
+            
+            const estEntry = isBull ? 118.5 : 124.0;
+            const sl = Math.round(estEntry * 0.70 * 10) / 10;
+            const t1 = Math.round(estEntry * 1.48 * 10) / 10;
+            const t2 = Math.round(estEntry * 1.96 * 10) / 10;
+
+            const simCas = {
+                verdict: verdict,
+                verdict_title: isBull ? 'CE (CALL) BIASED • INSTITUTIONAL ACCUMULATION' : 'PE (PUT) BIASED • INSTITUTIONAL DISTRIBUTION',
+                verdict_badge: isBull ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/30' : 'bg-rose-500 text-white shadow-lg shadow-rose-500/30',
+                score: isBull ? 82 : -74,
+                ce_strength: isBull ? 78 : 24,
+                pe_strength: isBull ? 22 : 76,
+                settlement_vwap: Math.round((spot - (isBull ? 28.5 : -31.2)) * 10) / 10,
+                vwap_spread: isBull ? '+28.5 pts Above VWAP' : '-31.2 pts Below Settlement VWAP',
+                moc_net_flow: isBull ? '+₹580 Cr Net MOC Buy Imbalance' : '-₹520 Cr Net MOC Sell Imbalance',
+                oi_bias: isBull ? `Call Unwinding • Put Writing at ${atm}` : `Heavy Call Writing at ${atm} • Put Writers Liquidating`,
+                recommended_contract: contract,
+                entry_price: estEntry,
+                overnight_sl: sl,
+                opening_target: t1,
+                target2: t2
+            };
+
+            const sim315 = {
+                projected_open: isBull ? 'GAP-UP RECOVERY (+65 to +110 pts)' : 'GAP-DOWN FLUSH (-70 to -125 pts)',
+                projected_range: isBull ? `${atm + 50} -- ${atm + 100} Spot` : `${atm - 100} -- ${atm - 50} Spot`,
+                probability: isBull ? 74 : 76,
+                recommended_play: isBull ? `BTST Long: Carry ${contract} into Tuesday open` : `STBT Short: Carry ${contract} into Tuesday open`,
+                entry_range: `₹${(estEntry * 0.98).toFixed(1)} -- ₹${(estEntry * 1.02).toFixed(1)} (3:15-3:20 PM execution)`,
+                sl_spot: isBull ? `${Math.round(spot - 65)} Spot (or ₹${sl} Option SL)` : `${Math.round(spot + 65)} Spot (or ₹${sl} Option SL)`,
+                t1_open: `₹${t1} (+48% at 9:18 AM Open)`,
+                t2_open: `₹${t2} (+96% Doubler at 9:30 AM Momentum)`,
+                overnight_catalysts: isBull ? [
+                    "Intraday dip absorption around 24,840 support confirmed by DII buy flow",
+                    "Closing short-covering detected across banking and auto heavyweights",
+                    "Gift Nifty expected to price in positive European recovery into tomorrow",
+                    "3:15 PM settlement VWAP confirms accumulation baseline"
+                ] : [
+                    "Sellers in control with Nifty sustaining below 20 EMA and intraday VWAP",
+                    "Top 5 Heavyweights (Reliance, Infosys, TCS) showing net sell-side MOC overhang",
+                    "Call writers aggressively defending 25,000 / 24,950 strikes into close",
+                    "Break below Camarilla Pivot confirms STBT carry into Tuesday morning"
+                ]
+            };
+
+            if (!niftyContext) niftyContext = {};
+            niftyContext.cas_prediction = simCas;
+            niftyContext.next_day_315_prediction = sim315;
+
+            // Render fresh simulation
+            renderNiftyProTab(niftyContext);
+
+            // Visual feedback on card
+            const pProbEl = document.getElementById('pred315Prob');
+            if (pProbEl) pProbEl.innerText = `${sim315.probability}% PROBABILITY (SIMULATED)`;
+
+            showToast(`🎯 3:15 PM Plan Simulated for Tuesday (10-Nov): ${verdict} BIASED • Contract: ${contract}`);
         }
 
         function copyCasAlert() {
